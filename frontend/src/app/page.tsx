@@ -14,9 +14,9 @@ const url_igdb_t_original = process.env.NEXT_PUBLIC_URL_IGDB_T_ORIGINAL
 
 export default function Home() {
   const router = useRouter();
-  const [upcomingReleases, setUpcomingReleases] = useState<UpcomingReleases[]>();
-  const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvents[]>();
-  const [allTimeFavs, setAllTimeFavs] = useState<AllTimeFavs[]>();
+  const [upcomingReleases, setUpcomingReleases] = useState<UpcomingReleases[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvents[]>([]);
+  const [allTimeFavs, setAllTimeFavs] = useState<AllTimeFavs[]>([]);
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -24,9 +24,10 @@ export default function Home() {
       const urData = await getUpcomingReleases();
       const atfData = await getAllTimeFavorites();
 
-      setUpcomingEvents(ueData);
-      setUpcomingReleases(urData);
-      setAllTimeFavs(atfData);
+      // TODO: implement error handling for below
+      if (ueData.ok) setUpcomingEvents(ueData.data);
+      if (urData.ok) setUpcomingReleases(urData.data);
+      if (atfData.ok) setAllTimeFavs(atfData.data);
     }
     fetchAllData();
   }, [])

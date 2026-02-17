@@ -15,12 +15,13 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { getGameDetails } from '@/lib/api/igdb';
+import { ApiError, getGameDetails } from '@/lib/api/igdb';
 import { BsBookmark, BsBookmarkCheckFill, BsCollection, BsCollectionFill } from "react-icons/bs";
 import PageError from '@/components/PageError';
 import PageSkeleton from '@/components/PageSkeleton';
 import { useUser } from '@auth0/nextjs-auth0';
 import { saveGame } from '@/lib/api/db';
+
 
 const url_igdb_t_original = process.env.NEXT_PUBLIC_URL_IGDB_T_ORIGINAL;
 const outOfOrder = '/imgs/out-of-order.jpg'
@@ -31,29 +32,57 @@ export default function GameInfo() {
     const router = useRouter();
     const params = useSearchParams();
     const gameId = params.get("gameId");
-    const [gameDetails, setGameDetails] = useState<GameData>();
+    const [gameDetails, setGameDetails] = useState<GameData | null>(null);
     const [bannerBgUrl, setBannerBgUrl] = useState<string>();
     const [selectedImg, setSelectedImg] = useState<string | null>("");
-    const [loading, setLoading] = useState<boolean>(true);
     const [mark, setMark] = useState<Mark>(null);
     const [saving, setSaving] = useState<boolean>(false);
     const { user } = useUser();
+    const [error, setError] = useState<ApiError | null>(null)
+    const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+
     const currentPath = `/game-info?gameId=${gameId}`;
 
 
     useEffect(() => {
-        setGameDetails(undefined);
+        let active = true;
 
         const fetchGameDetails = async () => {
-            if (!gameId) return;
+            if (!gameId) {
+                if (!active) return;
+                setStatus("error");
+                setError({ status: 400, code: "BAD_REQUEST", message: "Missing GameId" })
+                return;
+            }
 
-            const data = await getGameDetails(gameId);
-            setGameDetails(data);
-            setBanner(data);
-            setLoading(false);
-        }
+            setStatus("loading");
+            setGameDetails(null);
+            setError(null);
+
+            const result = await getGameDetails(gameId);
+            if (!active) return;
+
+            if (result.ok) {
+                setGameDetails(result.data);
+                setStatus("success");
+            } else {
+                setError(result.error);
+                setStatus("error");
+            }
+        };
+
         fetchGameDetails();
+        return () => { active = false }
     }, [gameId]);
+
+    useEffect(() => {
+        if (!gameDetails) return;
+        if (gameDetails.artworks?.length > 0) {
+            setBannerBgUrl(`${url_igdb_t_original}${gameDetails['artworks'][0]['image_id']}.jpg`);
+        } else if (gameDetails.screenshots?.length > 0) {
+            setBannerBgUrl(`${url_igdb_t_original}${gameDetails['screenshots'][0]['image_id']}.jpg`);
+        } else setBannerBgUrl("") // TODO:should have a default image here 
+    }, [gameDetails])
 
     const handleMark = async (next: Exclude<Mark, null>) => {
         if (!gameDetails) return;
@@ -70,7 +99,10 @@ export default function GameInfo() {
                 const { accessToken } = await tokenResponse.json();
 
                 // Pass token to saveGame
-                await saveGame(gameDetails, newMark === "collected", newMark === "want", accessToken);
+                const resp = await saveGame(gameDetails, newMark === "collected", newMark === "want", accessToken);
+                
+                console.log(resp)
+                setSaving(false);
             } catch (error) {
                 console.error("Error saving game:", error);
                 setSaving(false);
@@ -79,20 +111,15 @@ export default function GameInfo() {
         }
     }
 
-
-
-    const setBanner = (data: GameData | undefined) => {
-        if (gameDetails) {
-            if (gameDetails.artworks?.length > 0) {
-                setBannerBgUrl(`${url_igdb_t_original}${gameDetails['artworks'][0]['image_id']}.jpg`);
-            } else if (gameDetails.screenshots?.length > 0) {
-                setBannerBgUrl(`${url_igdb_t_original}${gameDetails['screenshots'][0]['image_id']}.jpg`);
-            } else setBannerBgUrl("")
-        }
+    const goToDifferentGame = (id: number) => {
+        // setLoading(true);
+        router.push(`/game-info?gameId=${id}`)
     }
 
-    if (loading) return <PageSkeleton />;
-    if (!gameDetails) return <PageError />;
+    if (status === "loading") return <PageSkeleton />;
+    if (status === "error") return <PageError />;
+    // future change for error page
+    // if (status === "error") return <PageError code={error?.code} message={error?.message} />; 
 
     return (
         <div className="flex min-h-screen items-center justify-center font-sans bg-background text-foreground">
@@ -112,7 +139,7 @@ export default function GameInfo() {
                     {/* Game Details */}
                     <div className='bg-secondary p-3 rounded-xl'>
                         {/* Game Title */}
-                        {gameDetails.name &&
+                        {gameDetails?.name &&
                             <div className='flex justify-between'>
                                 <h1 className='ps-6 text-4xl font-bold w-full justify-center flex'>{gameDetails.name}</h1>
                                 <div className="flex gap-3 pe-3">
@@ -134,7 +161,7 @@ export default function GameInfo() {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 ">
                             <aside className="col-span-1 flex flex-col gap-4">
                                 {/* Cover Image */}
-                                {gameDetails.cover &&
+                                {gameDetails?.cover &&
                                     <div className='relative h-96 w-full'>
                                         <Image
                                             src={`${url_igdb_t_original}${gameDetails.cover?.image_id}.jpg`}
@@ -146,13 +173,13 @@ export default function GameInfo() {
                                     </div>
                                 }
 
-                                {gameDetails.rating && <div><strong>Rating:</strong> {gameDetails.rating.toFixed(2)} ({gameDetails.rating_count} votes)</div>}
-                                {gameDetails.total_rating && <div><strong>Total Rating:</strong> {gameDetails.total_rating.toFixed(2)} ({gameDetails.total_rating_count} votes)</div>}
-                                {gameDetails.first_release_date && <div><strong>Release Date:</strong> {formatUnixTime(gameDetails.first_release_date)}</div>}
-                                {gameDetails.game_type?.type && <div><strong>Game Type:</strong> {gameDetails.game_type.type}</div>}
+                                {gameDetails?.rating && <div><strong>Rating:</strong> {gameDetails.rating.toFixed(2)} ({gameDetails.rating_count} votes)</div>}
+                                {gameDetails?.total_rating && <div><strong>Total Rating:</strong> {gameDetails.total_rating.toFixed(2)} ({gameDetails.total_rating_count} votes)</div>}
+                                {gameDetails?.first_release_date && <div><strong>Release Date:</strong> {formatUnixTime(gameDetails.first_release_date)}</div>}
+                                {gameDetails?.game_type?.type && <div><strong>Game Type:</strong> {gameDetails.game_type.type}</div>}
                                 {/* Franchises */}
                                 {
-                                    gameDetails.franchises && gameDetails.franchises.length > 0 &&
+                                    gameDetails?.franchises && gameDetails.franchises.length > 0 &&
                                     <section>
                                         <strong>Franchises</strong>
                                         <ul className='flex flex-wrap gap-2'>
@@ -164,7 +191,7 @@ export default function GameInfo() {
                                 }
                                 {/* Involved Companies */}
                                 {
-                                    gameDetails.involved_companies && gameDetails.involved_companies.length > 0 &&
+                                    gameDetails?.involved_companies && gameDetails.involved_companies.length > 0 &&
                                     <section>
                                         <strong>Involved Companies</strong>
                                         <ul className='flex flex-wrap gap-2'>
@@ -180,13 +207,13 @@ export default function GameInfo() {
                             </aside>
 
                             <section className="col-span-2 flex flex-col gap-4">
-                                {gameDetails.summary &&
+                                {gameDetails?.summary &&
                                     <div>
                                         <h2 className="text-2xl font-semibold mb-2">Summary</h2>
                                         <p>{gameDetails.summary}</p>
                                     </div>
                                 }
-                                {gameDetails.storyline &&
+                                {gameDetails?.storyline &&
                                     <div>
                                         <h2 className="text-2xl font-semibold mb-2">Storyline</h2>
                                         <p>{gameDetails.storyline}</p>
@@ -195,7 +222,7 @@ export default function GameInfo() {
                                 <div className='grid grid-cols-2'>
                                     {/* Platforms */}
                                     {
-                                        gameDetails.platforms && gameDetails.platforms.length > 0 &&
+                                        gameDetails?.platforms && gameDetails.platforms.length > 0 &&
                                         <section>
                                             <h4 className="text-2xl font-semibold mb-2">Platforms</h4>
                                             <ul className='flex flex-wrap gap-2'>
@@ -213,7 +240,7 @@ export default function GameInfo() {
 
                                     {/* Genres */}
                                     {
-                                        gameDetails.genres && gameDetails.genres.length > 0 &&
+                                        gameDetails?.genres && gameDetails.genres.length > 0 &&
                                         <section>
                                             <h4 className="text-2xl font-semibold mb-2">Genres</h4>
                                             <ul className='flex flex-wrap gap-2'>
@@ -231,7 +258,7 @@ export default function GameInfo() {
 
                                     {/* Themes */}
                                     {
-                                        gameDetails.themes && gameDetails.themes.length > 0 &&
+                                        gameDetails?.themes && gameDetails.themes.length > 0 &&
                                         <section>
                                             <h4 className="text-2xl font-semibold mb-2">Themes</h4>
                                             <ul className='flex flex-wrap gap-2'>
@@ -249,7 +276,7 @@ export default function GameInfo() {
 
                                     {/* Player Perspectives */}
                                     {
-                                        gameDetails.player_perspectives && gameDetails.player_perspectives.length > 0 &&
+                                        gameDetails?.player_perspectives && gameDetails.player_perspectives.length > 0 &&
                                         <section>
                                             <h4 className="text-2xl font-semibold mb-2">Player Perspectives</h4>
                                             <ul className='flex flex-wrap gap-2'>
@@ -267,7 +294,7 @@ export default function GameInfo() {
 
                                     {/* Game Modes */}
                                     {
-                                        gameDetails.game_modes && gameDetails.game_modes.length > 0 &&
+                                        gameDetails?.game_modes && gameDetails.game_modes.length > 0 &&
                                         <section>
                                             <h4 className="text-2xl font-semibold mb-2">Game Modes</h4>
                                             <ul className='flex flex-wrap gap-2'>
@@ -289,7 +316,7 @@ export default function GameInfo() {
 
                                 {/* DLCs */}
                                 {
-                                    gameDetails.dlcs && gameDetails.dlcs.length > 0 && (
+                                    gameDetails?.dlcs && gameDetails.dlcs.length > 0 && (
                                         <section>
                                             <h4 className="text-2xl font-semibold mb-2">DLCs</h4>
                                             <ul className='flex flex-wrap gap-2'>
@@ -297,7 +324,7 @@ export default function GameInfo() {
                                                     <li
                                                         key={`dlc-${dlc.id}`}
                                                         className="bg-background text-secondary-foreground p-2 rounded-lg w-30 cursor-pointer"
-                                                        onClick={() => { router.push(`/game-info?gameId=${dlc.id}`) }}
+                                                        onClick={() => goToDifferentGame(dlc.id)}
                                                     >
                                                         <div className='relative aspect-square'>
                                                             <Image
@@ -317,7 +344,7 @@ export default function GameInfo() {
 
                                 {/* Bundles */}
                                 {
-                                    gameDetails.bundles && gameDetails.bundles.length > 0 && (
+                                    gameDetails?.bundles && gameDetails.bundles.length > 0 && (
                                         <section>
                                             <h4 className="text-2xl font-semibold mb-2">Bundles</h4>
                                             <ul className='flex flex-wrap gap-2'>
@@ -325,7 +352,7 @@ export default function GameInfo() {
                                                     <li
                                                         key={`bundle-${bundle.id}`}
                                                         className="bg-background text-secondary-foreground p-2 rounded-lg w-30 cursor-pointer"
-                                                        onClick={() => { router.push(`/game-info?gameId=${bundle.id}`) }}
+                                                        onClick={() => goToDifferentGame(bundle.id)}
                                                     >
                                                         <div className={`relative aspect-square`}>
                                                             <Image
@@ -346,7 +373,7 @@ export default function GameInfo() {
 
                                 {/* Expanded Games */}
                                 {
-                                    gameDetails.expanded_games && gameDetails.expanded_games.length > 0 && (
+                                    gameDetails?.expanded_games && gameDetails.expanded_games.length > 0 && (
                                         <section>
                                             <h4 className="text-2xl font-semibold mb-2">Expanded Games</h4>
                                             <ul className='flex flex-wrap gap-2'>
@@ -355,7 +382,7 @@ export default function GameInfo() {
                                                     <li
                                                         key={`expanded-game-${game.id}`}
                                                         className="bg-background text-secondary-foreground p-2 rounded-lg w-30 cursor-pointer"
-                                                        onClick={() => { router.push(`/game-info?gameId=${game.id}`) }}
+                                                        onClick={() => goToDifferentGame(game.id)}
                                                     >
                                                         <div className={`relative aspect-square`}>
                                                             <Image
@@ -381,7 +408,7 @@ export default function GameInfo() {
                         </DialogTrigger>
                         <DialogContent
                             showCloseButton={false}
-                            className="bg-transparent border-none shadow-none p-0 flex items-center justify-center w-[95vw] h-[95vh] md:w-[80vw] md:h-[90vh] lg:max-w-6xl"
+                            className="bg-transparent border-none shadow-none p-0 flex items-center justify-center w-[95vw] h-[60vh]  lg:max-w-6xl"
                         >
                             <DialogHeader className="hidden">
                                 <DialogTitle>
@@ -403,7 +430,7 @@ export default function GameInfo() {
 
 
                     {/* Screenshots */}
-                    {gameDetails.screenshots && gameDetails.screenshots.length > 0 &&
+                    {gameDetails?.screenshots && gameDetails.screenshots.length > 0 &&
                         <section className='w-full'>
                             <h2 className="text-2xl font-semibold mb-2">Screenshots</h2>
                             <div className='flex justify-center'>
@@ -441,7 +468,7 @@ export default function GameInfo() {
 
                     {/* Artworks */}
                     {
-                        gameDetails.artworks && gameDetails.artworks.length > 0 &&
+                        gameDetails?.artworks && gameDetails.artworks.length > 0 &&
                         <section className='w-full'>
                             <h2 className="text-2xl font-semibold mb-2">Artworks</h2>
 
@@ -477,7 +504,7 @@ export default function GameInfo() {
 
                     {/* Videos */}
                     {
-                        gameDetails.videos && gameDetails.videos.length > 0 &&
+                        gameDetails?.videos && gameDetails.videos.length > 0 &&
                         <section>
                             <h2 className="text-2xl font-semibold mb-2">Videos</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -502,7 +529,7 @@ export default function GameInfo() {
 
                     {/* Similar Games */}
                     {
-                        gameDetails.similar_games && gameDetails.similar_games.length > 0 &&
+                        gameDetails?.similar_games && gameDetails.similar_games.length > 0 &&
                         <section className='w-full'>
                             <h2 className="text-2xl font-semibold mb-2">Similar Games</h2>
                             <div className='flex justify-center'>
@@ -512,7 +539,7 @@ export default function GameInfo() {
                                             <CarouselItem key={index} className="basis-1/2 pl-1 lg:basis-1/5 cursor-pointer">
                                                 <div
                                                     className="p-1"
-                                                    onClick={() => { router.push(`/game-info?gameId=${game.id}`) }}
+                                                    onClick={() => goToDifferentGame(game.id)}
                                                 >
                                                     <Card className="relative" >
                                                         <CardContent className='aspect-square'>
@@ -542,7 +569,7 @@ export default function GameInfo() {
 
                     {/* Websites */}
                     {
-                        gameDetails.websites && gameDetails.websites.length > 0 &&
+                        gameDetails?.websites && gameDetails.websites.length > 0 &&
                         <section>
                             <h2 className="text-2xl font-semibold mb-2">Related Websites</h2>
                             <ul className='flex flex-wrap gap-2'>

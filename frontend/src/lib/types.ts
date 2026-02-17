@@ -385,7 +385,7 @@ export type UpcomingReleases = {
   platforms?: {
     id: number;
     name: string;
-  }[];
+  };
 }
 
 export type UpcomingEvents = {
@@ -425,7 +425,7 @@ export type UpcomingEvents = {
                 id?: number;
             };
         };
-    }[];
+    };
 };
 
 export interface AllTimeFavs {
@@ -440,4 +440,14 @@ export interface AllTimeFavs {
     id: number;
     image_id: string;
   } | null;
+}
+
+export type QuickSearch = {
+  id: number;
+  cover?: {
+    id: number;
+    image_id: string;
+  } | null;
+  first_release_date: number;
+  name: string;
 }

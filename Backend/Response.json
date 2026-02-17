@@ -1,0 +1,50 @@
+{
+    "data": {
+        "status": "Failed",
+        "error_code": 400,
+        "message": "[\n  {\n    \"title\": \"Invalid filter operation\",\n    \"status\": 400,\n    \"cause\": \"Invalid filter operation, check your where statement!\",\n    \"details\": \"The following filter operation is invalid: id \\u003d [97 81 50 31 20]\"\n  }\n]",
+        "payload": {
+            "\n        where id = 1000000000000;\n        fields \n            artworks.*,\n            bundles.name,           \n            bundles.cover.image_id,\n            game_type.*,\n            checksum,\n            collections.*,\n            collections.games.name,\n            collections.games.cover.image_id,\n            cover.*,\n            dlcs.name,\n            dlcs.cover.image_id,\n            expanded_games.name,\n            expanded_games.cover.*,\n            expansions.name,\n            expansions.cover.image_id,\n            first_release_date,\n            forks,\n            franchises.name,\n            franchises.created_at,\n            franchises.url,\n            franchises.games.name,\n            game_engines.*,\n            game_engines.companies.name,\n            game_engines.platforms.name,\n            game_engines.logo.*,\n            game_localizations.*,\n            game_modes.*,\n            game_status.*,\n            game_type.*,\n            genres.*,\n            involved_companies.*,\n            involved_companies.game.name,\n            involved_companies.company.name,\n            keywords.*,\n            language_supports.language.name,\n            multiplayer_modes.*,\n            name,\n            parent_game.*,\n            platforms.*,\n            platforms.platform_logo.image_id,\n            platforms.platform_logo.width,\n            platforms.platform_logo.height,\n            platforms.platform_family.name,\n            platforms.websites.url,\n            platforms.platform_type.name,\n            player_perspectives.*,\n            rating,\n            rating_count,\n            release_dates.*,\n            release_dates.release_region.region,\n            release_dates.platform.name,\n            remakes.name,\n            remasters.name,\n            screenshots.*,\n            similar_games.name,\n            similar_games.cover.image_id,\n            slug,\n            standalone_expansions.name,\n            storyline,\n            summary,\n            tags,\n            themes.*,\n            total_rating,\n            total_rating_count,\n            updated_at,\n            url,\n            version_parent,\n            version_title,\n            videos.*,\n            websites.*,\n            websites.type.type;\n        limit 15;\n    ": []
+        }
+    },
+    "status": 200,
+    "statusText": "OK",
+    "headers": {
+        "content-length": "2664",
+        "content-type": "application/json"
+    },
+    "config": {
+        "transitional": {
+            "silentJSONParsing": true,
+            "forcedJSONParsing": true,
+            "clarifyTimeoutError": false
+        },
+        "adapter": [
+            "xhr",
+            "http",
+            "fetch"
+        ],
+        "transformRequest": [
+            null
+        ],
+        "transformResponse": [
+            null
+        ],
+        "timeout": 0,
+        "xsrfCookieName": "XSRF-TOKEN",
+        "xsrfHeaderName": "X-XSRF-TOKEN",
+        "maxContentLength": -1,
+        "maxBodyLength": -1,
+        "env": {},
+        "headers": {
+            "Accept": "application/json, text/plain, */*"
+        },
+        "params": {
+            "id": "331215"
+        },
+        "method": "get",
+        "url": "http://127.0.0.1:8000/full-game-details",
+        "allowAbsoluteUrls": true
+    },
+    "request": {}
+}

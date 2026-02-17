@@ -15,12 +15,13 @@ import {
     CommandList,
 } from "@/components/ui/command";
 import { getQuickSearchInfo } from "@/lib/api/igdb";
+import { QuickSearch } from "@/lib/types";
 
 const url_igdb_t_original = process.env.NEXT_PUBLIC_URL_IGDB_T_ORIGINAL
 
 export default function SearchBar() {
     const [gameTitle, setGameTitle] = useState("");
-    const [searchResults, setSearchResults] = useState([]); // have ai create the type for searchResults
+    const [searchResults, setSearchResults] = useState<QuickSearch[]>([]); // have ai create the type for searchResults
     const router = useRouter();
     const searchRef = useRef<HTMLDivElement>(null);
     const [open, setOpen] = useState(false);
@@ -42,15 +43,18 @@ export default function SearchBar() {
         if (gameTitle) {
             const fetchGameDetails = async () => {
                 if (!gameTitle) return;
-                const qsData = await getQuickSearchInfo(gameTitle);
-                setSearchResults(qsData);
+                const result = await getQuickSearchInfo(gameTitle);
+
+                if (result.ok) {
+                    setSearchResults(result.data);
+                } 
+                // TODO: do something with errors that come back from quick search
             }
             fetchGameDetails();
             setOpen(true);
         } else {
             setOpen(false)
         }
-
     }, [gameTitle])
 
     const searchGame = (e: ChangeEvent<HTMLInputElement>) => {
