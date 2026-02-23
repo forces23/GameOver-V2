@@ -11,7 +11,7 @@ export default function PageError() {
                 <Image
                     src={outOfOrder}
                     alt={`outOfOrder-0000`}
-                    layout="fill"
+                    fill
                     className="rounded-lg"
                 />
             </div>

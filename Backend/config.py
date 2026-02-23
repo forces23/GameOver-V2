@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     API_KEY_PC:str
     
     # TheGameDB
+    URL_TGDB:str
     API_KEY_TGDB_PUBLIC:str
     API_KEY_TGDB_PRIVATE:str
     

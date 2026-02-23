@@ -7,7 +7,19 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'images.igdb.com'
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: 's.gravatar.com'
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.google.com'
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.thegamesdb.net'
+      },
     ]
   }
 };

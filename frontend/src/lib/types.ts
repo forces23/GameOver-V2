@@ -1,3 +1,10 @@
+export type ApiError = {
+  status: number;
+  code: string;
+  message: string;
+}
+export type Result<T> = { ok: true; data: T; } | { ok: false; error: ApiError }
+
 export type GameData = {
   id: number;
   artworks: Artwork[];
@@ -13,7 +20,7 @@ export type GameData = {
   keywords: Keyword[];
   multiplayer_modes: MultiplayerMode[];
   name: string;
-  platforms: Platform[];
+  platforms: IGDBPlatform[];
   player_perspectives: PlayerPerspective[];
   rating: number;
   rating_count: number;
@@ -61,13 +68,13 @@ export type Bundle = {
 
 export type Cover = {
   id: number;
-  alpha_channel: boolean;
-  animated: boolean;
-  game: number;
-  height: number;
-  image_id: string;
-  url: string;
-  width: number;
+  alpha_channel?: boolean;
+  animated?: boolean;
+  game?: number;
+  height?: number;
+  image_id?: string;
+  url?: string;
+  width?: number;
   checksum: string;
 };
 
@@ -187,7 +194,7 @@ export type MultiplayerMode = {
   checksum: string;
 };
 
-export type Platform = {
+export type IGDBPlatform = {
   id: number;
   abbreviation: string;
   alternative_name: string;
@@ -388,44 +395,93 @@ export type UpcomingReleases = {
   };
 }
 
-export type UpcomingEvents = {
+export type IGDBEvent = {
+  id: number;
+  checksum: string;
+  created_at: number;
+  updated_at: number;
+  name: string;
+  slug: string;
+  description?: string;
+  start_time?: number;
+  end_time?: number;
+  time_zone?: string;
+  live_stream_url?: string;
+  event_logo?: {
     id: number;
-    checksum: string;
-    created_at: number;
-    updated_at: number;
+    image_id: string;
+    animated?: boolean;
+    url?: string;
+  };
+  event_networks?: {
+    id: number;
+    url: string;
+    network_type?: {
+      id: number,
+      name: string
+    }
+  }[];
+  games?: {
+    id: number;
     name: string;
-    slug: string;
-    description?: string;
-    start_time?: number;
-    end_time?: number;
-    time_zone?: string;
-    live_stream_url?: string;
-    event_logo?: {
-        image_id: string;
-        animated?: boolean;
-        url?: string;
+    cover?: {
+      id: number;
+      image_id: string;
     };
-    event_networks?: number[]; // IGDB returns an array of numeric IDs
-    games?: {
+  }[];
+  videos?: { //
+    id: number;
+    name?: string;
+    game?: {
+      id: number;
+      name: string;
+      cover?: {
         id: number;
-        name: string;
-        cover?: {
-            image_id: string;
-            id?: number; // IGDB sometimes returns cover.id
-        };
-    }[];
-    videos?: {
-        name?: string;
-        video_id?: string;
-        game?: {
-            id: number;
-            name: string;
-            cover?: {
-                image_id: string;
-                id?: number;
-            };
-        };
+        image_id: string;
+      };
     };
+    video_id?: string;
+  }[];
+};
+
+export type UpcomingEvents = {
+  id: number;
+  checksum: string;
+  // created_at: number;
+  // updated_at: number;
+  name: string;
+  slug: string;
+  description?: string;
+  start_time?: number;
+  end_time?: number;
+  time_zone?: string;
+  // live_stream_url?: string;
+  event_logo?: {
+    image_id: string;
+    animated?: boolean;
+    url?: string;
+  };
+  // event_networks?: number[]; // IGDB returns an array of numeric IDs
+  // games?: {
+  //   id: number;
+  //   name: string;
+  //   cover?: {
+  //     image_id: string;
+  //     id?: number; // IGDB sometimes returns cover.id
+  //   };
+  // }[];
+  // videos?: {
+  //   name?: string;
+  //   video_id?: string;
+  //   game?: {
+  //     id: number;
+  //     name: string;
+  //     cover?: {
+  //       image_id: string;
+  //       id?: number;
+  //     };
+  //   };
+  // };
 };
 
 export interface AllTimeFavs {
@@ -444,10 +500,51 @@ export interface AllTimeFavs {
 
 export type QuickSearch = {
   id: number;
-  cover?: {
-    id: number;
-    image_id: string;
-  } | null;
-  first_release_date: number;
+  cover?: Cover | null;
+  first_release_date?: number;
   name: string;
 }
+
+export type SearchResults = {
+  games: QuickSearch[],
+  consoles: {
+    id: number,
+    name: string,
+    alias: string
+  }[]
+}
+
+// TODO: add igdb_id to this for 
+export type GameSimple = {
+    id: number;
+    igdb_id:number;
+    name: string;
+    cover_url: string;
+    first_release_date: number;
+    genres: string[];
+    collected: boolean;
+    wishlist: boolean;
+    favorite: boolean;
+  }
+
+export type TGDBPlatform = {
+  id: number;
+  name: string;
+  alias: string;
+  icon:string;
+  console: string;
+  manufacturer: string;
+}
+
+export type Profile = {
+  display_name: string
+  bio: string
+  email_visible: boolean
+  avatar_url: string
+  banner_url: string
+  owned_systems: TGDBPlatform[]
+  // favorite_game_ids: GameSimple[]
+  // favorite_platforms: string[]
+}
+
+

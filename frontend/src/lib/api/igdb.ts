@@ -1,5 +1,6 @@
 import axios, { AxiosError } from "axios";
-import { AllTimeFavs, GameData, QuickSearch, UpcomingEvents, UpcomingReleases } from "../types";
+import { AllTimeFavs, ApiError, GameData, QuickSearch, Result, UpcomingEvents, UpcomingReleases, IGDBEvent } from "../types";
+import { toApiError } from "../utils";
 
 const url_omega = process.env.NEXT_PUBLIC_URL_OMEGA;
 const ep_game_details = process.env.NEXT_PUBLIC_EP_GAME_DETAILS;
@@ -9,23 +10,6 @@ const ep_upcoming_events = process.env.NEXT_PUBLIC_EP_UPCOMING_EVENTS
 const ep_all_time_favs = process.env.NEXT_PUBLIC_EP_ALL_TIME_FAVS
 
 const todaysDate = Math.floor(Date.now() / 1000);
-
-export type ApiError = {
-    status: number;
-    code: string;
-    message: string;
-}
-type Result<T> = {ok: true; data: T;} | {ok: false;error: ApiError}
-
-const toApiError = (err: unknown): ApiError => {
-    const e = err as AxiosError<any>;
-    const detail = e.response?.data?.detail;
-    return {
-        status: e.response?.status ?? 0,
-        code: detail?.code ?? "UNKNOWN_ERROR",
-        message: detail?.message ?? e.message ?? "Request failed",
-    }
-}
 
 export const getGameDetails = async (gameId: string): Promise<Result<GameData>> => {
     try {
@@ -53,6 +37,17 @@ export const getUpcomingEvents = async (): Promise<Result<UpcomingEvents[]>> => 
     try {
         const response = await axios.get<{ data: UpcomingEvents[] }>(`${url_omega}${ep_upcoming_events}`, {
             params: { currentDate: todaysDate }
+        });
+        return { ok: true, data: response.data.data };
+    } catch (err) {
+        return { ok: false, error: toApiError(err) };
+    }
+}
+
+export const getEvent = async (event_id:string): Promise<Result<IGDBEvent>> => {
+    try {
+        const response = await axios.get<{ data: IGDBEvent }>(`${url_omega}/igdb/events/single`, {
+            params: { event_id }
         });
         return { ok: true, data: response.data.data };
     } catch (err) {

@@ -114,4 +114,17 @@ Backend:
   ```
 
 5. tags on the include routers help the auto docs with organizing
-6.
+6. Make sure i am using the most accurate endpoint (POST, GET, PUT, PATCH, etc)
+7. In Backend/auth.py, wrap jwt.get_unverified_header(token) in try/except too, so malformed tokens return clean 401 instead of raw jose stack errors.
+8. Also useful for debugging exact 422 payload:
+   * That will show which fields FastAPI says are missing/invalid.
+   * ```python
+     try{
+     ...
+     } catch (err: any) {
+          console.error(err.response?.data);
+     }
+
+
+     ```
+9. create a page to view more upcoming and more all time favorites

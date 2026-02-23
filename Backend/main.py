@@ -2,8 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config import settings
 from routers.igdb_routes import igdb_router
+from routers.tgdb_routes import tgdb_router
 from routers.price_charting_routes import price_chart_router
 from routers.mongodb_routes import mongodb_router
+from routers.combined_api_routes import combo_router
 
 app = FastAPI(title=settings.APP_NAME)
 
@@ -23,6 +25,9 @@ app.add_middleware(
 app.include_router(igdb_router)
 app.include_router(price_chart_router)
 app.include_router(mongodb_router)
+app.include_router(tgdb_router)
+app.include_router(combo_router)
+
 
 @app.get("/")
 async def root():

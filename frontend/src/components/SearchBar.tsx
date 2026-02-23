@@ -6,7 +6,6 @@ import React, { ChangeEvent, useEffect, useState, useRef } from "react";
 import { ButtonGroup } from "@/components/ui/button-group"
 import { Field } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { formatUnixTime } from "@/utils/utils";
 import {
     Command,
     CommandEmpty,
@@ -16,6 +15,7 @@ import {
 } from "@/components/ui/command";
 import { getQuickSearchInfo } from "@/lib/api/igdb";
 import { QuickSearch } from "@/lib/types";
+import { formatUnixTime } from "@/lib/utils";
 
 const url_igdb_t_original = process.env.NEXT_PUBLIC_URL_IGDB_T_ORIGINAL
 
@@ -44,10 +44,10 @@ export default function SearchBar() {
             const fetchGameDetails = async () => {
                 if (!gameTitle) return;
                 const result = await getQuickSearchInfo(gameTitle);
-
+                console.log(searchResults)
                 if (result.ok) {
                     setSearchResults(result.data);
-                } 
+                }
                 // TODO: do something with errors that come back from quick search
             }
             fetchGameDetails();
@@ -80,34 +80,39 @@ export default function SearchBar() {
                     </ButtonGroup>
                 </Field>
 
-                {open && searchResults.length > 0 && gameTitle &&
-                    (
-                        <Command className="absolute flex  top-full mt-1 w-full h-auto rounded-lg border bg-background shadow-lg z-10">
-                            <CommandList className="max-h-80 overflow-y-auto" >
-                                <CommandEmpty>No results found.</CommandEmpty>
-                                <CommandGroup heading="Suggestions">
-                                    {searchResults.map((result: any, index: number) => {
-                                        return (
-                                            <CommandItem
-                                                key={`${result.name}-${index}`}
-                                                value={result.name}
-                                                onSelect={() => handleSelectedGame(result.id)}
-                                                className="flex items-center gap-3 "
-                                            >
-                                                {result.cover && <Image src={`${url_igdb_t_original}${result.cover.image_id}.jpg`} alt={`${result.name}+Cover`} height={50} width={100} />}
-                                                <div className="flex flex-col">
-                                                    <span className="font-medium">{result.name}</span>
-                                                    <span className="text-xs opacity-70">
-                                                        {formatUnixTime(result.first_release_date)}
-                                                    </span>
-                                                </div>
-                                            </CommandItem>
-                                        )
-                                    })}
-                                </CommandGroup>
-                            </CommandList>
-                        </Command>
-                    )}
+                {open && searchResults.length > 0 && gameTitle && (
+                    <Command className="absolute flex  top-full mt-1 w-full h-auto rounded-lg border bg-background shadow-lg z-10">
+                        <CommandList className="max-h-80 overflow-y-auto" >
+                            <CommandEmpty>No results found.</CommandEmpty>
+                            <CommandGroup heading="Suggestions">
+                                {searchResults.map((result: any, index: number) => {
+                                    return (
+                                        <CommandItem
+                                            key={`${result.name}-${index}`}
+                                            value={result.name}
+                                            onSelect={() => handleSelectedGame(result.id)}
+                                            className="flex items-center gap-3"
+                                        >
+                                            {result.cover &&
+                                                <Image
+                                                    src={`${url_igdb_t_original}${result.cover.image_id}.jpg`}
+                                                    alt={`${result.name}+Cover`}
+                                                    height={50}
+                                                    width={100}
+                                                />}
+                                            <div className="flex flex-col">
+                                                <span className="font-medium">{result.name}</span>
+                                                <span className="text-xs opacity-70">
+                                                    {formatUnixTime(result.first_release_date)}
+                                                </span>
+                                            </div>
+                                        </CommandItem>
+                                    )
+                                })}
+                            </CommandGroup>
+                        </CommandList>
+                    </Command>
+                )}
             </div>
         </>
     );

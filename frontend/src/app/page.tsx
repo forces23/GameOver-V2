@@ -6,11 +6,13 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Card, CardContent } from "@/components/ui/card";
 import { AllTimeFavs, UpcomingEvents, UpcomingReleases } from "@/lib/types";
 import { useRouter } from "next/navigation";
-import { formatUnixTime } from "@/utils/utils";
 import Autoplay from "embla-carousel-autoplay";
 import { getAllTimeFavorites, getUpcomingEvents, getUpcomingReleases } from "@/lib/api/igdb";
+import { formatUnixTime } from "@/lib/utils";
 
 const url_igdb_t_original = process.env.NEXT_PUBLIC_URL_IGDB_T_ORIGINAL
+
+const popular_console_tgdb_ids = [] 
 
 export default function Home() {
   const router = useRouter();
@@ -34,8 +36,8 @@ export default function Home() {
 
   return (
     <main className="flex py-8 grow w-full  flex-col items-center  gap-5  text-card-foreground sm:items-start">
-      
-      <div className="pb-16 w-full">
+
+      <div className="pb-4 md:pb-16 w-full">
         {/* UPCOMING EVENTS */
           upcomingEvents && upcomingEvents.length > 0 &&
           <section className='w-full'>
@@ -53,17 +55,17 @@ export default function Home() {
                     <CarouselItem key={index} className="pl-1 basis-1/1 cursor-pointer relative">
                       <div
                         className="p-2  rounded-lg flex flex-col justify-center "
-                        onClick={() => { router.push(`/game-info?gameId=${event.id}`) }}
+                        onClick={() => { router.push(`/event-info?eventId=${event.id}`) }}
                       >
-                        <Card className="relative" >
-                          <CardContent className='aspect-9/3'>
-                            <Image
-                              src={`${url_igdb_t_original}${event.event_logo?.image_id}.jpg`}
-                              alt={`cover-${event.id}`}
-                              layout="fill"
-                              className="rounded-lg"
-                            />
-                          </CardContent>
+                        <Card className="relative aspect-9/5 md:aspect-9/3" >
+                          <Image
+                            src={`${url_igdb_t_original}${event.event_logo?.image_id}.jpg`}
+                            alt={`cover-${event.checksum}`}
+                            fill
+                            loading="eager"
+                            sizes="(max-width: 1024px) 100vw, 80vw"
+                            className="rounded-lg"
+                          />
                         </Card>
                       </div>
                     </CarouselItem>
@@ -86,20 +88,19 @@ export default function Home() {
               <Carousel className="w-full max-w-480">
                 <CarouselContent className="-ml-1">
                   {upcomingReleases.map((game, index) => (
-                    <CarouselItem key={index} className="basis-1/2 pl-1 lg:basis-1/7 cursor-pointer ">
+                    <CarouselItem key={index} className="basis-1/2 pl-1 sm:basis-1/3 md:basis-1/5 lg:basis-1/7 cursor-pointer ">
                       <div
                         className="p-2 rounded-lg"
                         onClick={() => { router.push(`/game-info?gameId=${game.id}`) }}
                       >
-                        <Card className="relative" >
-                          <CardContent className='aspect-3/4'>
-                            <Image
-                              src={`${url_igdb_t_original}${game.cover?.image_id}.jpg`}
-                              alt={`cover-${game.id}`}
-                              layout="fill"
-                              className="rounded-lg"
-                            />
-                          </CardContent>
+                        <Card className="relative aspect-3/4" >
+                          <Image
+                            src={`${url_igdb_t_original}${game.cover?.image_id}.jpg`}
+                            alt={`cover-${game.id}`}
+                            fill
+                            sizes="(max-width: 1024px) 50vw, 14vw"
+                            className="rounded-lg"
+                          />
                         </Card>
                         <div className='w-full flex flex-col justify-center'>
                           <p>{game.name}</p>
@@ -132,15 +133,14 @@ export default function Home() {
                         className="p-2 bg-background rounded-lg"
                         onClick={() => { router.push(`/game-info?gameId=${game.id}`) }}
                       >
-                        <Card className="relative" >
-                          <CardContent className='aspect-3/4'>
-                            <Image
-                              src={`${url_igdb_t_original}${game.cover?.image_id}.jpg`}
-                              alt={`cover-${game.id}`}
-                              layout="fill"
-                              className="rounded-lg"
-                            />
-                          </CardContent>
+                        <Card className="relative aspect-3/4" >
+                          <Image
+                            src={`${url_igdb_t_original}${game.cover?.image_id}.jpg`}
+                            alt={`cover-${game.id}`}
+                            fill
+                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 20vw, 14vw"
+                            className="rounded-lg"
+                          />
                         </Card>
                         <div className='w-full flex flex-col justify-center'>
                           <p>{game.name}</p>
@@ -161,5 +161,4 @@ export default function Home() {
     </main>
   );
 }
-
 

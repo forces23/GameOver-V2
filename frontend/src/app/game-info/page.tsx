@@ -4,29 +4,26 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { GameData } from '@/lib/types';
-import { formatUnixTime } from '@/utils/utils';
+import { ApiError, GameData } from '@/lib/types';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { Card, CardContent } from '@/components/ui/card';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog"
-import { ApiError, getGameDetails } from '@/lib/api/igdb';
+import { Card } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { getGameDetails } from '@/lib/api/igdb';
 import { BsBookmark, BsBookmarkCheckFill, BsCollection, BsCollectionFill } from "react-icons/bs";
+import { CiStar } from "react-icons/ci";
 import PageError from '@/components/PageError';
 import PageSkeleton from '@/components/PageSkeleton';
 import { useUser } from '@auth0/nextjs-auth0';
-import { saveGame } from '@/lib/api/db';
+import { deleteGame, gameCheck, saveGame } from '@/lib/api/db';
+import { toast, Toaster } from 'sonner';
+import { formatUnixTime } from '@/lib/utils';
+import { FaRegStar, FaStar } from 'react-icons/fa';
 
 
 const url_igdb_t_original = process.env.NEXT_PUBLIC_URL_IGDB_T_ORIGINAL;
 const outOfOrder = '/imgs/out-of-order.jpg'
 
-type Mark = "want" | "collected" | null;
+type Mark = "wishlist" | "collected" | null;
 
 export default function GameInfo() {
     const router = useRouter();
@@ -36,7 +33,7 @@ export default function GameInfo() {
     const [bannerBgUrl, setBannerBgUrl] = useState<string>();
     const [selectedImg, setSelectedImg] = useState<string | null>("");
     const [mark, setMark] = useState<Mark>(null);
-    const [saving, setSaving] = useState<boolean>(false);
+    const [favorite, setFavorite] = useState<boolean>(false);
     const { user } = useUser();
     const [error, setError] = useState<ApiError | null>(null)
     const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
@@ -47,7 +44,7 @@ export default function GameInfo() {
     useEffect(() => {
         let active = true;
 
-        const fetchGameDetails = async () => {
+        const run = async () => {
             if (!gameId) {
                 if (!active) return;
                 setStatus("error");
@@ -71,12 +68,29 @@ export default function GameInfo() {
             }
         };
 
-        fetchGameDetails();
+        run();
         return () => { active = false }
     }, [gameId]);
 
     useEffect(() => {
         if (!gameDetails) return;
+
+        // check if game is in users collection 
+        const gameColCheck = async () => {
+            // Fetch access token from Auth0
+            const tokenResponse = await fetch('/api/auth/token');
+            const { accessToken } = await tokenResponse.json();
+
+            const resp = await gameCheck(gameDetails.id, accessToken)
+            setFavorite(resp.data.data.favorite);
+
+            if (resp.data.data.collected) setMark("collected");
+            else if (resp.data.data.wishlist) setMark("wishlist");
+            else setMark(null);
+        }
+        if (user) gameColCheck();
+        
+
         if (gameDetails.artworks?.length > 0) {
             setBannerBgUrl(`${url_igdb_t_original}${gameDetails['artworks'][0]['image_id']}.jpg`);
         } else if (gameDetails.screenshots?.length > 0) {
@@ -89,25 +103,81 @@ export default function GameInfo() {
         if (!user) {
             window.location.href = `/auth/login?returnTo=${encodeURIComponent(currentPath)}`;
             return;
-        } else {
-            const newMark = mark === next ? null : next; // optional toggle off
-            setMark(newMark); // Optimistic UI
-            setSaving(true);
-            try {
-                // Fetch access token from Auth0
-                const tokenResponse = await fetch('/api/auth/token');
-                const { accessToken } = await tokenResponse.json();
+        }
 
-                // Pass token to saveGame
-                const resp = await saveGame(gameDetails, newMark === "collected", newMark === "want", accessToken);
-                
-                console.log(resp)
-                setSaving(false);
-            } catch (error) {
-                console.error("Error saving game:", error);
-                setSaving(false);
-                setMark(null);
+        const prevMark = mark;
+        const newMark = mark === next ? null : next;
+        setMark(newMark);
+
+        const fun = (async () => {
+            // Fetch access token from Auth0
+            const tokenResponse = await fetch('/api/auth/token');
+            const { accessToken } = await tokenResponse.json();
+
+            if (mark === next) {
+                // delete and set mark to null
+                const resp = await deleteGame(gameDetails.id, accessToken)
+                if (!resp.ok) throw new Error("Delete Failed!");
+                return { action: "deleted from", target: prevMark ?? next }
+            } else {
+                const resp = await saveGame(gameDetails, accessToken, next === "collected", next === "wishlist");
+                if (!resp.ok) throw new Error("Save Failed!");
+                return { action: "added to", target: next }
+
             }
+        })();
+
+        toast.promise(fun, {
+            loading: `Adding to ${mark}${mark === "wishlist" ? "'s" : ""}`,
+            success: ({ action, target }) => `Game ${action} ${target}${next === "wishlist" ? "'s" : ""}`,
+            error: "Failed to update game status"
+        });
+
+        try {
+            await fun;
+        } catch (error) {
+            setMark(prevMark);
+        }
+    }
+
+    const handleFavorites = async () => {
+        if (!gameDetails) return;
+        if (!user) {
+            window.location.href = `/auth/login?returnTo=${encodeURIComponent(currentPath)}`;
+            return;
+        }
+
+        const favState = !favorite 
+        setFavorite(favState);
+
+        const fun = (async () => {
+            // Fetch access token from Auth0 --- TODO: Need to make this happen one time per page for user logged in 
+            const tokenResponse = await fetch('/api/auth/token');
+            const { accessToken } = await tokenResponse.json();
+
+            if (!favState && mark === null) {
+                // delete and set mark to null
+                const resp = await deleteGame(gameDetails.id, accessToken)
+                if (!resp.ok) throw new Error("Delete Failed!");
+                return { action: "removed from", target: "your collection" }
+            } else {
+                const resp = await saveGame(gameDetails, accessToken, mark === "collected", mark === "wishlist", favState);
+                if (!resp.ok) throw new Error("Save Failed!");
+                return { action: `${favState ? "added to" : "removed from"}`, target: "favorites" }
+
+            }
+        })();
+
+        toast.promise(fun, {
+            loading: `Adding to favorites`,
+            success: ({ action, target }) => `Game ${action} ${target}`,
+            error: "Failed to update game status"
+        });
+
+        try {
+            await fun;
+        } catch (error) {
+            setFavorite(!favState);
         }
     }
 
@@ -118,12 +188,13 @@ export default function GameInfo() {
 
     if (status === "loading") return <PageSkeleton />;
     if (status === "error") return <PageError />;
-    // future change for error page
+    // TODO: future change for error page
     // if (status === "error") return <PageError code={error?.code} message={error?.message} />; 
 
     return (
-        <div className="flex min-h-screen items-center justify-center font-sans bg-background text-foreground">
+        <div className="flex grow items-center justify-center font-sans bg-background text-foreground">
             <main className="flex min-h-screen w-full flex-col items-center bg-card text-card-foreground sm:items-start">
+                <Toaster />
                 <div className='flex flex-col gap-4 p-4'>
                     {/* Banner Image */}
                     {bannerBgUrl &&
@@ -141,16 +212,21 @@ export default function GameInfo() {
                         {/* Game Title */}
                         {gameDetails?.name &&
                             <div className='flex justify-between'>
-                                <h1 className='ps-6 text-4xl font-bold w-full justify-center flex'>{gameDetails.name}</h1>
+                                <h1 className='ps-6 text-4xl text-center font-bold w-full justify-center flex'>{gameDetails.name}</h1>
                                 <div className="flex gap-3 pe-3">
-                                    <span onClick={() => { handleMark("want") }}>
-                                        {mark === "want" ?
+                                    <span onClick={() => { handleMark("wishlist") }}>
+                                        {mark === "wishlist" ?
                                             <BsBookmarkCheckFill /> : <BsBookmark />
                                         }
                                     </span>
                                     <span onClick={() => { handleMark("collected") }}>
                                         {mark === "collected" ?
                                             <BsCollectionFill /> : <BsCollection />
+                                        }
+                                    </span>
+                                    <span onClick={() => { handleFavorites() }}>
+                                        {favorite ?
+                                            <FaStar /> : <FaRegStar />
                                         }
                                     </span>
                                 </div>
@@ -166,9 +242,9 @@ export default function GameInfo() {
                                         <Image
                                             src={`${url_igdb_t_original}${gameDetails.cover?.image_id}.jpg`}
                                             alt={`${gameDetails.name} cover art`}
-                                            layout="fill"
-                                            objectFit="contain"
-                                        // className="rounded-xl"
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                            className="object-contain"
                                         />
                                     </div>
                                 }
@@ -330,7 +406,8 @@ export default function GameInfo() {
                                                             <Image
                                                                 src={dlc.cover && dlc.cover?.image_id ? `${url_igdb_t_original}${dlc.cover?.image_id}.jpg` : outOfOrder}
                                                                 alt={`cover-${dlc.id}`}
-                                                                layout="fill"
+                                                                fill
+                                                                sizes="120px"
                                                                 className="rounded-lg"
                                                             />
                                                         </div>
@@ -358,7 +435,8 @@ export default function GameInfo() {
                                                             <Image
                                                                 src={`${url_igdb_t_original}${bundle.cover?.image_id}.jpg`}
                                                                 alt={`expanded-game-cover-${bundle.id}`}
-                                                                layout="fill"
+                                                                fill
+                                                                sizes="120px"
                                                                 className="rounded-lg"
                                                             />
                                                         </div>
@@ -388,7 +466,8 @@ export default function GameInfo() {
                                                             <Image
                                                                 src={`${url_igdb_t_original}${game.cover?.image_id}.jpg`}
                                                                 alt={`expanded-game-cover-${game.id}`}
-                                                                layout="fill"
+                                                                fill
+                                                                sizes="120px"
                                                                 className="rounded-lg"
                                                             />
                                                         </div>
@@ -421,6 +500,7 @@ export default function GameInfo() {
                                         src={selectedImg}
                                         alt="image"
                                         fill
+                                        sizes="95vw"
                                         className="object-contain rounded-lg"
                                     />
                                 }
@@ -440,17 +520,15 @@ export default function GameInfo() {
                                             <CarouselItem key={index} className="basis-1/2 pl-1 lg:basis-1/3">
                                                 <div className="p-1" onClick={() => { setSelectedImg(`${url_igdb_t_original}${ss.image_id}.jpg`) }}>
                                                     <Card
-                                                        className="relative"
+                                                        className="relative aspect-video"
                                                     >
-                                                        <CardContent className='aspect-video'>
-                                                            <Image
-                                                                src={`${url_igdb_t_original}${ss.image_id}.jpg`}
-                                                                alt={`screenshot-${ss.id}`}
-                                                                layout="fill"
-                                                                objectFit="cover"
-                                                                className="rounded-lg"
-                                                            />
-                                                        </CardContent>
+                                                        <Image
+                                                            src={`${url_igdb_t_original}${ss.image_id}.jpg`}
+                                                            alt={`screenshot-${ss.id}`}
+                                                            fill
+                                                            sizes="(max-width: 1024px) 50vw, 33vw"
+                                                            className="object-cover rounded-lg"
+                                                        />
                                                     </Card>
                                                 </div>
                                             </CarouselItem>
@@ -479,17 +557,15 @@ export default function GameInfo() {
                                             <CarouselItem key={index} className="basis-1/2 pl-1 lg:basis-1/3">
                                                 <div className="p-1" onClick={() => { setSelectedImg(`${url_igdb_t_original}${art.image_id}.jpg`) }}>
                                                     <Card
-                                                        className="relative"
+                                                        className="relative aspect-video"
                                                     >
-                                                        <CardContent className='aspect-video'>
-                                                            <Image
-                                                                src={`${url_igdb_t_original}${art.image_id}.jpg`}
-                                                                alt={`screenshot-${art.id}`}
-                                                                layout="fill"
-                                                                objectFit="cover"
-                                                                className="rounded-lg"
-                                                            />
-                                                        </CardContent>
+                                                        <Image
+                                                            src={`${url_igdb_t_original}${art.image_id}.jpg`}
+                                                            alt={`screenshot-${art.id}`}
+                                                            fill
+                                                            sizes="(max-width: 1024px) 50vw, 33vw"
+                                                            className="object-cover rounded-lg"
+                                                        />
                                                     </Card>
                                                 </div>
                                             </CarouselItem>
@@ -541,16 +617,14 @@ export default function GameInfo() {
                                                     className="p-1"
                                                     onClick={() => goToDifferentGame(game.id)}
                                                 >
-                                                    <Card className="relative" >
-                                                        <CardContent className='aspect-square'>
-                                                            <Image
-                                                                src={`${url_igdb_t_original}${game.cover?.image_id}.jpg`}
-                                                                alt={`screenshot-${game.id}`}
-                                                                layout="fill"
-                                                                objectFit="cover"
-                                                                className="rounded-lg"
-                                                            />
-                                                        </CardContent>
+                                                    <Card className="relative aspect-3/4" >
+                                                        <Image
+                                                            src={`${url_igdb_t_original}${game.cover?.image_id}.jpg`}
+                                                            alt={`screenshot-${game.id}`}
+                                                            fill
+                                                            sizes="(max-width: 1024px) 50vw, 20vw"
+                                                            className="object-cover rounded-lg"
+                                                        />
                                                     </Card>
                                                     <div className='w-full flex justify-center'>
                                                         <p>{game.name}</p>

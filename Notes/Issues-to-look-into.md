@@ -11,4 +11,4 @@ ISSUES:
    * Best practice is to use both:
      * controller.abort() in useEffect cleanup.
      * A stale-result guard (active or request-id check) as extra safety.
-7.
+7. image URL ending in undefined.jpg need to handle that with default image or some solid color maybe

@@ -130,25 +130,15 @@ async def upcoming_events(currentDate:str):
     data = f"""
         fields 
             checksum,
-            created_at,
-            description,
-            end_time,
-            event_logo.image_id,
-            event_logo.animated,
-            event_logo.url,
-            event_networks,
-            games.name,
-            games.cover.image_id,
-            live_stream_url,
             name,
             slug,
+            description,
             start_time,
+            end_time,
             time_zone,
-            updated_at,
-            videos.name,
-            videos.game.name,
-            videos.game.cover.image_id,
-            videos.video_id;
+            event_logo.image_id,
+            event_logo.animated,
+            event_logo.url;
         where start_time > {currentDate};
         sort start_time asc;
         limit 10;
@@ -191,6 +181,73 @@ async def upcoming_events(currentDate:str):
             
         return {"data": payload}
     
+@igdb_router.get("/igdb/events/single")
+async def get_event(event_id:str):
+    url = f'{settings.URL_IGDB}/events'
+    data = f"""
+        fields 
+            id,
+            checksum,
+            created_at,
+            description,
+            end_time,
+            event_logo.image_id,
+            event_logo.animated,
+            event_logo.url,
+            event_networks.network_type.name,
+            event_networks.url,
+            games.name,
+            games.cover.image_id,
+            live_stream_url,
+            name,
+            slug,
+            start_time,
+            time_zone,
+            updated_at,
+            videos.name,
+            videos.game.name,
+            videos.game.cover.image_id,
+            videos.video_id;
+        where id = {event_id};
+    """
+    
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(url, headers=igdb_headers, content=data)
+            response.raise_for_status()
+            
+        except httpx.TimeoutException:
+            raise HTTPException(
+                status_code=504,
+                detail={
+                    "code": "UPSTREAM_TIMEOUT", 
+                    "message": "IGDB timeout on event",
+                    "status": 504
+                }
+            )
+        except httpx.HTTPStatusError as e:
+            raise HTTPException (
+                status_code=502,
+                detail={
+                    "code": "UPSTREAM_ERROR", 
+                    "message": "IGDB request failed on event",
+                    "status": e.response.status_code,
+                    "upstream": e.response.text
+                }
+            )
+            
+        payload = response.json()
+        if not payload:
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "code": "UPCOMING_EVENTS_NOT_FOUND", 
+                    "message": f"No  event was found in IGDB with checksum of {event_id}",
+                    "status": 404
+                }
+            )
+        # print(payload)
+        return {"data": payload[0]}
 
 @igdb_router.get("/all-time-favs")
 async def all_time_favorites(currentDate:str):
@@ -367,30 +424,11 @@ async def full_game_details(id:str):
             )
             
         return {"data": payload[0]}
+    
+    
+
 
 # TODO: Set up correct error handling for below endpoints if i end up using them
-@igdb_router.get("/platforms")
-async def platforms(platform_ids):
-    url = f'{settings.URL_IGDB}/platforms'
-    
-    ids = ""
-    for index,id in enumerate(platform_ids):
-        ids = ids + str(id)
-        if index < len(platform_ids)-1:
-            ids = ids + ","            
-    
-    data = f"""
-        fields *;
-        where id = ({ids});
-    """
-    
-    async with httpx.AsyncClient() as Client:
-        response = await Client.post(url, headers=igdb_headers, content=data)
-        
-    # print ("response: %s" % str(response.json()))
-    return response.json()
-
-
 
 @igdb_router.get("/cover-image")
 async def getCoverImage(cover_id:str):
