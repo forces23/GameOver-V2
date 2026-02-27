@@ -4,159 +4,121 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
-import { AllTimeFavs, UpcomingEvents, UpcomingReleases } from "@/lib/types";
+import { AllTimeFavs, ApiError, UpcomingEvents, UpcomingReleases } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import Autoplay from "embla-carousel-autoplay";
-import { getAllTimeFavorites, getUpcomingEvents, getUpcomingReleases } from "@/lib/api/igdb";
+import { getAllTimeFavorites, getMultiplePlatforms, getUpcomingEvents, getUpcomingReleases } from "@/lib/api/igdb";
 import { formatUnixTime } from "@/lib/utils";
-
-const url_igdb_t_original = process.env.NEXT_PUBLIC_URL_IGDB_T_ORIGINAL
-
-const popular_console_tgdb_ids = [] 
+import { outOfOrder, top15Consoles, url_igdb_t_original } from "@/lib/constants";
+import GamesCarousel from "@/components/info-pages/GamesCarousel";
+import SmallCards from "@/components/info-pages/SmallCards";
+import ConsoleCarousel from "@/components/info-pages/ConsoleCarousel";
 
 export default function Home() {
   const router = useRouter();
   const [upcomingReleases, setUpcomingReleases] = useState<UpcomingReleases[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvents[]>([]);
   const [allTimeFavs, setAllTimeFavs] = useState<AllTimeFavs[]>([]);
+  const [popularConsoles, setPopularConsoles] = useState<any[]>([]);
+  const [error, setError] = useState<ApiError | null>(null)
+  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
   useEffect(() => {
-    const fetchAllData = async () => {
+    setStatus("loading")
+    const run = async () => {
       const ueData = await getUpcomingEvents();
-      const urData = await getUpcomingReleases();
+      const urData = await getUpcomingReleases(25);
       const atfData = await getAllTimeFavorites();
+      const popConData = await getMultiplePlatforms(top15Consoles);
 
       // TODO: implement error handling for below
-      if (ueData.ok) setUpcomingEvents(ueData.data);
-      if (urData.ok) setUpcomingReleases(urData.data);
-      if (atfData.ok) setAllTimeFavs(atfData.data);
+      if (ueData.ok) {
+        setUpcomingEvents(ueData.data);
+      } else {
+        setStatus("error");
+        setError(ueData.error)
+      }
+
+      if (urData.ok) {
+        setUpcomingReleases(urData.data);
+      } else {
+        setStatus("error");
+        setError(urData.error)
+      }
+
+      if (atfData.ok) {
+        setAllTimeFavs(atfData.data);
+      } else {
+        setStatus("error");
+        setError(atfData.error)
+      }
+
+      if (popConData.ok) {
+        setPopularConsoles(popConData.data);
+      } else {
+        setStatus("error");
+        setError(popConData.error)
+      }
+
     }
-    fetchAllData();
+    run();
   }, [])
 
   return (
     <main className="flex py-8 grow w-full  flex-col items-center  gap-5  text-card-foreground sm:items-start">
+      {/* UPCOMING EVENTS */}
+      {upcomingEvents && upcomingEvents.length > 0 &&
+        <section className='pb-4 md:pb-16 w-full max-w-500'>
+          <div className='flex justify-center'>
+            <Carousel
+              className="w-full "
+              plugins={[
+                Autoplay({
+                  delay: 5000,
+                }),
+              ]}
+            >
+              <CarouselContent className="-ml-1">
+                {upcomingEvents.map((event, index) => (
+                  <CarouselItem key={index} className="pl-1 basis-1/1 cursor-pointer relative">
+                    <div
+                      className="p-2  rounded-lg flex flex-col justify-center "
+                      onClick={() => { router.push(`/info/event-info?eventId=${event.id}`) }}
+                    >
+                      <Card className="relative aspect-9/5 md:aspect-9/3" >
+                        <Image
+                          src={event.event_logo?.image_id && event.event_logo?.image_id !== undefined ? `${url_igdb_t_original}${event.event_logo?.image_id}.jpg` : outOfOrder}
+                          alt={`cover-${event.checksum}`}
+                          fill
+                          loading="eager"
+                          sizes="(max-width: 1024px) 100vw, 80vw"
+                          className="rounded-lg"
+                        />
+                      </Card>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className='left-2' />
+              <CarouselNext className='right-2' />
+            </Carousel>
+          </div>
+        </section>
+      }
+      {popularConsoles && popularConsoles.length > 0 && (
+        <ConsoleCarousel title="" consoles={popularConsoles}/>
+      )}
 
-      <div className="pb-4 md:pb-16 w-full">
-        {/* UPCOMING EVENTS */
-          upcomingEvents && upcomingEvents.length > 0 &&
-          <section className='w-full'>
-            <div className='flex justify-center'>
-              <Carousel
-                className="w-full max-w-500"
-                plugins={[
-                  Autoplay({
-                    delay: 5000,
-                  }),
-                ]}
-              >
-                <CarouselContent className="-ml-1">
-                  {upcomingEvents.map((event, index) => (
-                    <CarouselItem key={index} className="pl-1 basis-1/1 cursor-pointer relative">
-                      <div
-                        className="p-2  rounded-lg flex flex-col justify-center "
-                        onClick={() => { router.push(`/event-info?eventId=${event.id}`) }}
-                      >
-                        <Card className="relative aspect-9/5 md:aspect-9/3" >
-                          <Image
-                            src={`${url_igdb_t_original}${event.event_logo?.image_id}.jpg`}
-                            alt={`cover-${event.checksum}`}
-                            fill
-                            loading="eager"
-                            sizes="(max-width: 1024px) 100vw, 80vw"
-                            className="rounded-lg"
-                          />
-                        </Card>
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className='left-2' />
-                <CarouselNext className='right-2' />
-              </Carousel>
-            </div>
-          </section>
-        }
-      </div>
 
-      <div className="w-full ">
-        {/* UPCOMING RELEASES */
-          upcomingReleases && upcomingReleases.length > 0 &&
-          <section className='w-full px-4'>
-            <h4 className="text-2xl font-semibold mb-2">Upcoming Releases</h4>
-            <div className='flex justify-center'>
-              <Carousel className="w-full max-w-480">
-                <CarouselContent className="-ml-1">
-                  {upcomingReleases.map((game, index) => (
-                    <CarouselItem key={index} className="basis-1/2 pl-1 sm:basis-1/3 md:basis-1/5 lg:basis-1/7 cursor-pointer ">
-                      <div
-                        className="p-2 rounded-lg"
-                        onClick={() => { router.push(`/game-info?gameId=${game.id}`) }}
-                      >
-                        <Card className="relative aspect-3/4" >
-                          <Image
-                            src={`${url_igdb_t_original}${game.cover?.image_id}.jpg`}
-                            alt={`cover-${game.id}`}
-                            fill
-                            sizes="(max-width: 1024px) 50vw, 14vw"
-                            className="rounded-lg"
-                          />
-                        </Card>
-                        <div className='w-full flex flex-col justify-center'>
-                          <p>{game.name}</p>
-                          <p>{formatUnixTime(game.first_release_date)}</p>
-                        </div>
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className='left-2' />
-                <CarouselNext className='right-2' />
-              </Carousel>
-            </div>
-          </section>
+      {/* UPCOMING RELEASES */}
+      {upcomingReleases && upcomingReleases.length > 0 &&
+        <GamesCarousel title="Biggest Upcoming Releases" games={upcomingReleases} moreUrl="/game-new-releases" />
+      }
 
-        }
-      </div>
-
-      <div className="w-full">
-        {/* ALL TIME FAVORITES */
-          allTimeFavs && allTimeFavs.length > 0 &&
-          <section className='w-full px-4'>
-            <h4 className="text-2xl font-semibold mb-2">All Time Favorites</h4>
-            <div className='flex justify-center'>
-              <Carousel className="w-full max-w-480">
-                <CarouselContent className="-ml-1">
-                  {allTimeFavs.map((game, index) => (
-                    <CarouselItem key={index} className="basis-1/2 pl-1 sm:basis-1/3 md:basis-1/5 lg:basis-1/7 cursor-pointer ">
-                      <div
-                        className="p-2 bg-background rounded-lg"
-                        onClick={() => { router.push(`/game-info?gameId=${game.id}`) }}
-                      >
-                        <Card className="relative aspect-3/4" >
-                          <Image
-                            src={`${url_igdb_t_original}${game.cover?.image_id}.jpg`}
-                            alt={`cover-${game.id}`}
-                            fill
-                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 20vw, 14vw"
-                            className="rounded-lg"
-                          />
-                        </Card>
-                        <div className='w-full flex flex-col justify-center'>
-                          <p>{game.name}</p>
-                          <p>{formatUnixTime(game.first_release_date)}</p>
-                        </div>
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className='left-2' />
-                <CarouselNext className='right-2' />
-              </Carousel>
-            </div>
-          </section>
-        }
-      </div>
+      {/* ALL TIME FAVORITES */}
+      {allTimeFavs && allTimeFavs.length > 0 &&
+        <GamesCarousel title="All Time Favorites" games={allTimeFavs} moreUrl="/games"/>
+      }
 
     </main>
   );

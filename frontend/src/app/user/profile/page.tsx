@@ -36,7 +36,7 @@ export default function page() {
     }, [isLoading, user])
 
     const goToDifferentGame = (id: number) => {
-        router.push(`/game-info?gameId=${id}`)
+        router.push(`/info/game-info?gameId=${id}`)
     }
 
     if (isLoading) {

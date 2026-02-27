@@ -128,3 +128,4 @@ Backend:
 
      ```
 9. create a page to view more upcoming and more all time favorites
+10. Add backend caching for /platforms (even 5–15 min TTL) to avoid repeated IGDB hits.

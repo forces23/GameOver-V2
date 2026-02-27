@@ -16,11 +16,13 @@ import { formatUnixTime } from '@/lib/utils';
 import { Genre } from '@/lib/types';
 import Link from 'next/link';
 import { FaStar } from 'react-icons/fa';
+import SearchBar from '@/components/SearchBar';
 
 
 export default function page() {
     const user = useUser();
-    const [collection, setCollection] = useState<[]>([]);
+    const [collection, setCollection] = useState<any[]>([]);
+    const [filteredCollection, setFilteredCollection] = useState<any[]>([])
 
     useEffect(() => {
         const fetchCollection = async () => {
@@ -44,15 +46,22 @@ export default function page() {
     return (
         <div className="">
             <div className="pb-4">
+                            <h1 className="w-full pb-2">Owned Games</h1>
+                            <hr />
+                        </div>
+                        <div className='mx-auto pb-4 max-w-5xl'>
+                            <SearchBar originalData={collection} setData={setFilteredCollection} />
+                        </div>
+            <div className="pb-4">
                 <h5 className="w-full text-center pb-2">{collection.length} items</h5>
                 <hr />
             </div>
             <ItemGroup className="gap-2">
-                {collection && collection.map((game: any, index: number) => {
+                {filteredCollection && filteredCollection.map((game: any, index: number) => {
                     return (
                         <Item key={game.name} variant="outline" asChild role="listitem" className="bg-card">
                             <Link
-                                href={`/game-info?gameId=${game.igdb_id}`}
+                                href={`/info/game-info?gameId=${game.igdb_id}`}
                                 className="relative"
                             >
                                 <ItemMedia

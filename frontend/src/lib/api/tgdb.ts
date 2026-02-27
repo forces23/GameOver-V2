@@ -13,3 +13,17 @@ export const getPlatforms = async (): Promise<Result<any>> => {
         return { ok: false, error: toApiError(err) };
     }
 }
+
+export const getPlatformDetails = async (consoleId: string): Promise<Result<any>> => {
+    try {
+        const response = await axios.get(`${url_omega}/tgdb/platforms/single`, {
+            params: { console_id: consoleId }
+        });
+        console.log(response)
+        return { ok: true, data: response };
+    } catch (err) {
+        return { ok: false, error: toApiError(err) };
+    }
+}
+
+

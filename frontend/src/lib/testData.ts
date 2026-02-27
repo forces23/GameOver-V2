@@ -1,4 +1,1078 @@
-import { IGDBEvent, QuickSearch, SearchResults } from "./types";
+import { IGDBEvent, QuickSearch, SearchResults, TGDBPlatformDetailsResponseData } from "./types";
+
+export const consolePartialTestData = [
+    {
+        "id": 139,
+        "name": "1292 Advanced Programmable Video System",
+        "platform_logo": {
+            "id": 136,
+            "alpha_channel": false,
+            "animated": false,
+            "image_id": "yfdqsudagw0av25dawjr",
+            "checksum": "343f1c9d-3317-c1c4-d5c0-f50d52efcbdc"
+        },
+        "slug": "1292-advanced-programmable-video-system",
+        "versions": [
+            {
+                "id": 213,
+                "platform_version_release_dates": [
+                    {
+                        "id": 696,
+                        "date": 315446400
+                    }
+                ],
+                "slug": "acetronic-mpu-1000"
+            },
+            {
+                "id": 197,
+                "platform_version_release_dates": [
+                    {
+                        "id": 697,
+                        "date": 283910400
+                    }
+                ],
+                "slug": "audiosonic-pp-1292-advanced-programmable-video-system"
+            }
+        ],
+        "checksum": "bdf2f978-1819-d3ef-864a-a3eff4649034",
+        "platform_type": {
+            "id": 1,
+            "name": "Console"
+        }
+    },
+    {
+        "id": 50,
+        "abbreviation": "3DO",
+        "alternative_name": "3DO",
+        "name": "3DO Interactive Multiplayer",
+        "platform_logo": {
+            "id": 282,
+            "alpha_channel": true,
+            "animated": false,
+            "image_id": "pl7u",
+            "checksum": "844e7040-04a9-d508-72fd-23d7031a3e68"
+        },
+        "slug": "3do",
+        "versions": [
+            {
+                "id": 18,
+                "platform_version_release_dates": [
+                    {
+                        "id": 117,
+                        "date": 749692800
+                    },
+                    {
+                        "id": 118,
+                        "date": 764121600
+                    },
+                    {
+                        "id": 698,
+                        "date": 771292800
+                    },
+                    {
+                        "id": 699,
+                        "date": 786412800
+                    }
+                ],
+                "slug": "initial-version"
+            }
+        ],
+        "checksum": "d0ca18d4-b12a-d1c3-173c-75b32ff483f4",
+        "platform_type": {
+            "id": 1,
+            "name": "Console"
+        }
+    },
+    {
+        "id": 416,
+        "abbreviation": "64DD",
+        "alternative_name": "Nintendo 64DD",
+        "name": "64DD",
+        "platform_logo": {
+            "id": 692,
+            "alpha_channel": true,
+            "animated": false,
+            "image_id": "plj8",
+            "checksum": "aa540d0d-0898-5e2d-ca4e-6d9131069b3c"
+        },
+        "slug": "64dd",
+        "versions": [
+            {
+                "id": 556,
+                "platform_version_release_dates": [
+                    {
+                        "id": 662,
+                        "date": 945043200
+                    }
+                ],
+                "slug": "initial-version"
+            }
+        ],
+        "checksum": "62f98481-2f80-3d55-bba6-03300ecf3941",
+        "platform_type": {
+            "id": 1,
+            "name": "Console"
+        }
+    },
+    {
+        "id": 116,
+        "abbreviation": "Acorn Archimedes",
+        "name": "Acorn Archimedes",
+        "platform_logo": {
+            "id": 388,
+            "alpha_channel": false,
+            "animated": false,
+            "image_id": "plas",
+            "checksum": "b30d1905-0f02-c11f-f0bc-8200b1386851"
+        },
+        "slug": "acorn-archimedes",
+        "versions": [
+            {
+                "id": 154,
+                "platform_version_release_dates": [
+                    {
+                        "id": 555,
+                        "date": 567907200
+                    },
+                    {
+                        "id": 556,
+                        "date": 549504000
+                    }
+                ],
+                "slug": "initial-version"
+            }
+        ],
+        "checksum": "6abaac45-9689-0ab5-b1e2-838785bd5557",
+        "platform_type": {
+            "id": 6,
+            "name": "Computer"
+        }
+    },
+    {
+        "id": 134,
+        "abbreviation": "Acorn Electron",
+        "name": "Acorn Electron",
+        "platform_logo": {
+            "id": 301,
+            "alpha_channel": true,
+            "animated": false,
+            "image_id": "pl8d",
+            "checksum": "65bb45b7-044e-45f4-8da3-35bfa6120082"
+        },
+        "slug": "acorn-electron",
+        "versions": [
+            {
+                "id": 184,
+                "slug": "initial-version"
+            }
+        ],
+        "checksum": "6c2225b6-d043-7771-e4c0-886fd508223b",
+        "platform_type": {
+            "id": 6,
+            "name": "Computer"
+        }
+    },
+    {
+        "id": 507,
+        "alternative_name": "BeenaLite",
+        "name": "Advanced Pico Beena",
+        "platform_logo": {
+            "id": 894,
+            "alpha_channel": false,
+            "animated": false,
+            "image_id": "plou",
+            "checksum": "19db4da4-271d-90bf-d7b6-9576ebe194d3"
+        },
+        "slug": "advanced-pico-beena",
+        "versions": [
+            {
+                "id": 726,
+                "platform_version_release_dates": [
+                    {
+                        "id": 907,
+                        "date": 1123286400
+                    }
+                ],
+                "slug": "advanced-pico-beena"
+            },
+            {
+                "id": 727,
+                "slug": "beenalite"
+            }
+        ],
+        "checksum": "5f883564-a7a1-0aa3-eb1b-e6e251e4d77a",
+        "platform_type": {
+            "id": 1,
+            "name": "Console"
+        }
+    },
+    {
+        "id": 389,
+        "name": "AirConsole",
+        "platform_logo": {
+            "id": 746,
+            "alpha_channel": true,
+            "animated": false,
+            "image_id": "plkq",
+            "checksum": "a023b973-b298-b591-a37d-11ad71ab832d"
+        },
+        "slug": "airconsole",
+        "versions": [
+            {
+                "id": 511,
+                "slug": "initial-version"
+            }
+        ],
+        "checksum": "a77055cc-db7f-5dec-b286-f20e3203e469",
+        "platform_type": {
+            "id": 3,
+            "name": "Platform"
+        }
+    },
+    {
+        "id": 132,
+        "abbreviation": "FireTV",
+        "name": "Amazon Fire TV",
+        "platform_logo": {
+            "id": 325,
+            "alpha_channel": true,
+            "animated": false,
+            "image_id": "pl91",
+            "checksum": "37b34296-0bf1-de22-9f8e-af734fdf6800"
+        },
+        "slug": "firetv",
+        "versions": [
+            {
+                "id": 176,
+                "slug": "initial-version"
+            }
+        ],
+        "checksum": "b127b736-52c5-a7d3-41ea-c933160404f6",
+        "platform_type": {
+            "id": 3,
+            "name": "Platform"
+        }
+    },
+    {
+        "id": 16,
+        "abbreviation": "Amiga",
+        "alternative_name": "Commodore Amiga",
+        "name": "Amiga",
+        "slug": "amiga",
+        "versions": [
+            {
+                "id": 111,
+                "slug": "amiga-a-2000"
+            },
+            {
+                "id": 112,
+                "slug": "amiga-a-3000"
+            },
+            {
+                "id": 19,
+                "platform_version_release_dates": [
+                    {
+                        "id": 134,
+                        "date": 560044800
+                    }
+                ],
+                "slug": "amiga-a-500"
+            },
+            {
+                "id": 109,
+                "platform_version_release_dates": [
+                    {
+                        "id": 238,
+                        "date": 699408000
+                    }
+                ],
+                "slug": "amiga-a-600"
+            },
+            {
+                "id": 113,
+                "slug": "amiga-a-3000t"
+            },
+            {
+                "id": 522,
+                "platform_version_release_dates": [
+                    {
+                        "id": 638,
+                        "date": 719625600
+                    }
+                ],
+                "slug": "amiga-a-1200"
+            },
+            {
+                "id": 110,
+                "slug": "amiga-a-1000"
+            }
+        ],
+        "checksum": "11e48bee-0a52-e44f-f5fc-c5f0a3118249",
+        "platform_type": {
+            "id": 6,
+            "name": "Computer"
+        }
+    },
+    {
+        "id": 114,
+        "abbreviation": "Amiga CD32",
+        "name": "Amiga CD32",
+        "platform_logo": {
+            "id": 283,
+            "alpha_channel": true,
+            "animated": false,
+            "image_id": "pl7v",
+            "checksum": "c047f2d6-d142-8d94-a0c4-72f1fd427dc2"
+        },
+        "slug": "amiga-cd32",
+        "versions": [
+            {
+                "id": 152,
+                "platform_version_release_dates": [
+                    {
+                        "id": 506,
+                        "date": 748051200
+                    }
+                ],
+                "slug": "initial-version"
+            }
+        ],
+        "checksum": "5eeaa315-7f58-081f-065f-1525f31d15af",
+        "platform_type": {
+            "id": 1,
+            "name": "Console"
+        }
+    },
+    {
+        "id": 25,
+        "abbreviation": "ACPC",
+        "alternative_name": "Colour Personal Computer",
+        "name": "Amstrad CPC",
+        "platform_logo": {
+            "id": 845,
+            "alpha_channel": false,
+            "animated": false,
+            "image_id": "plnh",
+            "checksum": "ced17c32-92b1-8ea7-6b60-328af0f95bda"
+        },
+        "slug": "acpc",
+        "versions": [
+            {
+                "id": 525,
+                "platform_version_release_dates": [
+                    {
+                        "id": 684,
+                        "date": 487468800
+                    },
+                    {
+                        "id": 685,
+                        "date": 492912000
+                    }
+                ],
+                "slug": "amstrad-cpc-6128"
+            },
+            {
+                "id": 20,
+                "platform_version_release_dates": [
+                    {
+                        "id": 775,
+                        "date": 450489600
+                    }
+                ],
+                "slug": "cpc-464"
+            }
+        ],
+        "checksum": "69b3cb27-f443-64aa-3cfa-ea3cca608d1f",
+        "platform_type": {
+            "id": 6,
+            "name": "Computer"
+        }
+    },
+    {
+        "id": 506,
+        "abbreviation": "GX4000",
+        "name": "Amstrad GX4000",
+        "platform_logo": {
+            "id": 893,
+            "alpha_channel": false,
+            "animated": false,
+            "image_id": "plot",
+            "checksum": "88384d18-abd4-acb4-6b06-0a09dea5034b"
+        },
+        "slug": "gx4000",
+        "versions": [
+            {
+                "id": 725,
+                "platform_version_release_dates": [
+                    {
+                        "id": 906,
+                        "date": 652147200
+                    }
+                ],
+                "slug": "initial-version"
+            }
+        ],
+        "checksum": "619af904-230f-65ce-7178-c269e5eb9e4a",
+        "platform_type": {
+            "id": 1,
+            "name": "Console"
+        }
+    },
+    {
+        "id": 154,
+        "abbreviation": "APCW",
+        "name": "Amstrad PCW",
+        "platform_logo": {
+            "id": 547,
+            "alpha_channel": false,
+            "animated": false,
+            "image_id": "plf7",
+            "checksum": "75096865-cbcc-283f-b48f-ffcfd79616ab"
+        },
+        "slug": "apcw",
+        "versions": [
+            {
+                "id": 219,
+                "platform_version_release_dates": [
+                    {
+                        "id": 557,
+                        "date": 494380800
+                    }
+                ],
+                "slug": "initial-version"
+            }
+        ],
+        "checksum": "b3b0a695-4127-2067-8f1e-65ace68ade72",
+        "platform_type": {
+            "id": 6,
+            "name": "Computer"
+        }
+    },
+    {
+        "id": 100,
+        "abbreviation": "analogueelectronics",
+        "name": "Analogue electronics",
+        "slug": "analogueelectronics",
+        "versions": [
+            {
+                "id": 126,
+                "slug": "initial-version"
+            }
+        ],
+        "checksum": "01951a13-ac9d-9f80-2b02-f9a818d83326"
+    },
+    {
+        "id": 34,
+        "abbreviation": "Android",
+        "alternative_name": "Infocusa3",
+        "name": "Android",
+        "platform_logo": {
+            "id": 831,
+            "alpha_channel": true,
+            "animated": false,
+            "image_id": "pln3",
+            "checksum": "b8d72acf-c99b-dae0-5465-9071aa2c092f"
+        },
+        "slug": "android",
+        "versions": [
+            {
+                "id": 8,
+                "platform_version_release_dates": [
+                    {
+                        "id": 110,
+                        "date": 1297209600
+                    }
+                ],
+                "slug": "gingerbread-2-3-3"
+            },
+            {
+                "id": 9,
+                "platform_version_release_dates": [
+                    {
+                        "id": 109,
+                        "date": 1310688000
+                    }
+                ],
+                "slug": "honeycomb-3-2"
+            },
+            {
+                "id": 10,
+                "platform_version_release_dates": [
+                    {
+                        "id": 108,
+                        "date": 1323993600
+                    }
+                ],
+                "slug": "ice-cream-sandwich"
+            },
+            {
+                "id": 11,
+                "platform_version_release_dates": [
+                    {
+                        "id": 107,
+                        "date": 1341792000
+                    }
+                ],
+                "slug": "jelly-bean-4-1-x-4-3-x"
+            },
+            {
+                "id": 237,
+                "platform_version_release_dates": [
+                    {
+                        "id": 273,
+                        "date": 1423094400
+                    }
+                ],
+                "slug": "marshmallow"
+            },
+            {
+                "id": 12,
+                "platform_version_release_dates": [
+                    {
+                        "id": 102,
+                        "date": 1383177600
+                    }
+                ],
+                "slug": "kitkat"
+            },
+            {
+                "id": 320,
+                "platform_version_release_dates": [
+                    {
+                        "id": 398,
+                        "date": 1533513600
+                    }
+                ],
+                "slug": "pie"
+            },
+            {
+                "id": 526,
+                "slug": "10"
+            },
+            {
+                "id": 7,
+                "platform_version_release_dates": [
+                    {
+                        "id": 106,
+                        "date": 1274313600
+                    }
+                ],
+                "slug": "froyo-2-2"
+            },
+            {
+                "id": 543,
+                "slug": "android-cupcake"
+            },
+            {
+                "id": 544,
+                "slug": "android-donut"
+            },
+            {
+                "id": 545,
+                "slug": "android-eclair"
+            },
+            {
+                "id": 546,
+                "slug": "android-froyo"
+            },
+            {
+                "id": 236,
+                "platform_version_release_dates": [
+                    {
+                        "id": 272,
+                        "date": 1415750400
+                    }
+                ],
+                "slug": "lollipop"
+            },
+            {
+                "id": 238,
+                "platform_version_release_dates": [
+                    {
+                        "id": 274,
+                        "date": 1471824000
+                    }
+                ],
+                "slug": "nougat"
+            },
+            {
+                "id": 527,
+                "slug": "11"
+            },
+            {
+                "id": 528,
+                "slug": "12"
+            },
+            {
+                "id": 541,
+                "slug": "android-1-dot-0"
+            },
+            {
+                "id": 542,
+                "slug": "android-1-dot-1"
+            },
+            {
+                "id": 672,
+                "platform_version_release_dates": [
+                    {
+                        "id": 777,
+                        "date": 1660521600
+                    }
+                ],
+                "slug": "android-13"
+            },
+            {
+                "id": 239,
+                "platform_version_release_dates": [
+                    {
+                        "id": 275,
+                        "date": 1534809600
+                    }
+                ],
+                "slug": "oreo"
+            }
+        ],
+        "checksum": "484e4cc5-70c7-dcbe-ae74-c3185a6888dc",
+        "platform_type": {
+            "id": 4,
+            "name": "Operating_system"
+        }
+    },
+    {
+        "id": 75,
+        "abbreviation": "Apple][",
+        "alternative_name": "apple ][",
+        "name": "Apple II",
+        "platform_logo": {
+            "id": 315,
+            "alpha_channel": true,
+            "animated": false,
+            "image_id": "pl8r",
+            "checksum": "9cae230d-60cc-f79c-1b04-67dfe0a3b238"
+        },
+        "slug": "appleii",
+        "versions": [
+            {
+                "id": 21,
+                "platform_version_release_dates": [
+                    {
+                        "id": 135,
+                        "date": 234748800
+                    },
+                    {
+                        "id": 136,
+                        "date": 283910400
+                    },
+                    {
+                        "id": 137,
+                        "date": 283910400
+                    }
+                ],
+                "slug": "initial-version-071433c7-3175-44f5-9941-30ea1f42ff58"
+            }
+        ],
+        "checksum": "a30a93bf-3fba-5fb7-4c20-11b115e81949",
+        "platform_type": {
+            "id": 6,
+            "name": "Computer"
+        }
+    },
+    {
+        "id": 115,
+        "name": "Apple IIGS",
+        "platform_logo": {
+            "id": 295,
+            "alpha_channel": true,
+            "animated": false,
+            "image_id": "pl87",
+            "checksum": "1d151d93-bbb5-c7d2-3ef8-c30ead9445d4"
+        },
+        "slug": "apple-iigs",
+        "versions": [
+            {
+                "id": 153,
+                "slug": "initial-version"
+            }
+        ],
+        "checksum": "3e89ea22-7494-1fd0-7015-3d910e5ce9d8",
+        "platform_type": {
+            "id": 6,
+            "name": "Computer"
+        }
+    },
+    {
+        "id": 476,
+        "alternative_name": "PiPP!N",
+        "name": "Apple Pippin",
+        "platform_logo": {
+            "id": 851,
+            "alpha_channel": false,
+            "animated": false,
+            "image_id": "plnn",
+            "checksum": "0e1ad6aa-3dcb-08bb-a894-c0a953283c0b"
+        },
+        "slug": "apple-pippin",
+        "versions": [
+            {
+                "id": 693,
+                "platform_version_release_dates": [
+                    {
+                        "id": 850,
+                        "date": 851990400
+                    }
+                ],
+                "slug": "initial-version"
+            }
+        ],
+        "checksum": "0f541de9-a045-d22f-d382-8fb7f17698e3",
+        "platform_type": {
+            "id": 1,
+            "name": "Console"
+        }
+    },
+    {
+        "id": 52,
+        "abbreviation": "Arcade",
+        "name": "Arcade",
+        "platform_logo": {
+            "id": 827,
+            "alpha_channel": true,
+            "animated": false,
+            "image_id": "plmz",
+            "checksum": "c5266661-154a-7ac3-e056-c69f54a39dda"
+        },
+        "slug": "arcade",
+        "versions": [
+            {
+                "id": 696,
+                "slug": "sega-alls"
+            },
+            {
+                "id": 636,
+                "platform_version_release_dates": [
+                    {
+                        "id": 722,
+                        "date": 694137600
+                    }
+                ],
+                "slug": "mega-play"
+            },
+            {
+                "id": 637,
+                "platform_version_release_dates": [
+                    {
+                        "id": 723,
+                        "date": 909878400
+                    },
+                    {
+                        "id": 724,
+                        "date": 915062400
+                    }
+                ],
+                "slug": "naomi"
+            },
+            {
+                "id": 634,
+                "platform_version_release_dates": [
+                    {
+                        "id": 719,
+                        "date": 820368000
+                    }
+                ],
+                "slug": "sega-system-e"
+            },
+            {
+                "id": 635,
+                "platform_version_release_dates": [
+                    {
+                        "id": 720,
+                        "date": 631065600
+                    },
+                    {
+                        "id": 721,
+                        "date": 631065600
+                    }
+                ],
+                "slug": "mega-tech-system"
+            },
+            {
+                "id": 22,
+                "platform_version_release_dates": [
+                    {
+                        "id": 726,
+                        "date": 62985600
+                    }
+                ],
+                "slug": "initial-version-9ef509be-a00a-427e-9b78-93c4a10e04b6"
+            },
+            {
+                "id": 641,
+                "platform_version_release_dates": [
+                    {
+                        "id": 729,
+                        "date": 523238400
+                    }
+                ],
+                "slug": "playchoice-10"
+            },
+            {
+                "id": 640,
+                "platform_version_release_dates": [
+                    {
+                        "id": 728,
+                        "date": 441763200
+                    }
+                ],
+                "slug": "nintendo-vs-system"
+            },
+            {
+                "id": 681,
+                "platform_version_release_dates": [
+                    {
+                        "id": 844,
+                        "date": 915062400
+                    }
+                ],
+                "slug": "aleck-64"
+            },
+            {
+                "id": 651,
+                "platform_version_release_dates": [
+                    {
+                        "id": 743,
+                        "date": 978220800
+                    }
+                ],
+                "slug": "naomi-2"
+            },
+            {
+                "id": 649,
+                "platform_version_release_dates": [
+                    {
+                        "id": 740,
+                        "date": 407548800
+                    },
+                    {
+                        "id": 741,
+                        "date": 425865600
+                    }
+                ],
+                "slug": "sega-system-1"
+            },
+            {
+                "id": 650,
+                "platform_version_release_dates": [
+                    {
+                        "id": 742,
+                        "date": 925516800
+                    }
+                ],
+                "slug": "sega-hikaru"
+            },
+            {
+                "id": 638,
+                "platform_version_release_dates": [
+                    {
+                        "id": 725,
+                        "date": 694137600
+                    }
+                ],
+                "slug": "nintendo-super-system"
+            },
+            {
+                "id": 652,
+                "platform_version_release_dates": [
+                    {
+                        "id": 744,
+                        "date": 1049155200
+                    },
+                    {
+                        "id": 745,
+                        "date": 1104451200
+                    },
+                    {
+                        "id": 746,
+                        "date": 1104451200
+                    }
+                ],
+                "slug": "atomiswave"
+            },
+            {
+                "id": 668,
+                "slug": "soft-desk-10"
+            },
+            {
+                "id": 665,
+                "slug": "mark-iii-soft-desk-10"
+            },
+            {
+                "id": 669,
+                "platform_version_release_dates": [
+                    {
+                        "id": 765,
+                        "date": 762480000
+                    },
+                    {
+                        "id": 766,
+                        "date": 820368000
+                    }
+                ],
+                "slug": "sega-titan-video"
+            },
+            {
+                "id": 666,
+                "slug": "mark-iii-soft-desk-5"
+            },
+            {
+                "id": 667,
+                "platform_version_release_dates": [
+                    {
+                        "id": 764,
+                        "date": 1262217600
+                    }
+                ],
+                "slug": "sega-ringedge"
+            },
+            {
+                "id": 664,
+                "platform_version_release_dates": [
+                    {
+                        "id": 761,
+                        "date": 1041292800
+                    },
+                    {
+                        "id": 762,
+                        "date": 1041292800
+                    },
+                    {
+                        "id": 763,
+                        "date": 1041292800
+                    }
+                ],
+                "slug": "triforce"
+            }
+        ],
+        "checksum": "9ea37685-d483-c419-3591-7299d3b0af16",
+        "platform_type": {
+            "id": 2,
+            "name": "Arcade"
+        }
+    },
+    {
+        "id": 473,
+        "name": "Arcadia 2001",
+        "platform_logo": {
+            "id": 848,
+            "alpha_channel": true,
+            "animated": false,
+            "image_id": "plnk",
+            "checksum": "35052516-3a8e-3572-626e-322334dd3c3f"
+        },
+        "slug": "arcadia-2001",
+        "versions": [
+            {
+                "id": 683,
+                "platform_version_release_dates": [
+                    {
+                        "id": 846,
+                        "date": 381369600
+                    }
+                ],
+                "slug": "initial-version"
+            }
+        ],
+        "checksum": "40d15973-6341-e0e1-6dd4-804877b00030",
+        "platform_type": {
+            "id": 1,
+            "name": "Console"
+        }
+    }
+]
+
+
+export const consoleTestData: TGDBPlatformDetailsResponseData = {
+    "details": {
+        "id": 7,
+        "name": "Nintendo Entertainment System (NES)",
+        "alias": "nintendo-entertainment-system-nes",
+        "icon": "nintendo-entertainment-system-nes-1336524652.png",
+        "console": "7.png",
+        "controller": "7.png",
+        "developer": "Nintendo",
+        "manufacturer": "Nintendo",
+        "media": "Cartridge",
+        "cpu": "Ricoh 2A03",
+        "memory": "2KB RAM",
+        "graphics": "RP2C02",
+        "sound": "Pulse Code Modulation",
+        "maxcontrollers": "2",
+        "display": "RGB",
+        "overview": "The Nintendo Entertainment System (also abbreviated as NES or simply called Nintendo) is an 8-bit video game console that was released by Nintendo in North America during 1985, in Europe during 1986 and Australia in 1987. In most of Asia, including Japan (where it was first launched in 1983), China, Vietnam, Singapore, the Middle East and Hong Kong, it was released as the Family Computer, commonly shortened as either the romanized contraction Famicom, or abbreviated to FC. In South Korea, it was known as the Hyundai Comboy, and was distributed by Hynix which then was known as Hyundai Electronics.\r\n\r\nAs the best-selling gaming console of its time, the NES helped revitalize the US video game industry following the video game crash of 1983, and set the standard for subsequent consoles of its generation. With the NES, Nintendo introduced a now-standard business model of licensing third-party developers, authorizing them to produce and distribute software for Nintendo's platform.",
+        "youtube": null
+    },
+    "images": {
+        "base_urls": {
+            "original": "https://cdn.thegamesdb.net/images/original/",
+            "small": "https://cdn.thegamesdb.net/images/small/",
+            "thumb": "https://cdn.thegamesdb.net/images/thumb/",
+            "cropped_center_thumb": "https://cdn.thegamesdb.net/images/cropped_center_thumb/",
+            "medium": "https://cdn.thegamesdb.net/images/medium/",
+            "large": "https://cdn.thegamesdb.net/images/large/"
+        },
+        "images": {
+            "banners": [
+                {
+                    "id": 22,
+                    "filename": "platform/banners/7-1.png"
+                },
+                {
+                    "id": 83,
+                    "filename": "platform/banners/7-2.jpg"
+                }
+            ],
+            "fanarts": [
+                {
+                    "id": 38,
+                    "filename": "platform/fanart/7-1.jpg"
+                },
+                {
+                    "id": 39,
+                    "filename": "platform/fanart/7-2.jpg"
+                },
+                {
+                    "id": 60,
+                    "filename": "platform/fanart/7-3.jpg"
+                },
+                {
+                    "id": 128,
+                    "filename": "platform/fanart/7-4.jpg"
+                },
+                {
+                    "id": 184,
+                    "filename": "platform/fanart/7-5.jpg"
+                },
+                {
+                    "id": 185,
+                    "filename": "platform/fanart/7-6.jpg"
+                }
+            ],
+            "boxarts": [
+                {
+                    "id": 222,
+                    "filename": "platform/boxart/7-2.jpg"
+                }
+            ],
+            "icons": [
+                {
+                    "id": 282,
+                    "filename": "/consoles/png48/nintendo-entertainment-system-nes-1336524652.png"
+                }
+            ],
+            "others": []
+        }
+    }
+}
+
 
 export const searchResultsTesData: SearchResults = {
     games: [

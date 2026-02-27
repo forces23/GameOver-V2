@@ -52,16 +52,22 @@ export default function SearchBox() {
 
         window.addEventListener("keydown", onKeyDown);
         return () => window.removeEventListener("keydown", onKeyDown);
-    },[])
+    }, [])
 
     const handleSelectedGame = (gameId: number) => {
-        router.push(`/game-info?gameId=${gameId}`);
+        router.push(`/info/game-info?gameId=${gameId}`);
         setOpen(false);
     }
+    const handleSelectedConsole = (consoleId: number) => {
+        router.push(`/info/console-info?consoleId=${consoleId}`);
+        setOpen(false);
+    }
+
+    
     return (
         <div className=" ">
             <div className='md:hidden'>
-                <button onClick={() => setOpen(true)}  className="w-fit cursor-pointer">
+                <button onClick={() => setOpen(true)} className="w-fit cursor-pointer">
                     <TbSearch />
                 </button>
             </div>
@@ -112,7 +118,7 @@ export default function SearchBox() {
                                     <CommandItem
                                         key={`${result.name}-${index}`}
                                         value={result.name}
-                                        // onSelect={() => handleSelectedConsole(result.id)}
+                                        onSelect={() => handleSelectedConsole(result.id)}
                                         className="flex items-center gap-3"
                                     >
                                         {result.console &&

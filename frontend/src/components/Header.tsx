@@ -18,6 +18,7 @@ import { RiMenu5Line, RiMenu4Fill } from "react-icons/ri";
 import { TbSearch } from "react-icons/tb";
 import { useState } from 'react'
 import SearchBox from './search/SearchBox'
+import { Tabs, TabsList, TabsTrigger } from './ui/tabs'
 
 
 export default function Header() {
@@ -53,12 +54,19 @@ export default function Header() {
             </div>
             <div className="flex items-center gap-4 px-4 justify-end ">
                 <div className="hidden md:flex">
+                    <nav className='flex gap-3'>
+                        <button className="cursor-pointer text-xl text-white hover:text-purple-500 relative inline-block after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 hover:after:scale-x-100 "onClick={() => router.push("/consoles")}>Consoles</button>
+                        <button className="whitespace-nowrap cursor-pointer text-xl text-white hover:text-purple-500 relative inline-block after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 hover:after:scale-x-100" onClick={() => router.push("/games")}>Games</button>
+                        <button className="whitespace-nowrap cursor-pointer text-xl text-white hover:text-purple-500 relative inline-block after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 hover:after:scale-x-100" onClick={() => router.push("/game-new-releases")}>New Releases</button>
+                    </nav>
+                </div>
+                <div className="hidden md:flex">
                     <SearchBox />
                 </div>
                 <div className="md:hidden" onClick={() => setSearchActive(prev => !prev)}>
                     <TbSearch />
                 </div>
-                <div className={`${!user && 'md:hidden' }`}>
+                <div className={`${!user && 'md:hidden'}`}>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className={`rounded-full cursor-pointer ${!user && 'md:hidden'}`}>
@@ -72,9 +80,9 @@ export default function Header() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="w-32">
                             <DropdownMenuGroup>
-                                <DropdownMenuItem onClick={() => { router.push("") }}>Consoles</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => router.push("")}>Upcoming Releases</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => router.push("")}>Events</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => { router.push("/consoles") }}>Consoles</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => router.push("/Releases")}>New Releases</DropdownMenuItem>
+                                {/* <DropdownMenuItem onClick={() => router.push("")}>Events</DropdownMenuItem> */}
                                 {user && (
                                     <>
                                         <DropdownMenuItem onClick={() => { router.push("/user/profile") }}>Profile</DropdownMenuItem>

@@ -1,10 +1,10 @@
 "use client"
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React, { ChangeEvent, useEffect, useState, useRef } from "react";
 import { ButtonGroup } from "@/components/ui/button-group"
-import { Field } from "@/components/ui/field"
+import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet, FieldTitle } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
     Command,
@@ -13,107 +13,474 @@ import {
     CommandItem,
     CommandList,
 } from "@/components/ui/command";
-import { getQuickSearchInfo } from "@/lib/api/igdb";
+import { getAllPlatforms, getGameSearch, getIGDBGenres, getIGDBThemes, getQuickSearchInfo } from "@/lib/api/igdb";
 import { QuickSearch } from "@/lib/types";
-import { formatUnixTime } from "@/lib/utils";
+import { formatUnixTime, formatUnixTimeToDateTime, toUnixString } from "@/lib/utils";
+import { Form } from "@base-ui/react";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { Combobox, ComboboxChip, ComboboxChips, ComboboxChipsInput, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList, ComboboxValue, useComboboxAnchor } from "./ui/combobox";
+import * as Z from "zod"
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "./ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { Calendar } from "./ui/calendar";
 
-const url_igdb_t_original = process.env.NEXT_PUBLIC_URL_IGDB_T_ORIGINAL
+type IGDBGenres = {
+    id: number,
+    name: string,
+    slug: string
+}
+type IGDBThemes = {
+    id: number,
+    name: string,
+    slug: string
+}
 
-export default function SearchBar() {
-    const [gameTitle, setGameTitle] = useState("");
-    const [searchResults, setSearchResults] = useState<QuickSearch[]>([]); // have ai create the type for searchResults
+type IGDBConsole = {
+    id: string,
+    abbreviation: string,
+    alternative_name: string,
+    checksum: string,
+    name: string,
+    slug: string
+    platform_logo: {
+        id: string,
+        alpha_channel: string,
+        animated: string,
+        checksum: string,
+        image_id: string,
+        name: string
+    },
+    versions: {
+        id: string,
+        slug: string,
+        platform_version_release_dates: {
+            id: string,
+            date: string,
+        }
+    },
+}
+
+const formSchema = Z.object({
+    query: Z.string(),
+    genres: Z.array(
+        Z.object({
+            id: Z.number(),
+            name: Z.string(),
+            slug: Z.string()
+        })
+    ),
+    themes: Z.array(
+        Z.object({
+            id: Z.number(),
+            name: Z.string(),
+            slug: Z.string()
+        })),
+    consoles: Z.array(
+        Z.object({
+            id: Z.number(),
+            name: Z.string(),
+            slug: Z.string()
+        })),
+    fromDate: Z.string().nullable(),
+    toDate: Z.string().nullable()
+})
+    .superRefine((data, ctx) => {
+        if (!data.fromDate || !data.toDate) return;
+
+        const from = Number(data.fromDate);
+        const to = Number(data.toDate);
+
+        if (Number.isNaN(from) || Number.isNaN(to)) return;
+
+        if (from >= to) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["fromDate"],
+                message: "From date must be before the To date."
+            });
+            ctx.addIssue({
+                code: "custom",
+                path: ["toDate"],
+                message: "To date must be after From date."
+            });
+        }
+    });
+
+type SearchBarProps = {
+    originalData: any[];
+    setData: React.Dispatch<React.SetStateAction<any[]>>
+    searchType: "console" | "game"
+    filters?: {
+        query: string,
+        genres?: number[],
+        themes?: number[],
+        consoles?: number[],
+        fromDate?: string,
+        toDate?: string
+    }
+}
+
+
+
+export default function SearchBar({ originalData, setData, filters, searchType = "game" }: SearchBarProps) {
     const router = useRouter();
+    const pathname = usePathname();
     const searchRef = useRef<HTMLDivElement>(null);
-    const [open, setOpen] = useState(false);
+    const [themes, setThemes] = useState<IGDBThemes[]>([]);
+    const [genres, setGenres] = useState<IGDBGenres[]>([]);
+    const [consoles, setConsoles] = useState<IGDBConsole[]>([]);
+    const genresAnchor = useComboboxAnchor();
+    const themesAnchor = useComboboxAnchor();
+    const consoleAnchor = useComboboxAnchor();
+    const form = useForm<Z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            query: "",
+            genres: [],
+            themes: [],
+            consoles: [],
+            fromDate: "",
+            toDate: ""
+        }
+    })
+    const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
-    // Close dropdown when clicking outside
     useEffect(() => {
-        const handleClickOutsideSearch = (event: MouseEvent) => {
-            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-                setOpen(false);
+        const run = async () => {
+            setStatus("loading");
+
+            const genresResult = await getIGDBGenres();
+            const themesResult = await getIGDBThemes();
+            const consolesResult = await getAllPlatforms();
+
+            if (themesResult.ok) {
+                setStatus("loading");
+                setThemes(themesResult.data);
+            } else {
+                setStatus("error");
             }
-        };
-        document.addEventListener("mousedown", handleClickOutsideSearch);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutsideSearch);
-        };
+
+            if (genresResult.ok) {
+                setStatus("loading");
+                setGenres(genresResult.data);
+            } else {
+                setStatus("error");
+            }
+
+            if (consolesResult.ok) {
+                setStatus("loading");
+                setConsoles(consolesResult.data);
+            } else {
+                setStatus("error");
+            }
+        }
+
+        if (searchType === "game") run();
     }, []);
 
     useEffect(() => {
-        if (gameTitle) {
-            const fetchGameDetails = async () => {
-                if (!gameTitle) return;
-                const result = await getQuickSearchInfo(gameTitle);
-                console.log(searchResults)
-                if (result.ok) {
-                    setSearchResults(result.data);
-                }
-                // TODO: do something with errors that come back from quick search
-            }
-            fetchGameDetails();
-            setOpen(true);
-        } else {
-            setOpen(false)
+        if (searchType !== "game") return;
+        if (!filters) return;
+        if (!genres.length || !themes.length || !consoles.length) return;
+
+        form.reset({
+            query: filters.query ?? "",
+            genres: genres.filter(g => (filters.genres ?? []).includes(g.id)),
+            themes: themes.filter(t => (filters.themes ?? []).includes(t.id)),
+            consoles: consoles
+                .filter(c => (filters.consoles ?? []).includes(Number(c.id)))
+                .map((c => ({ id: Number(c.id), name: c.name, slug: c.slug }))),
+            fromDate: filters.fromDate ?? "",
+            toDate: filters.toDate ?? ""
+        })
+    }, [filters, genres, themes, consoles, form, searchType])
+
+
+
+    const searchData = async (values: Z.infer<typeof formSchema>) => {
+        console.log("valid:", values);
+        // console.log("errors:", errors);
+        //normalize data to be pushed to api
+        const payload = {
+            "query": values.query ?? "",
+            "genres": values.genres.map((g) => g.id),
+            "themes": values.themes.map((t) => t.id),
+            "consoles": values.consoles.map((c) => c.id),
+            "fromDate": values.fromDate ?? "",
+            "toDate": values.toDate ?? "",
+            "page": 1,
+            "limit": 50,
+            "sort": "asc"
         }
-    }, [gameTitle])
 
-    const searchGame = (e: ChangeEvent<HTMLInputElement>) => {
-        setGameTitle(e.target.value)
+        console.log(payload);
+        if (searchType === "game") {
+            const result = await getGameSearch(payload);
+            if (result.ok) {
+                router.replace(pathname, { scroll: false })
+                setData(result.data)
+            }
+        }
+        if (searchType === "console") {
+            const q = values.query.trim().toLowerCase();
+
+            const results = originalData.filter((item) =>
+                item.name.toLowerCase().includes(q) || item.alias?.toLowerCase().includes(q)
+            );
+
+            setData(results);
+        }
     }
 
-    const handleSelectedGame = (gameId: number) => {
-        router.push(`/game-info?gameId=${gameId}`);
-        setOpen(false);
-    }
+    useEffect(() => {
+        console.log(genres)
+        console.log(themes)
+    }, [genres, themes]);
 
+
+    {/** this will need to take in a :
+        - state setter 
+        - state ??
+        - allowable filters for buttons (console would not need genre) ?
+    */}
     return (
         <>
             <div className="relative w-full " ref={searchRef}>
-                <Field>
-                    <ButtonGroup>
-                        <Input
-                            id="input-button-group"
-                            placeholder="Type to search..."
-                            onChange={(e) => searchGame(e)}
-                            value={gameTitle}
-                            onFocus={() => { setOpen(true) }} />
-                    </ButtonGroup>
-                </Field>
+                <form id="form-search-games" onSubmit={form.handleSubmit(searchData)}>
+                    <FieldGroup className="pb-3">
+                        <Controller
+                            name="query"
+                            control={form.control}
+                            render={({ field, fieldState }) => (
+                                <Field orientation="horizontal" >
+                                    <Input
+                                        {...field}
+                                        aria-invalid={fieldState.invalid}
+                                        type="search"
+                                        placeholder="Search..."
+                                        autoComplete="on"
+                                    />
+                                    {fieldState.invalid && (
+                                        <FieldError errors={[fieldState.error]} />
+                                    )}
 
-                {open && searchResults.length > 0 && gameTitle && (
-                    <Command className="absolute flex  top-full mt-1 w-full h-auto rounded-lg border bg-background shadow-lg z-10">
-                        <CommandList className="max-h-80 overflow-y-auto" >
-                            <CommandEmpty>No results found.</CommandEmpty>
-                            <CommandGroup heading="Suggestions">
-                                {searchResults.map((result: any, index: number) => {
-                                    return (
-                                        <CommandItem
-                                            key={`${result.name}-${index}`}
-                                            value={result.name}
-                                            onSelect={() => handleSelectedGame(result.id)}
-                                            className="flex items-center gap-3"
+                                </Field>
+                            )}
+                        />
+                    </FieldGroup>
+                    {searchType === "game" &&
+                        <FieldGroup className="flex md:flex-row gap-2 pb-4">
+                            <Controller
+                                name="genres"
+                                control={form.control}
+                                render={({ field, fieldState }) => (
+                                    <Field className="gap-1">
+                                        <FieldLabel>
+                                            Genres
+                                        </FieldLabel>
+                                        <Combobox
+                                            multiple
+                                            autoHighlight
+                                            items={genres}
+                                            value={field.value ?? []}
+                                            onValueChange={(values) => field.onChange(Array.isArray(values) ? values : [])}
+                                            isItemEqualToValue={(a, b) => a.id === b.id}
+                                            defaultValue={[]}
                                         >
-                                            {result.cover &&
-                                                <Image
-                                                    src={`${url_igdb_t_original}${result.cover.image_id}.jpg`}
-                                                    alt={`${result.name}+Cover`}
-                                                    height={50}
-                                                    width={100}
-                                                />}
-                                            <div className="flex flex-col">
-                                                <span className="font-medium">{result.name}</span>
-                                                <span className="text-xs opacity-70">
-                                                    {formatUnixTime(result.first_release_date)}
-                                                </span>
-                                            </div>
-                                        </CommandItem>
-                                    )
-                                })}
-                            </CommandGroup>
-                        </CommandList>
-                    </Command>
-                )}
-            </div>
+                                            <ComboboxChips ref={genresAnchor} className="w-full max-w-xs">
+                                                <ComboboxValue>
+                                                    {(values: IGDBGenres[]) => (
+                                                        <React.Fragment>
+                                                            {values.map((value: IGDBGenres) => (
+                                                                <ComboboxChip key={value.slug}>{value.name}</ComboboxChip>
+                                                            ))}
+                                                            <ComboboxChipsInput />
+                                                        </React.Fragment>
+                                                    )}
+                                                </ComboboxValue>
+                                            </ComboboxChips>
+                                            <ComboboxContent anchor={genresAnchor}>
+                                                <ComboboxEmpty>No items found.</ComboboxEmpty>
+                                                <ComboboxList>
+                                                    {(item) => (
+                                                        <ComboboxItem key={item.slug} value={item}>
+                                                            {item.name}
+                                                        </ComboboxItem>
+                                                    )}
+                                                </ComboboxList>
+                                            </ComboboxContent>
+                                        </Combobox>
+                                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                    </Field>
+                                )}
+                            />
+                            <Controller
+                                name="themes"
+                                control={form.control}
+                                render={({ field, fieldState }) => (
+                                    <Field className="gap-1">
+                                        <FieldLabel>
+                                            Themes
+                                        </FieldLabel>
+                                        <Combobox
+                                            multiple
+                                            autoHighlight
+                                            items={themes}
+                                            value={field.value ?? []}
+                                            onValueChange={(values) => field.onChange(Array.isArray(values) ? values : [])}
+                                            isItemEqualToValue={(a, b) => a === b}
+                                            defaultValue={[]}
+                                        >
+                                            <ComboboxChips ref={themesAnchor} className="w-full max-w-xs">
+                                                <ComboboxValue>
+                                                    {(values: IGDBThemes[]) => (
+                                                        <React.Fragment>
+                                                            {values.map((value: IGDBThemes) => (
+                                                                <ComboboxChip key={value.slug}>{value.name}</ComboboxChip>
+                                                            ))}
+                                                            <ComboboxChipsInput />
+                                                        </React.Fragment>
+                                                    )}
+                                                </ComboboxValue>
+                                            </ComboboxChips>
+                                            <ComboboxContent anchor={themesAnchor}>
+                                                <ComboboxEmpty>No items found.</ComboboxEmpty>
+                                                <ComboboxList>
+                                                    {(item) => (
+                                                        <ComboboxItem key={item.slug} value={item}>
+                                                            {item.name}
+                                                        </ComboboxItem>
+                                                    )}
+                                                </ComboboxList>
+                                            </ComboboxContent>
+                                        </Combobox>
+                                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                    </Field>
+                                )}
+                            />
+                            <Controller
+                                name="consoles"
+                                control={form.control}
+                                render={({ field, fieldState }) => (
+                                    <Field className="gap-1">
+                                        <FieldLabel>
+                                            Consoles
+                                        </FieldLabel>
+                                        <Combobox
+                                            multiple
+                                            autoHighlight
+                                            items={consoles}
+                                            value={field.value ?? []}
+                                            onValueChange={(values) => field.onChange(Array.isArray(values) ? values : [])}
+                                            isItemEqualToValue={(a, b) => a === b}
+                                            defaultValue={[]}
+                                        >
+                                            <ComboboxChips ref={consoleAnchor} className="w-full max-w-xs">
+                                                <ComboboxValue>
+                                                    {(values: IGDBThemes[]) => (
+                                                        <React.Fragment>
+                                                            {values.map((value: IGDBThemes) => (
+                                                                <ComboboxChip key={value.slug}>{value.name}</ComboboxChip>
+                                                            ))}
+                                                            <ComboboxChipsInput />
+                                                        </React.Fragment>
+                                                    )}
+                                                </ComboboxValue>
+                                            </ComboboxChips>
+                                            <ComboboxContent anchor={consoleAnchor}>
+                                                <ComboboxEmpty>No items found.</ComboboxEmpty>
+                                                <ComboboxList>
+                                                    {(item) => (
+                                                        <ComboboxItem key={item.slug} value={item}>
+                                                            {item.name}
+                                                        </ComboboxItem>
+                                                    )}
+                                                </ComboboxList>
+                                            </ComboboxContent>
+                                        </Combobox>
+                                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                    </Field>
+                                )}
+                            />
+                            <Controller
+                                name="fromDate"
+                                control={form.control}
+                                render={({ field, fieldState }) => (
+                                    <Field className="mx-auto w-44 gap-1">
+                                        <FieldLabel htmlFor="date">From</FieldLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    className="justify-start font-normal"
+                                                >
+                                                    {field.value ? formatUnixTimeToDateTime(field.value).date : "Select date"}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                                                <Calendar
+                                                    mode="single"
+                                                    captionLayout="dropdown"
+                                                    selected={field.value ? new Date(Number(field.value) * 1000) : undefined}
+                                                    onSelect={(date) => { field.onChange(date ? toUnixString(date) : "") }}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                    </Field>
+                                )}
+                            />
+                            <Controller
+                                name="toDate"
+                                control={form.control}
+                                render={({ field, fieldState }) => (
+                                    <Field className="mx-auto w-44 gap-1">
+                                        <FieldLabel htmlFor="date">To</FieldLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    className="justify-start font-normal"
+                                                >
+                                                    {field.value ? formatUnixTimeToDateTime(field.value).date : "Select date"}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                                                <Calendar
+                                                    mode="single"
+                                                    captionLayout="dropdown"
+                                                    selected={field.value ? new Date(Number(field.value) * 1000) : undefined}
+                                                    onSelect={(date) => { field.onChange(date ? toUnixString(date) : "") }}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                    </Field>
+                                )}
+                            />
+                        </FieldGroup>
+                    }
+                    <FieldGroup className="gap-2 flex flex-row justify-end">
+                        <Button
+                            type="submit"
+                            form="form-search-games"
+                            className="bg-purple-500 text-white hover:bg-purple-700"
+                        >
+                            Search
+                        </Button>
+                        <Button
+                            type="reset"
+                            onClick={() => setData(originalData)}
+                            className="bg-red-500 text-white hover:bg-red-700"
+                        >
+                            Reset
+                        </Button>
+                    </FieldGroup>
+                </form>
+            </div >
         </>
     );
 }

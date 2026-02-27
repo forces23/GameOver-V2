@@ -3,6 +3,7 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { ApiError } from "./types";
 import { FaYoutube } from "react-icons/fa";
+import { boolean } from "zod";
 
 
 export function cn(...inputs: ClassValue[]) {
@@ -49,8 +50,14 @@ export const formatUnixTimeToDateTime = (unixDate: any) => {
   }
 }
 
+export const toUnixString = (date:Date):string => {
+  const unixSeconds = Math.floor(date.getTime()/1000);
+
+  return unixSeconds.toString()
+}
+
 export const isPublicRoute = (path: string) => {
-  const publicPathPrefixes = new Set(["/", "/game-info", "/login", "/signup"]);
+  const publicPathPrefixes = new Set(["/", "/info", "/login", "/signup"]);
   const pathname = path.split("?")[0];
 
   if (publicPathPrefixes.has(pathname)) return true;
@@ -58,9 +65,26 @@ export const isPublicRoute = (path: string) => {
   return false
 }
 
-// export const logoMap = (network:string) => {
-  
-//   if (network === "youtube") {return <FaYoutube />}  
+export const commaStringToList = (stringList: string): string[] => {
+  const items = stringList
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 
-//   return null 
-// }
+  return items
+}
+
+export const formatRegion = (region:string):string => {
+  // north_america
+  // japan
+  const formatted_item = region
+  .split("_")
+  .map((s) => s.trim())
+  .filter(Boolean)
+  .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+  .join(" ")
+  // North America
+  // Japan
+
+  return formatted_item
+}

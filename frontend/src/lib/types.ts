@@ -2,6 +2,7 @@ export type ApiError = {
   status: number;
   code: string;
   message: string;
+  upstream?: string
 }
 export type Result<T> = { ok: true; data: T; } | { ok: false; error: ApiError }
 
@@ -388,6 +389,12 @@ export type UpcomingReleases = {
   genres?: {
     id: number;
     name: string;
+    slug: string;
+  }[];
+  themes?: {
+    id: number;
+    name: string;
+    slug: string;
   }[];
   platforms?: {
     id: number;
@@ -516,22 +523,22 @@ export type SearchResults = {
 
 // TODO: add igdb_id to this for 
 export type GameSimple = {
-    id: number;
-    igdb_id:number;
-    name: string;
-    cover_url: string;
-    first_release_date: number;
-    genres: string[];
-    collected: boolean;
-    wishlist: boolean;
-    favorite: boolean;
-  }
+  id: number;
+  igdb_id: number;
+  name: string;
+  cover_url: string;
+  first_release_date: number;
+  genres: string[];
+  collected: boolean;
+  wishlist: boolean;
+  favorite: boolean;
+}
 
 export type TGDBPlatform = {
   id: number;
   name: string;
   alias: string;
-  icon:string;
+  icon: string;
   console: string;
   manufacturer: string;
 }
@@ -547,4 +554,102 @@ export type Profile = {
   // favorite_platforms: string[]
 }
 
+
+export type TGDBImageBaseUrls = {
+  original: string;
+  small: string;
+  thumb: string;
+  cropped_center_thumb: string;
+  medium: string;
+  large: string;
+};
+
+export type TGDBPlatformImageFile = {
+  id: number;
+  filename: string;
+  type?: string;
+};
+
+export type TGDBPlatformDetails = {
+  id: number;
+  name: string;
+  alias: string;
+  icon: string;
+  console: string;
+  controller: string;
+  developer: string;
+  manufacturer: string;
+  media: string;
+  cpu: string;
+  memory: string;
+  graphics: string;
+  sound: string;
+  maxcontrollers: string;
+  display: string;
+  overview: string;
+  youtube: string | null;
+};
+
+export type TGDBPlatformDetailsImages = {
+  base_urls: TGDBImageBaseUrls;
+  images: {
+    banners: TGDBPlatformImageFile[];
+    fanarts: TGDBPlatformImageFile[];
+    boxarts: TGDBPlatformImageFile[];
+    icons: TGDBPlatformImageFile[];
+    others: TGDBPlatformImageFile[];
+  };
+};
+
+export type TGDBPlatformDetailsResponseData = {
+  details: TGDBPlatformDetails;
+  images: TGDBPlatformDetailsImages;
+};
+
+export type IGDBPlatformDetail = {
+    id: number;
+    abbreviation: string;
+    alternative_name?: string;
+    name: string;
+    slug: string;
+    url: string;
+    checksum: string;
+    created_at: number;
+    updated_at: number;
+    generation?: number;
+    summary?: string;
+    platform_logo?: {
+      image_id: string;
+      url: string;
+      animated?: boolean;
+      alpha_channel?: boolean;
+      height?: number;
+      width?: number;
+      checksum?: string;
+    };
+    platform_family?: { name: string; slug?: string };
+    platform_type?: { name: string };
+    websites?: { url: string }[];
+    versions?: {
+      id: number;
+      name: string;
+      slug: string;
+      url: string;
+      connectivity: string;
+      cpu?: string;
+      media?: string;
+      memory?: string;
+      output?: string;
+      graphics?: string;
+      sound?: string;
+      storage?: string;
+      resolutions?: string;
+      summary?: string;
+      platform_logo?: { image_id: string; url: string; animated?: boolean };
+      platform_version_release_dates?: {
+        date: number;
+        release_region?: { region: string };
+      }[];
+    }[];
+  };
 

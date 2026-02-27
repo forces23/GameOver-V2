@@ -9,6 +9,7 @@ import { formatUnixTime, formatUnixTimeToDateTime } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { outOfOrder } from '@/lib/constants';
 
 const url_igdb_t_original = process.env.NEXT_PUBLIC_URL_IGDB_T_ORIGINAL;
 
@@ -130,11 +131,11 @@ export default function page() {
                                         <li
                                             key={`dlc-${game.id}`}
                                             className="bg-background text-secondary-foreground p-2 rounded-lg w-45 cursor-pointer"
-                                            onClick={() => router.push(`/game-info?gameId=${game.id}`)}
+                                            onClick={() => router.push(`/info/game-info?gameId=${game.id}`)}
                                         >
                                             <div className='relative aspect-3/4'>
                                                 <Image
-                                                    src={`${url_igdb_t_original}${game.cover?.image_id}.jpg`}
+                                                    src={game.cover?.image_id && game.cover?.image_id !== undefined ? `${url_igdb_t_original}${game.cover?.image_id}.jpg` : outOfOrder}
                                                     alt={`cover-${game.id}`}
                                                     fill
                                                     sizes="120px"
