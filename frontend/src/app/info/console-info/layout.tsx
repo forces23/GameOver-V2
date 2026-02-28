@@ -1,4 +1,5 @@
-import React from 'react'
+import PageSkeleton from '@/components/PageSkeleton'
+import React, { Suspense } from 'react'
 
 export default function layout({
     children
@@ -6,8 +7,10 @@ export default function layout({
     children: React.ReactNode
 }>) {
     return (
-        <div className="flex grow w-full">
-            {children}
-        </div>
+        <Suspense fallback={<PageSkeleton />}>
+            <div className="flex grow w-full">
+                {children}
+            </div>
+        </Suspense>
     )
 }
