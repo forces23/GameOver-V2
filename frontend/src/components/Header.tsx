@@ -81,7 +81,7 @@ export default function Header() {
                         <DropdownMenuContent className="w-32">
                             <DropdownMenuGroup>
                                 <DropdownMenuItem onClick={() => { router.push("/consoles") }}>Consoles</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => router.push("/Releases")}>New Releases</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => router.push("/game-new-releases")}>New Releases</DropdownMenuItem>
                                 {/* <DropdownMenuItem onClick={() => router.push("")}>Events</DropdownMenuItem> */}
                                 {user && (
                                     <>

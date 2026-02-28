@@ -64,7 +64,6 @@ export default function GameInfo() {
             if (!active) return;
 
             if (result.ok) {
-                console.log(result.data);
                 setGameDetails(result.data);
                 setStatus("success");
             } else {
@@ -197,7 +196,7 @@ export default function GameInfo() {
     // if (status === "error") return <PageError code={error?.code} message={error?.message} />; 
 
     return (
-        <div className="flex grow">
+        <div className="flex grow w-full">
             <main className="flex w-full flex-col ">
                 <Toaster />
                 <div className='flex flex-col gap-4 p-4'>

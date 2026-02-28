@@ -1,17 +1,11 @@
 "use client"
-import { Card } from '@/components/ui/card'
+
 import React, { useEffect, useState } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
 import { getUpcomingReleases } from '@/lib/api/igdb'
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel'
-import { formatUnixTimeToDateTime } from '@/lib/utils'
-import GenreCarousel from '@/components/info-pages/GenreCarousel'
 import ThemeCarousel from '@/components/info-pages/ThemeCarousel'
 import { ApiError } from '@/lib/types'
 import PageSkeleton from '@/components/PageSkeleton'
 
-const url_igdb_t_original = process.env.NEXT_PUBLIC_URL_IGDB_T_ORIGINAL;
 
 export default function page() {
     const [releases, setReleases] = useState<any[]>([]);
@@ -23,7 +17,6 @@ export default function page() {
         setStatus("loading");
         const run = async () => {
             const result = await getUpcomingReleases(500);
-            console.log(result);
 
             if (result.ok) {
                 setReleases(result.data);

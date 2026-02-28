@@ -48,7 +48,6 @@ export default function page() {
             if (!active) return;
 
             if (result.ok) {
-                console.log(result.data[0]);
                 setGameConsole(result.data[0])
                 setStatus("success")
             } else {
@@ -57,7 +56,6 @@ export default function page() {
             }
 
             if (gameResults.ok) {
-                console.log(gameResults.data);
                 setGames(gameResults.data)
                 setStatus("success")
             } else {
@@ -69,7 +67,6 @@ export default function page() {
         run();
         return () => { active = false }
     }, [consoleId])
-    console.log(gameConsole)
 
     if (status === "loading") return <PageSkeleton />;
     if (status === "error") return <PageError />;

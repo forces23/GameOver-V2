@@ -15,8 +15,6 @@ const url_igdb_t_original = process.env.NEXT_PUBLIC_URL_IGDB_T_ORIGINAL;
 const outOfOrder = '/imgs/out-of-order.jpg';
 
 export default function page() {
-    // const [consoles, setConsoles] = useState(consolePartialTestData);
-    // const [filteredConsoles, setFilteredConsoles] = useState(consolePartialTestData);
     const [consoles, setConsoles] = useState<any[]>([]);
     const [filteredConsoles, setFilteredConsoles] = useState<any[]>([]);
     const [error, setError] = useState<ApiError | null>(null);
@@ -25,9 +23,7 @@ export default function page() {
     useEffect(() => {
         const run = async () => {
             setStatus("loading");
-
             const result = await getAllPlatforms();
-            console.log(result);
 
             if (result.ok) {
                 setStatus("success");
@@ -54,6 +50,7 @@ export default function page() {
                     <SearchBar originalData={consoles} setData={setFilteredConsoles} searchType='console' />
                 </div>
                 <div className="pb-4">
+                    {/* TODO: need to add the onSubmitFilters function here */}
                     <h5 className="w-full text-center pb-2">{filteredConsoles.length} items</h5>
                     <hr className="" />
                 </div>

@@ -132,7 +132,7 @@ class SearchPayload(BaseModel):
 
     
 @igdb_router.post("/game-search")
-async def quick_search(criteria:SearchPayload):
+async def game_search(criteria:SearchPayload):
     url = f'{settings.URL_IGDB}/games'
     
     print(criteria)

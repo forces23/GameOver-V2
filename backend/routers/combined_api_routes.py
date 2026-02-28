@@ -11,12 +11,13 @@ async def search(searchStr: str):
     gameRes = await quick_search(searchStr)
     # print(gameRes)
     
-    consoleRes = await search_platforms(searchStr)
+    # consoleRes = await search_platforms(searchStr)
     # print (consoleRes)
     
     return {
         "data": {
             "games": gameRes["data"],
-            "consoles": consoleRes["data"]
+            "consoles": []
+            # "consoles": consoleRes["data"]
         }
     }

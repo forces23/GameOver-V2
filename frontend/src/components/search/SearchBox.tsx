@@ -21,12 +21,11 @@ export default function SearchBox() {
     const searchRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
-        console.log("hello")
         if (gameTitle) {
             const fetchGameDetails = async () => {
                 if (!gameTitle) return;
+                // TODO: Need to implement the console search in the backend. it was using TGDB but i removed and now backend only returns [] for consoles
                 const result = await getSearchResults(gameTitle);
-                console.log(searchResults)
                 if (result.ok) {
                     setSearchResults({ games: result.data.games, consoles: result.data.consoles });
                 }

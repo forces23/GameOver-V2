@@ -14,7 +14,6 @@ type Result<T> = { ok: true; data: T; } | { ok: false; error: ApiError }
 
 
 export const gameCheck = async (igdb_id: number, accessToken?: string) => {
-    console.log(`${url_omega}/games/check/${igdb_id}`);
     const response = await axios.get(`${url_omega}/games/check/${igdb_id}`, {
         headers: {
             Authorization: `Bearer ${accessToken}`

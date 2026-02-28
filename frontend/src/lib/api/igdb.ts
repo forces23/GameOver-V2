@@ -143,7 +143,6 @@ export const getPlatformById = async (consoleId: string): Promise<Result<IGDBPla
         const response = await axios.get<{ data: IGDBPlatformDetail[] }>(`${url_omega}/platforms/single`, {
             params: { console_id: consoleId }
         });
-        console.log(response);
         return { ok: true, data: response.data.data };
     } catch (err) {
         return { ok: false, error: toApiError(err) }
@@ -153,7 +152,6 @@ export const getPlatformById = async (consoleId: string): Promise<Result<IGDBPla
 export const getAllPlatforms = async (): Promise<Result<any>> => {
     try {
         const response = await axios.get<{ data: any }>(`${url_omega}/platforms`);
-        console.log(response);
         return { ok: true, data: response.data.data };
     } catch (err) {
         return { ok: false, error: toApiError(err) }
@@ -166,7 +164,6 @@ export const getMultiplePlatforms = async (consoleList: any[]): Promise<Result<a
             params: { console_list: consoleList },
             paramsSerializer: (params => qs.stringify(params, { arrayFormat: "repeat" }))
         });
-        console.log(response)
         return { ok: true, data: response.data.data };
     } catch (err) {
         return { ok: false, error: toApiError(err) };

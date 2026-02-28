@@ -63,6 +63,19 @@ type IGDBConsole = {
     },
 }
 
+type GameSearchPayload = {
+    query: string;
+    genres: number[];
+    themes: number[];
+    consoles: number[];
+    fromDate: string;
+    toDate: string;
+    page: number;
+    limit: number;
+    sort: string;
+};
+
+
 const formSchema = Z.object({
     query: Z.string(),
     genres: Z.array(
@@ -113,6 +126,7 @@ type SearchBarProps = {
     originalData: any[];
     setData: React.Dispatch<React.SetStateAction<any[]>>
     searchType: "console" | "game"
+    onSubmitFilters?: (payload: GameSearchPayload) => void,
     filters?: {
         query: string,
         genres?: number[],
@@ -125,7 +139,7 @@ type SearchBarProps = {
 
 
 
-export default function SearchBar({ originalData, setData, filters, searchType = "game" }: SearchBarProps) {
+export default function SearchBar({ originalData, setData, filters, searchType = "game", onSubmitFilters }: SearchBarProps) {
     const router = useRouter();
     const pathname = usePathname();
     const searchRef = useRef<HTMLDivElement>(null);
@@ -198,11 +212,9 @@ export default function SearchBar({ originalData, setData, filters, searchType =
         })
     }, [filters, genres, themes, consoles, form, searchType])
 
-
+    
 
     const searchData = async (values: Z.infer<typeof formSchema>) => {
-        console.log("valid:", values);
-        // console.log("errors:", errors);
         //normalize data to be pushed to api
         const payload = {
             "query": values.query ?? "",
@@ -218,11 +230,13 @@ export default function SearchBar({ originalData, setData, filters, searchType =
 
         console.log(payload);
         if (searchType === "game") {
-            const result = await getGameSearch(payload);
-            if (result.ok) {
-                router.replace(pathname, { scroll: false })
-                setData(result.data)
-            }
+            // const result = await getGameSearch(payload);
+            // if (result.ok) {
+            //     router.replace(pathname, { scroll: false })
+            //     setData(result.data)
+            // }
+            onSubmitFilters?.(payload);
+            return;
         }
         if (searchType === "console") {
             const q = values.query.trim().toLowerCase();
@@ -235,17 +249,6 @@ export default function SearchBar({ originalData, setData, filters, searchType =
         }
     }
 
-    useEffect(() => {
-        console.log(genres)
-        console.log(themes)
-    }, [genres, themes]);
-
-
-    {/** this will need to take in a :
-        - state setter 
-        - state ??
-        - allowable filters for buttons (console would not need genre) ?
-    */}
     return (
         <>
             <div className="relative w-full " ref={searchRef}>

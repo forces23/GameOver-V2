@@ -13,3 +13,9 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+# Notes
+Notes/
+
+# AI assitant related files
+AGENTS.md
