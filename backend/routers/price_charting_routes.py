@@ -3,6 +3,7 @@
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##   
 
 import httpx
+from utils.constatnts import URL_PRICE_CHARTING
 from config import settings
 from fastapi import APIRouter
 
@@ -10,7 +11,7 @@ price_chart_router = APIRouter(tags=["price-charting"])
 
 @price_chart_router.get("/search-products/{query}")
 async def search_products(query:str):
-    url = f'{settings.URL_PRICE_CHARTING}/products'
+    url = f'{URL_PRICE_CHARTING}/products'
     params = {
         "t":settings.API_KEY_PC, 
         "q":query
@@ -26,7 +27,7 @@ async def search_product(
     upc: str | None = None,
     q: str | None = None
 ):
-    url = f'{settings.URL_PRICE_CHARTING}/product'
+    url = f'{URL_PRICE_CHARTING}/product'
     params = {
         "t": settings.API_KEY_PC,
         "id": id,

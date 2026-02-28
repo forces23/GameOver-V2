@@ -3,6 +3,7 @@
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##   
 from typing import Annotated
 import httpx
+from utils.constatnts import URL_IGDB
 from config import settings
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
@@ -18,7 +19,7 @@ igdb_headers = {
 
 @igdb_router.get("/genres")
 async def getIGDBGenres():
-    url = f'{settings.URL_IGDB}/genres'
+    url = f'{URL_IGDB}/genres'
     data = f"""
         fields id,name,slug;
         sort name asc;
@@ -44,7 +45,7 @@ async def getIGDBGenres():
     
 @igdb_router.get("/themes")
 async def getIGDBThemes():
-    url = f'{settings.URL_IGDB}/themes'
+    url = f'{URL_IGDB}/themes'
     data = f"""
         fields id,name,slug;
         sort name asc;
@@ -71,7 +72,7 @@ async def getIGDBThemes():
 
 @igdb_router.get("/quick-search")
 async def quick_search(q:str):
-    url = f'{settings.URL_IGDB}/games'
+    url = f'{URL_IGDB}/games'
     data = f"""
         search "{q}";
         fields 
@@ -133,7 +134,7 @@ class SearchPayload(BaseModel):
     
 @igdb_router.post("/game-search")
 async def game_search(criteria:SearchPayload):
-    url = f'{settings.URL_IGDB}/games'
+    url = f'{URL_IGDB}/games'
     
     print(criteria)
     
@@ -211,7 +212,7 @@ async def game_search(criteria:SearchPayload):
 
 @igdb_router.get("/upcoming-games")
 async def upcoming_games(currentDate:str, limit:int):
-    url = f'{settings.URL_IGDB}/games'
+    url = f'{URL_IGDB}/games'
     data = f"""
         fields 
             name, 
@@ -272,7 +273,7 @@ async def upcoming_games(currentDate:str, limit:int):
 
 @igdb_router.get("/upcoming-events")
 async def upcoming_events(currentDate:str):
-    url = f'{settings.URL_IGDB}/events'
+    url = f'{URL_IGDB}/events'
     data = f"""
         fields 
             checksum,
@@ -329,7 +330,7 @@ async def upcoming_events(currentDate:str):
     
 @igdb_router.get("/igdb/events/single")
 async def get_event(event_id:str):
-    url = f'{settings.URL_IGDB}/events'
+    url = f'{URL_IGDB}/events'
     data = f"""
         fields 
             id,
@@ -397,7 +398,7 @@ async def get_event(event_id:str):
 
 @igdb_router.get("/all-time-favs")
 async def all_time_favorites(currentDate:str, limit:int = 25):
-    url = f'{settings.URL_IGDB}/games'
+    url = f'{URL_IGDB}/games'
     data = f"""
         fields 
             name, 
@@ -457,7 +458,7 @@ async def all_time_favorites(currentDate:str, limit:int = 25):
 
 @igdb_router.get("/games/console")
 async def all_time_favorites(console_id:str):
-    url = f'{settings.URL_IGDB}/games'
+    url = f'{URL_IGDB}/games'
     data = f"""
         fields
             id,
@@ -511,7 +512,7 @@ async def all_time_favorites(console_id:str):
 
 @igdb_router.get("/full-game-details")
 async def full_game_details(id:str):
-    url = f'{settings.URL_IGDB}/games'
+    url = f'{URL_IGDB}/games'
     data = f"""
         where id = {id};
         fields 
@@ -633,7 +634,7 @@ async def full_game_details(id:str):
 
 @igdb_router.get("/cover-image")
 async def getCoverImage(cover_id:str):
-    url = f'{settings.URL_IGDB}/covers'
+    url = f'{URL_IGDB}/covers'
     
     data = f"""
         fields *;
@@ -649,7 +650,7 @@ async def getCoverImage(cover_id:str):
 
 @igdb_router.get("/platforms/single")
 async def getPlatformsSingle(console_id:str):
-    url = f'{settings.URL_IGDB}/platforms'
+    url = f'{URL_IGDB}/platforms'
     
     data = f"""
         fields 
@@ -742,7 +743,7 @@ async def getPlatformsSingle(console_id:str):
     
 @igdb_router.get("/platforms")
 async def getAllPlatforms():
-    url = f'{settings.URL_IGDB}/platforms'
+    url = f'{URL_IGDB}/platforms'
     limit = 500
     data = f"""
         fields 
@@ -804,7 +805,7 @@ async def getAllPlatforms():
 async def getMultiplePlatforms(console_list:Annotated[list[str], Query()]):
     slug_list = ",".join(f'"{slug}"' for slug in console_list)
     
-    url = f'{settings.URL_IGDB}/platforms'
+    url = f'{URL_IGDB}/platforms'
     limit = 50
     data = f"""
         fields 

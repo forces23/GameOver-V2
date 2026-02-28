@@ -1,3 +1,4 @@
+from utils.constatnts import MONGO_DB
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 from dotenv import load_dotenv, dotenv_values
@@ -17,4 +18,4 @@ def get_client():
 
 def get_db():
     """Get the gameover database"""
-    return get_client()[os.getenv("MONGO_DB")]
+    return get_client()[MONGO_DB]

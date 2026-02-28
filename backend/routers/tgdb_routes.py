@@ -2,6 +2,7 @@
 #                             TGDB API Calls
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##   
 import httpx
+from utils.constatnts import URL_TGDB
 from utils.tgdb_helpers import tgdb_normalization
 from config import settings
 from fastapi import APIRouter, HTTPException
@@ -15,7 +16,7 @@ tgdb_header = {"Accept": "application/json"}
 # icon,console,controller,developer,manufacturer,media,cpu,memory,graphics,sound,maxcontrollers,display,overview,youtube
 @tgdb_router.get("/platforms")
 async def get_all_platforms():
-    url = f"{settings.URL_TGDB}/Platforms"
+    url = f"{URL_TGDB}/Platforms"
     
     params = {
         "apikey": settings.API_KEY_TGDB_PUBLIC,
@@ -71,13 +72,13 @@ async def get_platform_details(console_id:int):
     async with httpx.AsyncClient() as client:
         try:
             details_response = await client.get(
-                url=f"{settings.URL_TGDB}/Platforms/ByPlatformID", 
+                url=f"{URL_TGDB}/Platforms/ByPlatformID", 
                 params=params_pf_details, 
                 headers=tgdb_header)
             details_response.raise_for_status()
             
             images_response = await client.get(
-                url=f"{settings.URL_TGDB}/Platforms/Images", 
+                url=f"{URL_TGDB}/Platforms/Images", 
                 params=params_pf_images, 
                 headers=tgdb_header)
             images_response.raise_for_status()
@@ -142,7 +143,7 @@ async def get_platform_details(console_id:int):
 
 @tgdb_router.get("/platforms/search")
 async def search_platforms(name:str):
-    url = f"{settings.URL_TGDB}/Platforms/ByPlatformName"
+    url = f"{URL_TGDB}/Platforms/ByPlatformName"
     
     params = {
         "apikey": settings.API_KEY_TGDB_PUBLIC,
@@ -181,7 +182,7 @@ async def search_platforms(name:str):
     
 @tgdb_router.get("/platforms/images")
 async def get_platform(id:str):
-    url = f"{settings.URL_TGDB}/Platforms/Images"
+    url = f"{URL_TGDB}/Platforms/Images"
     
     params = {
         "apikey": settings.API_KEY_TGDB_PUBLIC,

@@ -6,16 +6,13 @@ class Settings(BaseSettings):
     DEBUG:bool = False
     
     # Price Charting
-    URL_PRICE_CHARTING:str
     API_KEY_PC:str
     
     # TheGameDB
-    URL_TGDB:str
     API_KEY_TGDB_PUBLIC:str
     API_KEY_TGDB_PRIVATE:str
     
     # IGDB
-    URL_IGDB:str
     API_KEY_IGDB_CLIENT_SECRET:str
     API_KEY_IGDB_CLIENT_ID:str
     TWITCH_ACCESS_TOKEN:str
@@ -27,7 +24,6 @@ class Settings(BaseSettings):
     
     # MongoDB
     MONGO_URI:str
-    MONGO_DB:str
     
     
     # class config:
