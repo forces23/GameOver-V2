@@ -2,7 +2,7 @@
 
 // URL PREFIXES
 // export const url_omega = "http://127.0.0.1:8000";
-export const url_omega = "https://pfzcrggqfu.us-east-1.awsapprunner.com";
+export const url_omega = "https://pfzcrggqfu.us-east-1.awsapprunner.com/";
 
 
 
