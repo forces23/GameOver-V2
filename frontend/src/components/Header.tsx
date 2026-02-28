@@ -21,14 +21,15 @@ import SearchBox from './search/SearchBox'
 export default function Header() {
     const router = useRouter();
     const { user } = useUser();
-    const pathName = usePathname();
-    const searchParams = useSearchParams();
+    // const pathName = usePathname();
+    // const searchParams = useSearchParams();
     const [searchActive, setSearchActive] = useState<boolean>(false);
 
     const handleAuthSession = (authType: string) => {
         // get the current path so you can return to it after logging out 
-        const urlParams = searchParams.toString();
-        const currentPath = `${pathName}${urlParams ? `?${urlParams}` : ''}`;
+        const currentPath = `${window.location.pathname}${window.location.search}`;
+        // const urlParams = searchParams.toString();
+        // const currentPath = `${pathName}${urlParams ? `?${urlParams}` : ''}`;
         console.log(currentPath)
 
         // checks to see if current path is a public path
