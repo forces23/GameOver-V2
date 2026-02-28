@@ -6,10 +6,11 @@ import { Card } from '../ui/card'
 import { formatUnixTimeToDateTime } from '@/lib/utils'
 import { outOfOrder, url_igdb_t_original } from '@/lib/constants'
 import { CgMoreO } from "react-icons/cg";
+import { GameData } from '@/lib/types'
 
 type ThemeProps = {
     title: string;
-    games: any[];
+    games: GameData[];
     theme: string;
 }
 

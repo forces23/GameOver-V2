@@ -20,6 +20,7 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'cdn.thegamesdb.net'
       },
+      
     ]
   }
 };

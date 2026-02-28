@@ -1,8 +1,8 @@
 import axios, { AxiosError } from "axios";
 import { Result } from "../types";
 import { toApiError } from "../utils";
+import { url_omega } from "../constants";
 
-const url_omega = process.env.NEXT_PUBLIC_URL_OMEGA
 
 export const getSearchResults = async (input:string): Promise<Result<any>> => {
     try {

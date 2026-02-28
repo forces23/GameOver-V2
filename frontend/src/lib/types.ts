@@ -6,46 +6,58 @@ export type ApiError = {
 }
 export type Result<T> = { ok: true; data: T; } | { ok: false; error: ApiError }
 
+export type ParamsObj = {
+  query: string;
+  genres: number[];
+  themes: number[];
+  consoles: number[];
+  fromDate: string;
+  toDate: string;
+  page: number;
+  limit: number;
+  sort: string;
+}
+
 export type GameData = {
   id: number;
-  artworks: Artwork[];
-  bundles: Bundle[];
-  cover: Cover;
-  dlcs: Dlc[];
-  first_release_date: number;
-  franchises: Franchise[];
-  game_engines: GameEngine[];
-  game_modes: GameMode[];
-  genres: Genre[];
-  involved_companies: InvolvedCompany[];
-  keywords: Keyword[];
-  multiplayer_modes: MultiplayerMode[];
   name: string;
-  platforms: IGDBPlatform[];
-  player_perspectives: PlayerPerspective[];
-  rating: number;
-  rating_count: number;
-  release_dates: ReleaseDate[];
-  screenshots: Screenshot[];
-  similar_games: SimilarGame[];
   slug: string;
-  storyline: string;
-  summary: string;
-  tags: number[];
-  themes: Theme[];
-  total_rating: number;
-  total_rating_count: number;
-  updated_at: number;
-  url: string;
-  videos: Video[];
-  websites: Website[];
-  checksum: string;
-  expanded_games: ExpandedGame[];
-  expansions: ExpandedGame[]
-  language_supports: LanguageSupport[];
-  game_localizations: GameLocalization[];
-  collections: Collection[];
   game_type: GameType;
+  similar_games: SimilarGame[];
+  updated_at: number;
+  checksum: string;
+  artworks?: Artwork[];
+  bundles?: Bundle[];
+  cover?: Cover;
+  dlcs?: Dlc[];
+  first_release_date?: number;
+  franchises?: Franchise[];
+  game_engines?: GameEngine[];
+  game_modes?: GameMode[];
+  genres?: Genre[];
+  involved_companies?: InvolvedCompany[];
+  keywords?: Keyword[];
+  multiplayer_modes?: MultiplayerMode[];
+  platforms?: IGDBPlatform[];
+  player_perspectives?: PlayerPerspective[];
+  rating?: number;
+  rating_count?: number;
+  release_dates?: ReleaseDate[];
+  screenshots?: Screenshot[];
+  storyline?: string;
+  summary?: string;
+  tags?: number[];
+  themes?: Theme[];
+  total_rating?: number;
+  total_rating_count?: number;
+  url?: string;
+  videos?: Video[];
+  websites?: Website[];
+  expanded_games?: ExpandedGame[];
+  expansions?: ExpandedGame[]
+  language_supports?: LanguageSupport[];
+  game_localizations?: GameLocalization[];
+  collections?: Collection[];
 };
 
 export type Artwork = {
@@ -197,21 +209,21 @@ export type MultiplayerMode = {
 
 export type IGDBPlatform = {
   id: number;
-  abbreviation: string;
-  alternative_name: string;
-  created_at: number;
-  generation: number;
   name: string;
-  platform_logo: PlatformLogo;
-  platform_family: PlatformFamily;
+  created_at: number;
   slug: string;
+  abbreviation?: string;
+  alternative_name?: string;
+  generation?: number;
+  platform_logo?: PlatformLogo;
+  platform_family?: PlatformFamily;
   summary?: string;
-  updated_at: number;
-  url: string;
-  versions: number[];
-  websites: PlatformWebsite[];
+  updated_at?: number;
+  url?: string;
+  versions?: number[];
+  websites?: PlatformWebsite[];
   checksum: string;
-  platform_type: PlatformType;
+  platform_type?: PlatformType;
 };
 
 export type PlatformLogo = {
@@ -402,6 +414,15 @@ export type UpcomingReleases = {
   };
 }
 
+export type event_networks = {
+  id: number;
+  url: string;
+  network_type: {
+    id: number,
+    name: string
+  }
+}
+
 export type IGDBEvent = {
   id: number;
   checksum: string;
@@ -420,14 +441,7 @@ export type IGDBEvent = {
     animated?: boolean;
     url?: string;
   };
-  event_networks?: {
-    id: number;
-    url: string;
-    network_type?: {
-      id: number,
-      name: string
-    }
-  }[];
+  event_networks?: event_networks[];
   games?: {
     id: number;
     name: string;
@@ -528,7 +542,7 @@ export type GameSimple = {
   name: string;
   cover_url: string;
   first_release_date: number;
-  genres: string[];
+  genres: Genre[];
   collected: boolean;
   wishlist: boolean;
   favorite: boolean;
@@ -607,49 +621,49 @@ export type TGDBPlatformDetailsResponseData = {
 };
 
 export type IGDBPlatformDetail = {
+  id: number;
+  abbreviation: string;
+  alternative_name?: string;
+  name: string;
+  slug: string;
+  url: string;
+  checksum: string;
+  created_at: number;
+  updated_at: number;
+  generation?: number;
+  summary?: string;
+  platform_logo?: {
+    image_id: string;
+    url: string;
+    animated?: boolean;
+    alpha_channel?: boolean;
+    height?: number;
+    width?: number;
+    checksum?: string;
+  };
+  platform_family?: { name: string; slug?: string };
+  platform_type?: { name: string };
+  websites?: { url: string }[];
+  versions?: {
     id: number;
-    abbreviation: string;
-    alternative_name?: string;
     name: string;
     slug: string;
     url: string;
-    checksum: string;
-    created_at: number;
-    updated_at: number;
-    generation?: number;
+    connectivity: string;
+    cpu?: string;
+    media?: string;
+    memory?: string;
+    output?: string;
+    graphics?: string;
+    sound?: string;
+    storage?: string;
+    resolutions?: string;
     summary?: string;
-    platform_logo?: {
-      image_id: string;
-      url: string;
-      animated?: boolean;
-      alpha_channel?: boolean;
-      height?: number;
-      width?: number;
-      checksum?: string;
-    };
-    platform_family?: { name: string; slug?: string };
-    platform_type?: { name: string };
-    websites?: { url: string }[];
-    versions?: {
-      id: number;
-      name: string;
-      slug: string;
-      url: string;
-      connectivity: string;
-      cpu?: string;
-      media?: string;
-      memory?: string;
-      output?: string;
-      graphics?: string;
-      sound?: string;
-      storage?: string;
-      resolutions?: string;
-      summary?: string;
-      platform_logo?: { image_id: string; url: string; animated?: boolean };
-      platform_version_release_dates?: {
-        date: number;
-        release_region?: { region: string };
-      }[];
+    platform_logo?: { image_id: string; url: string; animated?: boolean };
+    platform_version_release_dates?: {
+      date: number;
+      release_region?: { region: string };
     }[];
-  };
+  }[];
+};
 

@@ -13,8 +13,9 @@ import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { getProfile, updateProfile } from '@/lib/api/db'
 import { useUser } from '@auth0/nextjs-auth0'
-import { Profile, TGDBPlatform } from '@/lib/types'
+import { ApiError, Profile, TGDBPlatform } from '@/lib/types'
 import { getPlatforms } from '@/lib/api/tgdb'
+import { toast, Toaster } from 'sonner';
 import {
     Combobox,
     ComboboxChip,
@@ -27,6 +28,8 @@ import {
     ComboboxValue,
     useComboboxAnchor,
 } from "@/components/ui/combobox"
+import PageSkeleton from '@/components/PageSkeleton'
+import PageError from '@/components/PageError'
 
 
 
@@ -62,6 +65,8 @@ export default function page() {
     const [defaultData, setDefaultData] = useState<Profile>();
     const [systems, setSystems] = useState<TGDBPlatform[]>([]);
     const anchor = useComboboxAnchor();
+    const [error, setError] = useState<ApiError | null>(null);
+    const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
     const form = useForm<Z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -75,13 +80,20 @@ export default function page() {
     })
 
     useEffect(() => {
-        if (isLoading || !user) return;
+        if (!user) return;
+        let active = true;
+
 
         const run = async () => {
+            setStatus("loading");
             const tokenResponse = await fetch("/api/auth/token");
             const { accessToken } = await tokenResponse.json();
+            if (!active) return;
+
             const profileResp = await getProfile(accessToken);
+            if (!active) return;
             const platformsResp = await getPlatforms();
+            if (!active) return;
 
             if (profileResp.ok) {
                 const data = profileResp.data.data
@@ -94,15 +106,24 @@ export default function page() {
                     owned_systems: data.owned_systems ?? []
                 });
                 setDefaultData(profileResp.data.data);
+                setStatus("success");
+            } else {
+                setStatus("error");
+                setError(profileResp.error);
+            }
 
-                if (platformsResp.ok) {
-                    console.log(platformsResp)
-                    setSystems(platformsResp.data);
-                }
+            if (platformsResp.ok) {
+                console.log(platformsResp)
+                setSystems(platformsResp.data);
+                setStatus("success");
+            } else {
+                setStatus("error")
+                setError(platformsResp.error);
             }
         }
         run()
-    }, [user, isLoading])
+        return () => {active = false}
+    }, [user])
 
     const submitProfile = async (data: Z.infer<typeof formSchema>) => {
         // handle submission
@@ -115,13 +136,16 @@ export default function page() {
         if (resp.ok) console.log(resp);
     }
 
+    if (status === "loading") return <PageSkeleton />
+    if (status === "error") return <PageError />
+
     return (
         <div className="flex grow flex-col gap-4 w-full max-w-500 px-4">
             <Tabs defaultValue="overview">
                 <TabsList variant="line">
                     <TabsTrigger value="overview">Profile</TabsTrigger>
-                    <TabsTrigger value="analytics">Appearance</TabsTrigger>
-                    <TabsTrigger value="reports">Advanced</TabsTrigger>
+                    {/* <TabsTrigger value="analytics">Appearance</TabsTrigger> */}
+                    {/* <TabsTrigger value="reports">Advanced</TabsTrigger> */}
                 </TabsList>
             </Tabs>
 
@@ -196,14 +220,12 @@ export default function page() {
                                                 value={field.value ?? []}
                                                 onValueChange={(values) => field.onChange(Array.isArray(values) ? values : [])}
                                                 isItemEqualToValue={(a, b) => a.id === b.id}
-                                                // itemToStringLabel={(item) => item.name}
-                                                // itemToStringValue={(item) => item.alias}
                                             >
                                                 <ComboboxChips ref={anchor} className="w-full ">
                                                     <ComboboxValue>
                                                         {(values) => (
                                                             <React.Fragment>
-                                                                {values.map((item: TGDBPlatform, i:number) => (
+                                                                {values.map((item: TGDBPlatform, i: number) => (
                                                                     <ComboboxChip key={`${item.id}-${i}`}>{item.name}</ComboboxChip>
                                                                 ))}
                                                                 <ComboboxChipsInput placeholder="Select platforms..." />
@@ -215,15 +237,15 @@ export default function page() {
                                                 <ComboboxContent anchor={anchor}>
                                                     <ComboboxEmpty>No items found.</ComboboxEmpty>
                                                     <ComboboxList>
-                                                        {(item: TGDBPlatform, i:number) => (
-                                                            <ComboboxItem key={`${item.id}-${i+1}`} value={item}>
+                                                        {(item: TGDBPlatform, i: number) => (
+                                                            <ComboboxItem key={`${item.id}-${i + 1}`} value={item}>
                                                                 {item.name}
                                                             </ComboboxItem>
                                                         )}
                                                     </ComboboxList>
                                                 </ComboboxContent>
                                             </Combobox>
-                                            {fieldState.invalid && <FieldError errors={[fieldState.error]}/>}
+                                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                                         </Field>
                                     )}
                                 />

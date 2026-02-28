@@ -13,33 +13,48 @@ import {
     ItemTitle,
 } from "@/components/ui/item"
 import { formatUnixTime } from '@/lib/utils';
-import { Genre } from '@/lib/types';
+import { ApiError, GameData, Genre } from '@/lib/types';
 import Link from 'next/link';
 import { FaStar } from 'react-icons/fa';
 import SearchBar from '@/components/SearchBar';
+import PageSkeleton from '@/components/PageSkeleton';
+import PageError from '@/components/PageError';
 
 
 export default function page() {
     const user = useUser();
-    const [wishlist, setWishlist] = useState<any[]>([]);
-    const [filteredWishlist, setFilteredWishlist] = useState<any[]>([])
+    const [wishlist, setWishlist] = useState<GameData[]>([]);
+    const [filteredWishlist, setFilteredWishlist] = useState<GameData[]>([])
+    const [error, setError] = useState<ApiError | null>(null);
+    const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
     useEffect(() => {
-        const fetchCollection = async () => {
+        let active = true;
+
+        const run = async () => {
+            setStatus("loading");
             const tokenResponse = await fetch("/api/auth/token");
             const { accessToken } = await tokenResponse.json()
+            if (!active) return;
 
             const resp = await getCollectedGames("wishlist", accessToken);
-            console.log(resp)
+            if (!active) return;
 
             if (resp.ok) {
-                console.log(resp.data.games);
                 setWishlist(resp.data.games);
-                setFilteredWishlist(resp.data.data);
+                setFilteredWishlist(resp.data.games);
+                setStatus("success");
+            } else {
+                setStatus("error");
+                setError(resp.error);
             }
         }
-        fetchCollection();
+        run();
+        return () => {active = false}
     }, [])
+
+    if (status === "loading") return <PageSkeleton /> 
+    if (status === "error") return <PageError />
 
     /* need these items to display:
             X image
@@ -54,7 +69,7 @@ export default function page() {
                 <hr />
             </div>
             <div className='mx-auto pb-4 max-w-5xl'>
-                <SearchBar originalData={wishlist} setData={setFilteredWishlist} />
+                <SearchBar originalData={wishlist} setData={setFilteredWishlist} searchType='game'/>
             </div>
             <div className="pb-4">
                 <h5 className="w-full text-center pb-2">{wishlist.length} items</h5>

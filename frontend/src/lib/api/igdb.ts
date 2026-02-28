@@ -2,14 +2,7 @@ import axios, { AxiosError } from "axios";
 import { AllTimeFavs, ApiError, GameData, QuickSearch, Result, UpcomingEvents, UpcomingReleases, IGDBEvent, IGDBPlatformDetail } from "../types";
 import { toApiError } from "../utils";
 import qs from "qs";
-
-
-const url_omega = process.env.NEXT_PUBLIC_URL_OMEGA;
-const ep_game_details = process.env.NEXT_PUBLIC_EP_GAME_DETAILS;
-const ep_quick_search = process.env.NEXT_PUBLIC_EP_QUICK_SEARCH
-const ep_upcoming_games = process.env.NEXT_PUBLIC_EP_UPCOMING_GAMES
-const ep_upcoming_events = process.env.NEXT_PUBLIC_EP_UPCOMING_EVENTS
-const ep_all_time_favs = process.env.NEXT_PUBLIC_EP_ALL_TIME_FAVS
+import { ep_all_time_favs, ep_game_details, ep_quick_search, ep_upcoming_events, ep_upcoming_games, url_omega } from "../constants";
 
 const todaysDate = Math.floor(Date.now() / 1000);
 
@@ -63,9 +56,9 @@ export const getGameSearch = async (payload: {
     sort: string
     fromDate: string,
     toDate: string
-}): Promise<Result<QuickSearch[]>> => {
+}): Promise<Result<GameData[]>> => {
     try {
-        const response = await axios.post<{ data: QuickSearch[] }>(`${url_omega}/game-search`, payload, {
+        const response = await axios.post<{ data: GameData[] }>(`${url_omega}/game-search`, payload, {
             headers: { "Content-Type": "application/json" }
         });
         return { ok: true, data: response.data.data };
@@ -96,9 +89,9 @@ export const getEvent = async (event_id: string): Promise<Result<IGDBEvent>> => 
     }
 }
 
-export const getUpcomingReleases = async (quantity: number): Promise<Result<UpcomingReleases[]>> => {
+export const getUpcomingReleases = async (quantity: number): Promise<Result<GameData[]>> => {
     try {
-        const response = await axios.get<{ data: UpcomingReleases[] }>(`${url_omega}${ep_upcoming_games}`, {
+        const response = await axios.get<{ data: GameData[] }>(`${url_omega}${ep_upcoming_games}`, {
             params: { currentDate: todaysDate, limit: quantity }
         });
         return { ok: true, data: response.data.data };
@@ -107,9 +100,9 @@ export const getUpcomingReleases = async (quantity: number): Promise<Result<Upco
     }
 }
 
-export const getAllTimeFavorites = async (limit?: number): Promise<Result<AllTimeFavs[]>> => {
+export const getAllTimeFavorites = async (limit?: number): Promise<Result<GameData[]>> => {
     try {
-        const response = await axios.get<{ data: AllTimeFavs[] }>(`${url_omega}${ep_all_time_favs}`, {
+        const response = await axios.get<{ data: GameData[] }>(`${url_omega}${ep_all_time_favs}`, {
             params: { currentDate: todaysDate, limit: limit }
         });
         return { ok: true, data: response.data.data };
@@ -118,9 +111,9 @@ export const getAllTimeFavorites = async (limit?: number): Promise<Result<AllTim
     }
 }
 
-export const getConsoleGamesById = async (consoleId: string): Promise<Result<AllTimeFavs[]>> => {
+export const getConsoleGamesById = async (consoleId: string): Promise<Result<GameData[]>> => {
     try {
-        const response = await axios.get<{ data: AllTimeFavs[] }>(`${url_omega}/games/console`, {
+        const response = await axios.get<{ data: GameData[] }>(`${url_omega}/games/console`, {
             params: { console_id: consoleId }
         });
         return { ok: true, data: response.data.data };

@@ -1,29 +1,28 @@
 "use client"
 
-import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '@/components/ui/item';
 import { getAllPlatforms } from '@/lib/api/igdb';
-import { ApiError } from '@/lib/types';
+import { ApiError, IGDBPlatformDetail } from '@/lib/types';
 import Link from 'next/link';
 import Image from 'next/image'
 import React, { useEffect, useState } from 'react'
-import { formatUnixTimeToDateTime } from '@/lib/utils';
 import PageSkeleton from '@/components/PageSkeleton';
 import SearchBar from '@/components/SearchBar';
-import { consolePartialTestData } from '@/lib/testData';
-
-const url_igdb_t_original = process.env.NEXT_PUBLIC_URL_IGDB_T_ORIGINAL;
-const outOfOrder = '/imgs/out-of-order.jpg';
+import { outOfOrder, url_igdb_t_original } from '@/lib/constants';
+import PageError from '@/components/PageError';
 
 export default function page() {
-    const [consoles, setConsoles] = useState<any[]>([]);
-    const [filteredConsoles, setFilteredConsoles] = useState<any[]>([]);
+    const [consoles, setConsoles] = useState<IGDBPlatformDetail[]>([]);
+    const [filteredConsoles, setFilteredConsoles] = useState<IGDBPlatformDetail[]>([]);
     const [error, setError] = useState<ApiError | null>(null);
     const [status, setStatus] = useState<"loading" | "success" | "error">("success");
 
     useEffect(() => {
+        let active = true;
+
         const run = async () => {
             setStatus("loading");
             const result = await getAllPlatforms();
+            if (!active) return;
 
             if (result.ok) {
                 setStatus("success");
@@ -35,50 +34,50 @@ export default function page() {
             }
         }
         run();
+        return () => { active = false }
     }, []);
 
     if (status === "loading") return <PageSkeleton />
+    if (status === "error") return <PageError />
 
     return (
-        <div className='flex grow w-full max-w-500 flex-col '>
-            <div className="">
-                <div className="pb-4 text-center">
-                    <h3 className="w-full pb-2">Consoles</h3>
-                    <hr />
-                </div>
-                <div className='mx-auto pb-4 max-w-5xl'>
-                    <SearchBar originalData={consoles} setData={setFilteredConsoles} searchType='console' />
-                </div>
-                <div className="pb-4">
-                    {/* TODO: need to add the onSubmitFilters function here */}
-                    <h5 className="w-full text-center pb-2">{filteredConsoles.length} items</h5>
-                    <hr className="" />
-                </div>
-                <section>
-                    <ul className='flex flex-wrap gap-3'>
-                        {filteredConsoles.map((console) => (
-                            <Link
-                                key={`console-${console.id}-${console.slug}`}
-                                href={`/info/console-info?consoleId=${console.id}`}
-                                className="relative"
-                            >
-                                <li className="bg-background text-secondary-foreground p-2 rounded-lg w-32 cursor-pointer">
-                                    <div className='relative w-32 aspect-3/4 bg-gray-300 rounded-2xl'>
-                                        <Image
-                                            src={console.platform_logo?.image_id && console.platform_logo?.image_id !== undefined ? `${url_igdb_t_original}${console.platform_logo?.image_id}.jpg` : outOfOrder}
-                                            alt={`icon-${console.id}`}
-                                            fill
-                                            sizes="120px"
-                                            className="object-contain object-center rounded-2xl px-2"
-                                        />
-                                    </div>
-                                    <span>{console.name}</span>
-                                </li>
-                            </Link>
-                        ))}
-                    </ul>
-                </section>
+        <div className="">
+            <div className="pb-4 text-center">
+                <h3 className="w-full pb-2">Consoles</h3>
+                <hr />
             </div>
+            <div className='mx-auto pb-4 max-w-5xl'>
+                {/* TODO: need to add the onSubmitFilters function here */}
+                <SearchBar originalData={consoles} setData={setFilteredConsoles} searchType='console' />
+            </div>
+            <div className="pb-4">
+                <h5 className="w-full text-center pb-2">{filteredConsoles.length} items</h5>
+                <hr className="" />
+            </div>
+            <section>
+                <ul className='flex flex-wrap gap-3'>
+                    {filteredConsoles.map((console) => (
+                        <Link
+                            key={`console-${console.id}-${console.slug}`}
+                            href={`/info/console-info?consoleId=${console.id}`}
+                            className="relative"
+                        >
+                            <li className="bg-background text-secondary-foreground p-2 rounded-lg w-32 cursor-pointer">
+                                <div className='relative w-32 aspect-3/4 bg-gray-300 rounded-2xl'>
+                                    <Image
+                                        src={console.platform_logo?.image_id && console.platform_logo?.image_id !== undefined ? `${url_igdb_t_original}${console.platform_logo?.image_id}.jpg` : outOfOrder}
+                                        alt={`icon-${console.id}`}
+                                        fill
+                                        sizes="120px"
+                                        className="object-contain object-center rounded-2xl px-2"
+                                    />
+                                </div>
+                                <span>{console.name}</span>
+                            </li>
+                        </Link>
+                    ))}
+                </ul>
+            </section>
         </div>
     )
 }

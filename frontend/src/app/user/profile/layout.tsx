@@ -6,7 +6,7 @@ export default function layout({
     children: React.ReactNode;
 }>) {
     return (
-        <div className='flex grow w-full justify-center'>
+        <div className='flex grow w-full justify-center '>
             {children}
         </div>
     )

@@ -1,12 +1,12 @@
 import React from 'react'
 
 export default function layout({
-    children,
+    children
 }: Readonly<{
-    children: React.ReactNode;
+    children: React.ReactNode
 }>) {
     return (
-        <div className='flex grow w-full max-w-300 flex-col px-2'>
+        <div className="flex grow w-full">
             {children}
         </div>
     )

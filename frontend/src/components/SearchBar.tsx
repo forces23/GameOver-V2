@@ -2,29 +2,17 @@
 
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import React, { ChangeEvent, useEffect, useState, useRef } from "react";
-import { ButtonGroup } from "@/components/ui/button-group"
-import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet, FieldTitle } from "@/components/ui/field"
+import React, { useEffect, useState, useRef } from "react";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandItem,
-    CommandList,
-} from "@/components/ui/command";
-import { getAllPlatforms, getGameSearch, getIGDBGenres, getIGDBThemes, getQuickSearchInfo } from "@/lib/api/igdb";
-import { QuickSearch } from "@/lib/types";
-import { formatUnixTime, formatUnixTimeToDateTime, toUnixString } from "@/lib/utils";
-import { Form } from "@base-ui/react";
-import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
-import { Combobox, ComboboxChip, ComboboxChips, ComboboxChipsInput, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList, ComboboxValue, useComboboxAnchor } from "./ui/combobox";
+import { getAllPlatforms, getGameSearch, getIGDBGenres, getIGDBThemes } from "@/lib/api/igdb";
+import { formatUnixTimeToDateTime, toUnixString } from "@/lib/utils";
+import { Combobox, ComboboxChip, ComboboxChips, ComboboxChipsInput, ComboboxContent, ComboboxEmpty, ComboboxItem, ComboboxList, ComboboxValue, useComboboxAnchor } from "./ui/combobox";
 import * as Z from "zod"
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "./ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { CalendarIcon } from "lucide-react";
 import { Calendar } from "./ui/calendar";
 
 type IGDBGenres = {
@@ -125,7 +113,7 @@ const formSchema = Z.object({
 type SearchBarProps = {
     originalData: any[];
     setData: React.Dispatch<React.SetStateAction<any[]>>
-    searchType: "console" | "game"
+    searchType: "console" | "game",
     onSubmitFilters?: (payload: GameSearchPayload) => void,
     filters?: {
         query: string,
@@ -163,12 +151,15 @@ export default function SearchBar({ originalData, setData, filters, searchType =
     const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
     useEffect(() => {
+        let active = true;
+
         const run = async () => {
             setStatus("loading");
 
             const genresResult = await getIGDBGenres();
             const themesResult = await getIGDBThemes();
             const consolesResult = await getAllPlatforms();
+            if(!active) return;
 
             if (themesResult.ok) {
                 setStatus("loading");
@@ -193,6 +184,7 @@ export default function SearchBar({ originalData, setData, filters, searchType =
         }
 
         if (searchType === "game") run();
+        return () => {() => {active = true}}
     }, []);
 
     useEffect(() => {
@@ -212,7 +204,7 @@ export default function SearchBar({ originalData, setData, filters, searchType =
         })
     }, [filters, genres, themes, consoles, form, searchType])
 
-    
+
 
     const searchData = async (values: Z.infer<typeof formSchema>) => {
         //normalize data to be pushed to api
@@ -230,11 +222,11 @@ export default function SearchBar({ originalData, setData, filters, searchType =
 
         console.log(payload);
         if (searchType === "game") {
-            // const result = await getGameSearch(payload);
-            // if (result.ok) {
-            //     router.replace(pathname, { scroll: false })
-            //     setData(result.data)
-            // }
+            const result = await getGameSearch(payload);
+            if (result.ok) {
+                router.replace(pathname, { scroll: false })
+                setData(result.data)
+            }
             onSubmitFilters?.(payload);
             return;
         }
@@ -293,7 +285,7 @@ export default function SearchBar({ originalData, setData, filters, searchType =
                                             isItemEqualToValue={(a, b) => a.id === b.id}
                                             defaultValue={[]}
                                         >
-                                            <ComboboxChips ref={genresAnchor} className="w-full max-w-xs">
+                                            <ComboboxChips ref={genresAnchor} className="w-full md:max-w-xs">
                                                 <ComboboxValue>
                                                     {(values: IGDBGenres[]) => (
                                                         <React.Fragment>
@@ -337,7 +329,7 @@ export default function SearchBar({ originalData, setData, filters, searchType =
                                             isItemEqualToValue={(a, b) => a === b}
                                             defaultValue={[]}
                                         >
-                                            <ComboboxChips ref={themesAnchor} className="w-full max-w-xs">
+                                            <ComboboxChips ref={themesAnchor} className="w-full md:max-w-xs">
                                                 <ComboboxValue>
                                                     {(values: IGDBThemes[]) => (
                                                         <React.Fragment>
@@ -381,7 +373,7 @@ export default function SearchBar({ originalData, setData, filters, searchType =
                                             isItemEqualToValue={(a, b) => a === b}
                                             defaultValue={[]}
                                         >
-                                            <ComboboxChips ref={consoleAnchor} className="w-full max-w-xs">
+                                            <ComboboxChips ref={consoleAnchor} className="w-full md:max-w-xs">
                                                 <ComboboxValue>
                                                     {(values: IGDBThemes[]) => (
                                                         <React.Fragment>
@@ -408,62 +400,64 @@ export default function SearchBar({ originalData, setData, filters, searchType =
                                     </Field>
                                 )}
                             />
-                            <Controller
-                                name="fromDate"
-                                control={form.control}
-                                render={({ field, fieldState }) => (
-                                    <Field className="mx-auto w-44 gap-1">
-                                        <FieldLabel htmlFor="date">From</FieldLabel>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant="outline"
-                                                    className="justify-start font-normal"
-                                                >
-                                                    {field.value ? formatUnixTimeToDateTime(field.value).date : "Select date"}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                                                <Calendar
-                                                    mode="single"
-                                                    captionLayout="dropdown"
-                                                    selected={field.value ? new Date(Number(field.value) * 1000) : undefined}
-                                                    onSelect={(date) => { field.onChange(date ? toUnixString(date) : "") }}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                                    </Field>
-                                )}
-                            />
-                            <Controller
-                                name="toDate"
-                                control={form.control}
-                                render={({ field, fieldState }) => (
-                                    <Field className="mx-auto w-44 gap-1">
-                                        <FieldLabel htmlFor="date">To</FieldLabel>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant="outline"
-                                                    className="justify-start font-normal"
-                                                >
-                                                    {field.value ? formatUnixTimeToDateTime(field.value).date : "Select date"}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                                                <Calendar
-                                                    mode="single"
-                                                    captionLayout="dropdown"
-                                                    selected={field.value ? new Date(Number(field.value) * 1000) : undefined}
-                                                    onSelect={(date) => { field.onChange(date ? toUnixString(date) : "") }}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                                    </Field>
-                                )}
-                            />
+                            <FieldGroup className="flex flex-row">
+                                <Controller
+                                    name="fromDate"
+                                    control={form.control}
+                                    render={({ field, fieldState }) => (
+                                        <Field className=" w-44 gap-1">
+                                            <FieldLabel htmlFor="date">From</FieldLabel>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant="outline"
+                                                        className="justify-start font-normal"
+                                                    >
+                                                        {field.value ? formatUnixTimeToDateTime(field.value).date : "Select date"}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                                                    <Calendar
+                                                        mode="single"
+                                                        captionLayout="dropdown"
+                                                        selected={field.value ? new Date(Number(field.value) * 1000) : undefined}
+                                                        onSelect={(date) => { field.onChange(date ? toUnixString(date) : "") }}
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                        </Field>
+                                    )}
+                                />
+                                <Controller
+                                    name="toDate"
+                                    control={form.control}
+                                    render={({ field, fieldState }) => (
+                                        <Field className="w-44 gap-1">
+                                            <FieldLabel htmlFor="date">To</FieldLabel>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant="outline"
+                                                        className="justify-start font-normal"
+                                                    >
+                                                        {field.value ? formatUnixTimeToDateTime(field.value).date : "Select date"}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                                                    <Calendar
+                                                        mode="single"
+                                                        captionLayout="dropdown"
+                                                        selected={field.value ? new Date(Number(field.value) * 1000) : undefined}
+                                                        onSelect={(date) => { field.onChange(date ? toUnixString(date) : "") }}
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                        </Field>
+                                    )}
+                                />
+                            </FieldGroup>
                         </FieldGroup>
                     }
                     <FieldGroup className="gap-2 flex flex-row justify-end">

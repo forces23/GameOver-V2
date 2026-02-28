@@ -3,37 +3,41 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Card, CardContent } from "@/components/ui/card";
-import { AllTimeFavs, ApiError, UpcomingEvents, UpcomingReleases } from "@/lib/types";
+import { Card } from "@/components/ui/card";
+import { AllTimeFavs, ApiError, GameData, IGDBPlatform, UpcomingEvents, UpcomingReleases } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import Autoplay from "embla-carousel-autoplay";
 import { getAllTimeFavorites, getMultiplePlatforms, getUpcomingEvents, getUpcomingReleases } from "@/lib/api/igdb";
-import { formatUnixTime } from "@/lib/utils";
 import { outOfOrder, top15Consoles, url_igdb_t_original } from "@/lib/constants";
 import GamesCarousel from "@/components/info-pages/GamesCarousel";
-import SmallCards from "@/components/info-pages/SmallCards";
 import ConsoleCarousel from "@/components/info-pages/ConsoleCarousel";
+import PageSkeleton from "@/components/PageSkeleton";
+import PageError from "@/components/PageError";
 
 export default function Home() {
   const router = useRouter();
-  const [upcomingReleases, setUpcomingReleases] = useState<UpcomingReleases[]>([]);
+  const [upcomingReleases, setUpcomingReleases] = useState<GameData[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvents[]>([]);
-  const [allTimeFavs, setAllTimeFavs] = useState<AllTimeFavs[]>([]);
-  const [popularConsoles, setPopularConsoles] = useState<any[]>([]);
+  const [allTimeFavs, setAllTimeFavs] = useState<GameData[]>([]);
+  const [popularConsoles, setPopularConsoles] = useState<IGDBPlatform[]>([]);
   const [error, setError] = useState<ApiError | null>(null)
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
   useEffect(() => {
-    setStatus("loading")
+    let active = true;
+
     const run = async () => {
+      setStatus("loading")
       const ueData = await getUpcomingEvents();
       const urData = await getUpcomingReleases(25);
       const atfData = await getAllTimeFavorites();
       const popConData = await getMultiplePlatforms(top15Consoles);
+      if (!active) return;
 
       // TODO: implement error handling for below
       if (ueData.ok) {
         setUpcomingEvents(ueData.data);
+        setStatus("success");
       } else {
         setStatus("error");
         setError(ueData.error)
@@ -41,6 +45,7 @@ export default function Home() {
 
       if (urData.ok) {
         setUpcomingReleases(urData.data);
+        setStatus("success");
       } else {
         setStatus("error");
         setError(urData.error)
@@ -48,6 +53,7 @@ export default function Home() {
 
       if (atfData.ok) {
         setAllTimeFavs(atfData.data);
+        setStatus("success");
       } else {
         setStatus("error");
         setError(atfData.error)
@@ -55,6 +61,7 @@ export default function Home() {
 
       if (popConData.ok) {
         setPopularConsoles(popConData.data);
+        setStatus("success");
       } else {
         setStatus("error");
         setError(popConData.error)
@@ -62,7 +69,11 @@ export default function Home() {
 
     }
     run();
-  }, [])
+    return () => { active = false }
+  }, []);
+
+  if (status === "loading") return <PageSkeleton />
+  if (status === "error") return <PageError />
 
   return (
     <main className="flex py-8 grow w-full  flex-col items-center  gap-5  text-card-foreground sm:items-start">
@@ -106,7 +117,7 @@ export default function Home() {
         </section>
       }
       {popularConsoles && popularConsoles.length > 0 && (
-        <ConsoleCarousel title="" consoles={popularConsoles}/>
+        <ConsoleCarousel title="" consoles={popularConsoles} />
       )}
 
 
@@ -117,7 +128,7 @@ export default function Home() {
 
       {/* ALL TIME FAVORITES */}
       {allTimeFavs && allTimeFavs.length > 0 &&
-        <GamesCarousel title="All Time Favorites" games={allTimeFavs} moreUrl="/games"/>
+        <GamesCarousel title="All Time Favorites" games={allTimeFavs} moreUrl="/games" />
       }
 
     </main>

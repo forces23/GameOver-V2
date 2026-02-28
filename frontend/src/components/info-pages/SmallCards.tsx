@@ -4,21 +4,15 @@ import { Dlc } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import React from 'react'
+import { outOfOrder, url_igdb_t_original } from '@/lib/constants';
 
 type SmallCardProps = {
     title:string;
     items: Dlc[];
 }
 
-const url_igdb_t_original = process.env.NEXT_PUBLIC_URL_IGDB_T_ORIGINAL;
-const outOfOrder = '/imgs/out-of-order.jpg';
-
 export default function SmallCards({title = "", items}:SmallCardProps) {
     const router = useRouter();
-
-    const goToDifferentGame = (id: number) => {
-        router.push(`/info/game-info?gameId=${id}`)
-    }
 
     return (
         <section>
@@ -28,7 +22,7 @@ export default function SmallCards({title = "", items}:SmallCardProps) {
                     <li
                         key={`dlc-${item.id}`}
                         className="bg-background text-secondary-foreground p-2 rounded-lg w-30 cursor-pointer"
-                        onClick={() => goToDifferentGame(item.id)}
+                        onClick={() => router.push(`/info/game-info?gameId=${item.id}`)}
                     >
                         <div className='relative aspect-square'>
                             <Image

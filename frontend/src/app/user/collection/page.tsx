@@ -13,51 +13,65 @@ import {
     ItemTitle,
 } from "@/components/ui/item"
 import { formatUnixTime } from '@/lib/utils';
-import { Genre } from '@/lib/types';
+import { ApiError, GameSimple, Genre } from '@/lib/types';
 import Link from 'next/link';
 import { FaStar } from 'react-icons/fa';
 import SearchBar from '@/components/SearchBar';
+import PageSkeleton from '@/components/PageSkeleton';
+import PageError from '@/components/PageError';
 
 
 export default function page() {
     const user = useUser();
-    const [collection, setCollection] = useState<any[]>([]);
-    const [filteredCollection, setFilteredCollection] = useState<any[]>([])
+    const [collection, setCollection] = useState<GameSimple[]>([]);
+    const [filteredCollection, setFilteredCollection] = useState<GameSimple[]>([]);
+    const [error, setError] = useState<ApiError | null>(null);
+    const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
     useEffect(() => {
-        const fetchCollection = async () => {
+        let active = true;
+
+        const run = async () => {
+            setStatus("loading");
+
             const tokenResponse = await fetch("/api/auth/token");
             const { accessToken } = await tokenResponse.json()
+            if (!active) return;
 
             const resp = await getCollectedGames("collected", accessToken);
-            // console.log(resp)
+            if (!active) return;
 
-            if (resp.ok) setCollection(resp.data.games);
+            if (resp.ok) {
+                setCollection(resp.data.games);
+                setFilteredCollection(resp.data.games);
+                setStatus("success");
+            } else {
+                setStatus("error");
+                setError(resp.error);
+            }
         }
-        fetchCollection();
-    }, [])
+        run();
+        return () => {active = false}
+    }, []);
 
-    /* need these items to display:
-            X image
-            X name 
-            X release date
-            - console you have it for (pc, xbox, playstation, etc)
-    */
+    if (status === "loading") return <PageSkeleton />
+    if (status === "error") return <PageError />
+
     return (
         <div className="">
             <div className="pb-4">
-                            <h1 className="w-full pb-2">Owned Games</h1>
-                            <hr />
-                        </div>
-                        <div className='mx-auto pb-4 max-w-5xl'>
-                            <SearchBar originalData={collection} setData={setFilteredCollection} />
-                        </div>
+                <h1 className="w-full pb-2">Owned Games</h1>
+                <hr />
+            </div>
+            <div className='mx-auto pb-4 max-w-5xl'>
+                <SearchBar originalData={collection} setData={setFilteredCollection} searchType='game' />
+            </div>
             <div className="pb-4">
                 <h5 className="w-full text-center pb-2">{collection.length} items</h5>
                 <hr />
             </div>
             <ItemGroup className="gap-2">
-                {filteredCollection && filteredCollection.map((game: any, index: number) => {
+                {filteredCollection && filteredCollection.map((game: GameSimple) => {
                     return (
                         <Item key={game.name} variant="outline" asChild role="listitem" className="bg-card">
                             <Link
@@ -77,7 +91,6 @@ export default function page() {
                                 <ItemContent>
                                     <ItemTitle className="w-full">
                                         <h5 className='pe-4'>{game.name}</h5>
-                                        {/* <span className="text-muted-foreground">{song.album}</span> */}
                                     </ItemTitle>
                                     <ItemContent>
                                         <ul className='flex flex-wrap gap-2'>
@@ -97,7 +110,6 @@ export default function page() {
                                     <ItemDescription>{formatUnixTime(game.first_release_date)}</ItemDescription>
                                 </ItemContent>
                                 {game.favorite && (<h6 className="absolute top-4 right-4"><FaStar /></h6>)}
-
                             </Link>
                         </Item>
                     )

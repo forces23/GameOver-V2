@@ -3,7 +3,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import Image from 'next/image';
 import { Card } from '../ui/card'
 import { useRouter } from 'next/navigation';
-import { AllTimeFavs, SimilarGame, UpcomingReleases } from '@/lib/types';
+import { AllTimeFavs, GameData, SimilarGame, UpcomingReleases } from '@/lib/types';
 import Link from 'next/link';
 import { v4 as uuidv4, validate as isUuid } from "uuid";
 import { CgMoreO } from 'react-icons/cg';
@@ -11,7 +11,7 @@ import { outOfOrder, url_igdb_t_original } from '@/lib/constants';
 
 type GamesCarouselProps = {
     title?: string;
-    games: SimilarGame[] | UpcomingReleases[] | AllTimeFavs[];
+    games: GameData[] | SimilarGame[];
     moreUrl?: string;
     moreActive?: boolean
 }

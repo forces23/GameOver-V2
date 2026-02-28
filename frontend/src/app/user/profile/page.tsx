@@ -1,55 +1,58 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import PageError from "@/components/PageError";
+import PageSkeleton from "@/components/PageSkeleton";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { getFavorites, getProfile } from "@/lib/api/db";
-import { getPlatforms } from "@/lib/api/tgdb";
-import { GameSimple, Profile } from "@/lib/types";
+import { ApiError, GameSimple, Profile } from "@/lib/types";
 import { useUser } from "@auth0/nextjs-auth0";
-import { randomUUID } from "crypto";
 import Image from 'next/image';
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react"
 
 export default function page() {
-    const { user, isLoading } = useUser();
+    const { user } = useUser();
     const router = useRouter();
     const [profile, setProfile] = useState<Profile>();
     const [favGames, setFavGames] = useState<GameSimple[]>([]);
+    const [error, setError] = useState<ApiError | null>(null);
+    const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
     useEffect(() => {
-        if (isLoading || !user) return;
+        if (!user) return;
+        let active = true;
 
         const run = async () => {
             const tokenResponse = await fetch("/api/auth/token");
             const { accessToken } = await tokenResponse.json()
+            if(!active) return;
 
             const profileResp = await getProfile(accessToken);
             const favGamesResp = await getFavorites(accessToken);
-            console.log(profileResp)
-            if (profileResp.ok) setProfile(profileResp.data.data);
-            if (favGamesResp.ok) setFavGames(favGamesResp.data.data);
+            if(!active) return;
+
+            if (profileResp.ok) {
+                setProfile(profileResp.data.data);
+                setStatus("success");
+            } else {
+                setStatus("error");
+                setError(profileResp.error)
+            }
+            if (favGamesResp.ok) {
+                setFavGames(favGamesResp.data.data);
+                setStatus("success");
+            } else {
+                setStatus("error");
+                setError(favGamesResp.error)
+            }
         }
         run()
-    }, [isLoading, user])
+        return () => {active = false}
+    }, [user])
 
-    const goToDifferentGame = (id: number) => {
-        router.push(`/info/game-info?gameId=${id}`)
-    }
-
-    if (isLoading) {
-        return (
-            <div className="loading-state">
-                <div className="loading-text">Loading user profile...</div>
-            </div>
-        );
-    }
-
-    if (!user) {
-        return null;
-    }
+    if (status === "loading") return <PageSkeleton />
+    if (status === "error" || !user) return <PageError /> 
 
     return (
         <div className="flex flex-col w-full p-4 max-w-500">
@@ -118,7 +121,7 @@ export default function page() {
                                                 <CarouselItem key={index} className="basis-1/2 pl-1 lg:basis-1/5 cursor-pointer">
                                                     <div
                                                         className="p-1"
-                                                        onClick={() => goToDifferentGame(game.igdb_id)}
+                                                        onClick={() => router.push(`/info/game-info?gameId=${game.igdb_id}`)}
                                                     >
                                                         <Card className="relative aspect-3/4" >
                                                             <Image

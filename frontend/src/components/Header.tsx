@@ -1,6 +1,5 @@
 'use client'
 
-import SearchBar from './SearchBar'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -18,12 +17,10 @@ import { RiMenu5Line, RiMenu4Fill } from "react-icons/ri";
 import { TbSearch } from "react-icons/tb";
 import { useState } from 'react'
 import SearchBox from './search/SearchBox'
-import { Tabs, TabsList, TabsTrigger } from './ui/tabs'
-
 
 export default function Header() {
     const router = useRouter();
-    const { user, isLoading } = useUser();
+    const { user } = useUser();
     const pathName = usePathname();
     const searchParams = useSearchParams();
     const [searchActive, setSearchActive] = useState<boolean>(false);

@@ -1,9 +1,6 @@
 import { Video } from '@/lib/types';
 import React from 'react'
 
-
-const url_igdb_t_original = process.env.NEXT_PUBLIC_URL_IGDB_T_ORIGINAL;
-
 type VideosProps = {
     title: string;
     items: Video[];

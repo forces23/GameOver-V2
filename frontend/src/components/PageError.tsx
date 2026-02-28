@@ -1,7 +1,6 @@
 import React from 'react'
 import Image from 'next/image';
-
-const outOfOrder = '/imgs/out-of-order.jpg'
+import { outOfOrder } from '@/lib/constants';
 
 
 export default function PageError() {

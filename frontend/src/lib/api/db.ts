@@ -1,10 +1,6 @@
 import axios from "axios";
 import { ApiError, GameData, Profile } from "../types";
-
-const url_igdb_t_original = process.env.NEXT_PUBLIC_URL_IGDB_T_ORIGINAL;
-const url_omega = process.env.NEXT_PUBLIC_URL_OMEGA;
-const ep_db_save_game = process.env.NEXT_PUBLIC_EP_DB_SAVE_GAME;
-const ep_db_delete_game = process.env.NEXT_PUBLIC_EP_DB_DELETE_GAME;
+import { ep_db_delete_game, ep_db_save_game, url_igdb_t_original, url_omega } from "../constants";
 
 const todaysDate = Math.floor(Date.now() / 1000);
 
@@ -37,7 +33,7 @@ export const saveGame = async (
         const response = await axios.post(`${url_omega}${ep_db_save_game}`, {
             "igdb_id": gameDetails.id,
             "name": gameDetails.name,
-            "cover_url": `${url_igdb_t_original}${gameDetails.cover.image_id}.jpg`,
+            "cover_url": `${url_igdb_t_original}${gameDetails?.cover?.image_id}.jpg`,
             "first_release_date": gameDetails.first_release_date,
             "genres": gameDetails.genres,
             "collected": collected,

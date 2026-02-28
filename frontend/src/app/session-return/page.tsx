@@ -14,6 +14,6 @@ export default function page() {
     }, [router]);
 
     return (
-        <div className="flex grow"></div>
+        <></>
     );
 }

@@ -16,13 +16,13 @@ const url_igdb_t_original = process.env.NEXT_PUBLIC_URL_IGDB_T_ORIGINAL;
 export default function SearchBox() {
     const router = useRouter();
     const [searchResults, setSearchResults] = useState<SearchResults>({ games: [], consoles: [] });
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState<boolean>(false);
     const [gameTitle, setGameTitle] = useState<string>("");
     const searchRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
         if (gameTitle) {
-            const fetchGameDetails = async () => {
+            const run = async () => {
                 if (!gameTitle) return;
                 // TODO: Need to implement the console search in the backend. it was using TGDB but i removed and now backend only returns [] for consoles
                 const result = await getSearchResults(gameTitle);
@@ -32,7 +32,7 @@ export default function SearchBox() {
 
                 // TODO: do something with errors that come back from quick search
             }
-            fetchGameDetails();
+            run();
             setOpen(true);
         } else {
             // do something here later 

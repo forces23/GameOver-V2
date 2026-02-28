@@ -1,39 +1,28 @@
 "use client"
 
-import SearchBar from '@/components/SearchBar'
-import React, { useEffect, useState } from 'react'
-import Image from 'next/image'
+import SearchBar from '@/components/SearchBar';
+import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { outOfOrder, url_igdb_t_original } from '@/lib/constants';
-import {  getAllTimeFavorites, getGameSearch } from '@/lib/api/igdb';
+import { getAllTimeFavorites, getGameSearch } from '@/lib/api/igdb';
+import { GameData, ParamsObj } from '@/lib/types';
+import { buildFiltersObject } from '@/lib/utils';
 
 export default function page() {
-    const [games, setGames] = useState<any[]>([]);
-    const [filteredGames, setFilteredGames] = useState<any[]>([]);
+    const [games, setGames] = useState<GameData[]>([]);
+    const [filteredGames, setFilteredGames] = useState<GameData[]>([]);
     const params = useSearchParams();
-    const [paramFilters, setParamFilters] = useState<any>({});
+    const [paramFilters, setParamFilters] = useState<ParamsObj>();
     const router = useRouter();
 
-    const toNumArray = (values: string[]) =>
-        values.map((v) => Number(v)).filter((n) => Number.isFinite(n));
-
-    const onSubmitFilters = (payload: {
-        query: string;
-        genres: number[];
-        themes: number[];
-        consoles: number[];
-        fromDate: string;
-        toDate: string;
-        page: number;
-        limit: number;
-        sort: string;
-    }) => {
+    const onSubmitFilters = (payload: ParamsObj) => {
         const sp = new URLSearchParams();
 
         if (payload.query.trim()) sp.set("query", payload.query.trim());
         payload.genres.forEach((id) => sp.append("genres", String(id)));
         payload.themes.forEach((id) => sp.append("themes", String(id)));
-        payload.consoles.forEach((id) => sp.append("consoles", String()));
+        payload.consoles.forEach((id) => sp.append("consoles", String(id)));
         if (payload.fromDate) sp.set("fromDate", payload.fromDate);
         if (payload.toDate) sp.set("toDate", payload.toDate);
 
@@ -45,23 +34,17 @@ export default function page() {
     }
 
     useEffect(() => {
+        let active = true;
+        
         const run = async () => {
-            const filters = {
-                query: params.get("query") ?? "",
-                genres: toNumArray(params.getAll("genres")) ?? [],
-                themes: toNumArray(params.getAll("themes")) ?? [],
-                consoles: toNumArray(params.getAll("consoles")) ?? [],
-                fromDate: params.get("fromDate") ?? "",
-                toDate: params.get("toDate") ?? "",
-                page: Number(params.get("page")) ?? 1,
-                limit: Number(params.get("limit")) && Number(params.get("limit")) !== 0 ? Number(params.get("limit")) : 50,
-                sort: params.get("sort") ?? "asc"
-            }
-
+            const filters = buildFiltersObject(params)
             setParamFilters(filters)
 
+            // when no params it sets the data default to all time favorite list of games
             if (params.size === 0) {
+                // TODO: see if you can use the same endpoint /games-search instead
                 const result = await getAllTimeFavorites(50);
+                if (!active) return;
                 if (result.ok) {
                     setGames(result.data);
                     setFilteredGames(result.data);
@@ -70,18 +53,18 @@ export default function page() {
             }
 
             const result = await getGameSearch(filters)
+            if (!active) return;
             if (result.ok) {
                 setGames(result.data);
                 setFilteredGames(result.data);
             }
         };
         run();
-
-
+        return () => { active = false }
     }, [params]);
 
     return (
-        <div className='flex grow w-full max-w-500'>
+        <>
             <div className='w-full px-4'>
                 <div className="pb-4 text-center">
                     <h3 className="w-full pb-2">Games</h3>
@@ -125,6 +108,6 @@ export default function page() {
                     </ul>
                 </section>
             </div>
-        </div>
+        </>
     )
 }
