@@ -24,7 +24,7 @@ export default function Header() {
     // const pathName = usePathname();
     // const searchParams = useSearchParams();
     const [searchActive, setSearchActive] = useState<boolean>(false);
-    const [menuOpen, setMenuOpen] = useState<boolean>(true);
+    const [menuOpen, setMenuOpen] = useState<boolean>(false);
 
     const handleAuthSession = (authType: string) => {
         // get the current path so you can return to it after logging out 
