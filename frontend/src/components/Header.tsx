@@ -24,12 +24,11 @@ export default function Header() {
     // const pathName = usePathname();
     // const searchParams = useSearchParams();
     const [searchActive, setSearchActive] = useState<boolean>(false);
+    const [menuOpen, setMenuOpen] = useState<boolean>(true);
 
     const handleAuthSession = (authType: string) => {
         // get the current path so you can return to it after logging out 
         const currentPath = `${window.location.pathname}${window.location.search}`;
-        // const urlParams = searchParams.toString();
-        // const currentPath = `${pathName}${urlParams ? `?${urlParams}` : ''}`;
         console.log(currentPath)
 
         // checks to see if current path is a public path
@@ -53,32 +52,49 @@ export default function Header() {
             <div className="flex items-center gap-4 px-4 justify-end ">
                 <div className="hidden md:flex">
                     <nav className='flex gap-3'>
-                        <button className="cursor-pointer text-xl text-white hover:text-purple-500 relative inline-block after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 hover:after:scale-x-100 "onClick={() => router.push("/consoles")}>Consoles</button>
-                        <button className="whitespace-nowrap cursor-pointer text-xl text-white hover:text-purple-500 relative inline-block after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 hover:after:scale-x-100" onClick={() => router.push("/games")}>Games</button>
-                        <button className="whitespace-nowrap cursor-pointer text-xl text-white hover:text-purple-500 relative inline-block after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 hover:after:scale-x-100" onClick={() => router.push("/game-new-releases")}>New Releases</button>
+                        <button
+                            className="cursor-pointer text-xl text-white hover:text-purple-500 relative inline-block after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 hover:after:scale-x-100 "
+                            onClick={() => router.push("/consoles")}
+                        >
+                            Consoles
+                        </button>
+                        <button
+                            className="whitespace-nowrap cursor-pointer text-xl text-white hover:text-purple-500 relative inline-block after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 hover:after:scale-x-100"
+                            onClick={() => router.push("/games")}
+                        >
+                            Games
+                        </button>
+                        <button
+                            className="whitespace-nowrap cursor-pointer text-xl text-white hover:text-purple-500 relative inline-block after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 hover:after:scale-x-100"
+                            onClick={() => router.push("/game-new-releases")}
+                        >
+                            New Releases
+                        </button>
                     </nav>
                 </div>
-                <div className="hidden md:flex">
+                <div>
                     <SearchBox />
                 </div>
-                <div className="md:hidden" onClick={() => setSearchActive(prev => !prev)}>
-                    <TbSearch />
-                </div>
                 <div className={`${!user && 'md:hidden'}`}>
-                    <DropdownMenu>
+                    <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className={`rounded-full cursor-pointer ${!user && 'md:hidden'}`}>
+                            <Button variant="ghost" size="icon" className={`rounded-full cursor-pointer ${!user && 'md:hidden'} h-12 w-12`}>
                                 {user ? (
                                     <Avatar>
                                         <AvatarImage src="https://github.com/shadcn.png" alt="user-avatar" />
                                         <AvatarFallback>BL</AvatarFallback>
                                     </Avatar>
-                                ) : <RiMenu5Line className='md:hidden' />}
+                                ) : menuOpen ? (
+                                    <RiMenu4Fill className='md:hidden size-8' />
+                                ) : (
+                                    <RiMenu5Line className='md:hidden size-8' />
+                                )}
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="w-32">
                             <DropdownMenuGroup>
                                 <DropdownMenuItem onClick={() => { router.push("/consoles") }}>Consoles</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => router.push("/games")}>Games</DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => router.push("/game-new-releases")}>New Releases</DropdownMenuItem>
                                 {/* <DropdownMenuItem onClick={() => router.push("")}>Events</DropdownMenuItem> */}
                                 {user && (

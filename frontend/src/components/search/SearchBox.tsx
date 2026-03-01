@@ -67,7 +67,7 @@ export default function SearchBox() {
         <div className=" ">
             <div className='md:hidden'>
                 <button onClick={() => setOpen(true)} className="w-fit cursor-pointer">
-                    <TbSearch />
+                    <TbSearch  size={25}/> 
                 </button>
             </div>
             <div className='hidden md:flex'>
