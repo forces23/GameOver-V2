@@ -55,12 +55,12 @@ export const toUnixString = (date: Date): string => {
 }
 
 export const isPublicRoute = (path: string) => {
-  const publicPathPrefixes = new Set(["/", "/info", "/login", "/signup"]);
+  const privatePathPrefixes = new Set(["/user/collection", "/user/wishlist", "/user/settings", "/user/profile"]);
   const pathname = path.split("?")[0];
 
-  if (publicPathPrefixes.has(pathname)) return true;
+  if (privatePathPrefixes.has(pathname)) return false;
 
-  return false
+  return true
 }
 
 export const commaStringToList = (stringList: string): string[] => {
