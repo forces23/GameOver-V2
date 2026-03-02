@@ -11,9 +11,7 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { FiGlobe } from "react-icons/fi";
 import NetworkIcon from '@/components/NetworkIcon';
-
-
-const url_igdb_t_original = process.env.NEXT_PUBLIC_URL_IGDB_T_ORIGINAL;
+import { url_igdb_t_original } from '@/lib/constants';
 
 export default function page() {
     const router = useRouter();
