@@ -13,7 +13,7 @@ origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://master.dplvhj1p8mk7a.amplifyapp.com",
-    "gameover.shadowcoder.org"
+    "https://gameover.shadowcoder.org"
 ]
 
 app.add_middleware(
