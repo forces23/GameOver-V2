@@ -36,7 +36,7 @@ export default function Header() {
         sessionStorage.setItem("postLogoutPath", safe)
 
         // window.location.href = `/auth/logout`
-        window.location.href = `/auth/${authType}?returnTo=${encodeURI(`${window.location.origin}/session-return`)}`;
+        window.location.href = `/auth/${authType}?returnTo=/session-return`;
     }
 
     return (
