@@ -6,8 +6,7 @@ import Image from 'next/image';
 import { Card } from './ui/card'
 import { Artwork, Screenshot } from '@/lib/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-
-const url_igdb_t_original = process.env.NEXT_PUBLIC_URL_IGDB_T_ORIGINAL;
+import { url_igdb_t_original } from '@/lib/constants';
 
 type ImagesCarouselProps = {
     title: string;

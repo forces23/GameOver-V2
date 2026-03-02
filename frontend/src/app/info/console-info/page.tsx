@@ -66,7 +66,7 @@ export default function page() {
     if (status === "error") return <PageError />;
 
     return (
-        <div className='flex w-full flex-col gap-4 p-4'>
+        <div className='flex w-full flex-col gap-4 p-4 '>
             {/* * Banner Image * */}
             {/* {gameConsole.images.images.banners &&
                     <div
