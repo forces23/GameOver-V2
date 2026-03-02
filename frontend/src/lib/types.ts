@@ -442,27 +442,8 @@ export type IGDBEvent = {
     url?: string;
   };
   event_networks?: event_networks[];
-  games?: {
-    id: number;
-    name: string;
-    cover?: {
-      id: number;
-      image_id: string;
-    };
-  }[];
-  videos?: { //
-    id: number;
-    name?: string;
-    game?: {
-      id: number;
-      name: string;
-      cover?: {
-        id: number;
-        image_id: string;
-      };
-    };
-    video_id?: string;
-  }[];
+  games?: GameData[];
+  videos?: Video[];
 };
 
 export type UpcomingEvents = {

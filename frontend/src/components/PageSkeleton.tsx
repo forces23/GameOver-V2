@@ -16,7 +16,6 @@ export default function PageSkeleton() {
                 <Skeleton className="h-8 w-2/3" />
                 <Skeleton className="h-20 w-full" />
             </div>
-            
         </div>
     )
 }

@@ -21,7 +21,9 @@ export default function GamesCarousel({ title = "", games, moreUrl = "", moreAct
 
     return (
         <section className='w-full px-4'>
-            <h4 className="text-2xl font-semibold mb-2">{title}</h4>
+            {title && (
+                <h4 className="text-2xl font-semibold mb-2 cursor-pointer" onClick={() => { router.push(moreUrl) }}>{title}</h4>
+            )}
             <div className='flex justify-center'>
                 <Carousel className="w-full max-w-500 mb-4">
                     <CarouselContent className="-ml-1">

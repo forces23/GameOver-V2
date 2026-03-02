@@ -35,6 +35,8 @@ export default function page() {
 
     useEffect(() => {
         let active = true;
+
+        console.log(params);
         
         const run = async () => {
             const filters = buildFiltersObject(params)

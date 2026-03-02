@@ -139,7 +139,7 @@ export default function page() {
                             )}
                         </div>
                         {gameConsole?.versions && gameConsole.versions.length > 0 && (
-                            <div className='w-full'>
+                            <div className='w-full pb-4'>
                                 <Card className="w-full ">
                                     <CardHeader>
                                         <CardTitle>Other Versions of the {gameConsole?.name ?? "Console"}</CardTitle>
@@ -335,7 +335,7 @@ export default function page() {
                         )}
                     </CardContent>
                     {/* Popular games on this console */}
-                    <GamesCarousel games={games} moreUrl={`/games?consoleId=${consoleId}&page=1`} />
+                    <GamesCarousel title={`${gameConsole?.name || "Console"} Releases`} games={games} moreUrl={`/games?consoles=${consoleId}&page=1`} />
                 </div>
             </Card>
         </div>
