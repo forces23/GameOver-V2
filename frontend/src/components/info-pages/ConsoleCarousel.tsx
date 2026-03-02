@@ -5,7 +5,7 @@ import { Card } from '../ui/card'
 import Link from 'next/link';
 import { v4 as uuidv4, validate as isUuid } from "uuid";
 import { CgMoreO } from 'react-icons/cg';
-import { outOfOrder, url_igdb_t_original } from '@/lib/constants';
+import { missingImg, url_igdb_t_original } from '@/lib/constants';
 
 
 type ConsoleCarouselProps = {
@@ -29,7 +29,7 @@ export default function GamesCarousel({ title = "", consoles }: ConsoleCarouselP
                                 >
                                     <Card className="relative aspect-3/4 bg-gray-300" >
                                         <Image
-                                            src={console.platform_logo?.image_id != undefined ? `${url_igdb_t_original}${console.platform_logo?.image_id}.jpg` : outOfOrder}
+                                            src={console.platform_logo?.image_id != undefined ? `${url_igdb_t_original}${console.platform_logo?.image_id}.jpg` : missingImg}
                                             alt={`console-${console.slug}- ${uuidv4}`}
                                             fill
                                             sizes="(max-width: 1024px) 50vw, 20vw"
@@ -46,18 +46,18 @@ export default function GamesCarousel({ title = "", consoles }: ConsoleCarouselP
                             <Link
                                 className=" rounded-lg"
                                 href={`/consoles`}
-                            > 
+                            >
                                 <Card className="flex justify-center items-center relative aspect-3/4" >
                                     <div className='flex flex-col justify-center items-center' >
                                         <h3>More</h3>
-                                        <CgMoreO className='text-4xl'/>
+                                        <CgMoreO className='text-4xl' />
                                     </div>
                                 </Card>
                             </Link>
                         </CarouselItem>
                     </CarouselContent>
-                    <CarouselPrevious variant="default" className="left-0 top-0 bottom-0 h-auto w-10 -translate-y-0 rounded-none rounded-l-md bg-transparent hover:bg-purple-500/30 hover:text-white text-purple-500 [&_svg]:!size-6" />
-                    <CarouselNext variant="default" className="right-0 top-0 bottom-0 h-auto w-10 -translate-y-0 rounded-none rounded-r-md bg-transparent hover:bg-purple-500/30 hover:text-white text-purple-500 [&_svg]:!size-6" />
+                    <CarouselPrevious variant="default" className="left-0  hover:bottom-0 text-white [&_svg]:!size-6 w-10 h-10 -translate-y-0 rounded-full  bg-purple-500/40 border-purple-400/60 hover:h-auto hover:top-0 hover:rounded-none hover:bg-purple-500/30 hover:text-white hover:rounded-l-md " />
+                    <CarouselNext variant="default" className="right-0  bottom-0 text-white [&_svg]:!size-6 w-10 h-10 -translate-y-0 rounded-full  bg-purple-500/40 border-purple-400/60 hover:h-auto hover:top-0 hover:rounded-none hover:bg-purple-500/30 hover:text-white hover:rounded-r-md" />
                 </Carousel>
             </div>
         </section>

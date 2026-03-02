@@ -18,7 +18,8 @@ export const ep_all_time_favs = "/all-time-favs"
 
 // IMAGES
 export const outOfOrder = '/imgs/out-of-order.jpg';
-export const missingImg = ''
+export const missingImg = '/imgs/missing-image.png';
+export const missingImgGrey = '/imgs/missing-image-grey-300.png';
 
 // IGDB IMAGE SIZE URL
 export const url_igdb_t_thumb = "https://images.igdb.com/igdb/image/upload/t_thumb/"

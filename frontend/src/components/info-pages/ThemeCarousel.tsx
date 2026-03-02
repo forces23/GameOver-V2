@@ -57,8 +57,8 @@ export default function ThemeCarousel({ title, games, theme }: ThemeProps) {
                             </Link>
                         </CarouselItem> */}
                     </CarouselContent>
-                    <CarouselPrevious variant="default" className="left-0 top-0 bottom-0 h-auto w-10 -translate-y-0 rounded-none rounded-l-md bg-transparent hover:bg-purple-500/30 hover:text-white text-purple-500 [&_svg]:!size-6" />
-                    <CarouselNext variant="default" className="right-0 top-0 bottom-0 h-auto w-10 -translate-y-0 rounded-none rounded-r-md bg-transparent hover:bg-purple-500/30 hover:text-white text-purple-500 [&_svg]:!size-6" />
+                    <CarouselPrevious variant="default" className="left-0  hover:bottom-0 text-white [&_svg]:!size-6 w-10 h-10 -translate-y-0 rounded-full  bg-purple-500/40 border-purple-400/60 hover:h-auto hover:top-0 hover:rounded-none hover:bg-purple-500/30 hover:text-white hover:rounded-l-md " />
+                    <CarouselNext variant="default" className="right-0  bottom-0 text-white [&_svg]:!size-6 w-10 h-10 -translate-y-0 rounded-full  bg-purple-500/40 border-purple-400/60 hover:h-auto hover:top-0 hover:rounded-none hover:bg-purple-500/30 hover:text-white hover:rounded-r-md" />
 
                 </Carousel>
             </div>

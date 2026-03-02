@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "./ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Calendar } from "./ui/calendar";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
 
 type IGDBGenres = {
     id: number,
@@ -159,7 +160,7 @@ export default function SearchBar({ originalData, setData, filters, searchType =
             const genresResult = await getIGDBGenres();
             const themesResult = await getIGDBThemes();
             const consolesResult = await getAllPlatforms();
-            if(!active) return;
+            if (!active) return;
 
             if (themesResult.ok) {
                 setStatus("loading");
@@ -184,7 +185,7 @@ export default function SearchBar({ originalData, setData, filters, searchType =
         }
 
         if (searchType === "game") run();
-        return () => {() => {active = true}}
+        return () => { () => { active = true } }
     }, []);
 
     useEffect(() => {
@@ -243,9 +244,9 @@ export default function SearchBar({ originalData, setData, filters, searchType =
 
     return (
         <>
-            <div className="relative w-full " ref={searchRef}>
+            <div className="relative w-full" ref={searchRef}>
                 <form id="form-search-games" onSubmit={form.handleSubmit(searchData)}>
-                    <FieldGroup className="pb-3">
+                    <FieldGroup>
                         <Controller
                             name="query"
                             control={form.control}
@@ -267,198 +268,205 @@ export default function SearchBar({ originalData, setData, filters, searchType =
                         />
                     </FieldGroup>
                     {searchType === "game" &&
-                        <FieldGroup className="flex md:flex-row gap-2 pb-4">
-                            <Controller
-                                name="genres"
-                                control={form.control}
-                                render={({ field, fieldState }) => (
-                                    <Field className="gap-1">
-                                        <FieldLabel>
-                                            Genres
-                                        </FieldLabel>
-                                        <Combobox
-                                            multiple
-                                            autoHighlight
-                                            items={genres}
-                                            value={field.value ?? []}
-                                            onValueChange={(values) => field.onChange(Array.isArray(values) ? values : [])}
-                                            isItemEqualToValue={(a, b) => a.id === b.id}
-                                            defaultValue={[]}
-                                        >
-                                            <ComboboxChips ref={genresAnchor} className="w-full md:max-w-xs">
-                                                <ComboboxValue>
-                                                    {(values: IGDBGenres[]) => (
-                                                        <React.Fragment>
-                                                            {values.map((value: IGDBGenres) => (
-                                                                <ComboboxChip key={value.slug}>{value.name}</ComboboxChip>
-                                                            ))}
-                                                            <ComboboxChipsInput />
-                                                        </React.Fragment>
-                                                    )}
-                                                </ComboboxValue>
-                                            </ComboboxChips>
-                                            <ComboboxContent anchor={genresAnchor}>
-                                                <ComboboxEmpty>No items found.</ComboboxEmpty>
-                                                <ComboboxList>
-                                                    {(item) => (
-                                                        <ComboboxItem key={item.slug} value={item}>
-                                                            {item.name}
-                                                        </ComboboxItem>
-                                                    )}
-                                                </ComboboxList>
-                                            </ComboboxContent>
-                                        </Combobox>
-                                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                                    </Field>
-                                )}
-                            />
-                            <Controller
-                                name="themes"
-                                control={form.control}
-                                render={({ field, fieldState }) => (
-                                    <Field className="gap-1">
-                                        <FieldLabel>
-                                            Themes
-                                        </FieldLabel>
-                                        <Combobox
-                                            multiple
-                                            autoHighlight
-                                            items={themes}
-                                            value={field.value ?? []}
-                                            onValueChange={(values) => field.onChange(Array.isArray(values) ? values : [])}
-                                            isItemEqualToValue={(a, b) => a === b}
-                                            defaultValue={[]}
-                                        >
-                                            <ComboboxChips ref={themesAnchor} className="w-full md:max-w-xs">
-                                                <ComboboxValue>
-                                                    {(values: IGDBThemes[]) => (
-                                                        <React.Fragment>
-                                                            {values.map((value: IGDBThemes) => (
-                                                                <ComboboxChip key={value.slug}>{value.name}</ComboboxChip>
-                                                            ))}
-                                                            <ComboboxChipsInput />
-                                                        </React.Fragment>
-                                                    )}
-                                                </ComboboxValue>
-                                            </ComboboxChips>
-                                            <ComboboxContent anchor={themesAnchor}>
-                                                <ComboboxEmpty>No items found.</ComboboxEmpty>
-                                                <ComboboxList>
-                                                    {(item) => (
-                                                        <ComboboxItem key={item.slug} value={item}>
-                                                            {item.name}
-                                                        </ComboboxItem>
-                                                    )}
-                                                </ComboboxList>
-                                            </ComboboxContent>
-                                        </Combobox>
-                                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                                    </Field>
-                                )}
-                            />
-                            <Controller
-                                name="consoles"
-                                control={form.control}
-                                render={({ field, fieldState }) => (
-                                    <Field className="gap-1">
-                                        <FieldLabel>
-                                            Consoles
-                                        </FieldLabel>
-                                        <Combobox
-                                            multiple
-                                            autoHighlight
-                                            items={consoles}
-                                            value={field.value ?? []}
-                                            onValueChange={(values) => field.onChange(Array.isArray(values) ? values : [])}
-                                            isItemEqualToValue={(a, b) => a === b}
-                                            defaultValue={[]}
-                                        >
-                                            <ComboboxChips ref={consoleAnchor} className="w-full md:max-w-xs">
-                                                <ComboboxValue>
-                                                    {(values: IGDBThemes[]) => (
-                                                        <React.Fragment>
-                                                            {values.map((value: IGDBThemes) => (
-                                                                <ComboboxChip key={value.slug}>{value.name}</ComboboxChip>
-                                                            ))}
-                                                            <ComboboxChipsInput />
-                                                        </React.Fragment>
-                                                    )}
-                                                </ComboboxValue>
-                                            </ComboboxChips>
-                                            <ComboboxContent anchor={consoleAnchor}>
-                                                <ComboboxEmpty>No items found.</ComboboxEmpty>
-                                                <ComboboxList>
-                                                    {(item) => (
-                                                        <ComboboxItem key={item.slug} value={item}>
-                                                            {item.name}
-                                                        </ComboboxItem>
-                                                    )}
-                                                </ComboboxList>
-                                            </ComboboxContent>
-                                        </Combobox>
-                                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                                    </Field>
-                                )}
-                            />
-                            <FieldGroup className="flex flex-row">
-                                <Controller
-                                    name="fromDate"
-                                    control={form.control}
-                                    render={({ field, fieldState }) => (
-                                        <Field className=" w-44 gap-1">
-                                            <FieldLabel htmlFor="date">From</FieldLabel>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Button
-                                                        variant="outline"
-                                                        className="justify-start font-normal"
+                        <Accordion type="single" collapsible className="w-full">
+                            <AccordionItem value="item-1">
+                                <AccordionTrigger>Advanced Search</AccordionTrigger>
+                                <AccordionContent>
+                                    <FieldGroup className="flex md:flex-row gap-2 pb-4">
+                                        <Controller
+                                            name="genres"
+                                            control={form.control}
+                                            render={({ field, fieldState }) => (
+                                                <Field className="gap-1">
+                                                    <FieldLabel>
+                                                        Genres
+                                                    </FieldLabel>
+                                                    <Combobox
+                                                        multiple
+                                                        autoHighlight
+                                                        items={genres}
+                                                        value={field.value ?? []}
+                                                        onValueChange={(values) => field.onChange(Array.isArray(values) ? values : [])}
+                                                        isItemEqualToValue={(a, b) => a.id === b.id}
+                                                        defaultValue={[]}
                                                     >
-                                                        {field.value ? formatUnixTimeToDateTime(field.value).date : "Select date"}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                                                    <Calendar
-                                                        mode="single"
-                                                        captionLayout="dropdown"
-                                                        selected={field.value ? new Date(Number(field.value) * 1000) : undefined}
-                                                        onSelect={(date) => { field.onChange(date ? toUnixString(date) : "") }}
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
-                                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                                        </Field>
-                                    )}
-                                />
-                                <Controller
-                                    name="toDate"
-                                    control={form.control}
-                                    render={({ field, fieldState }) => (
-                                        <Field className="w-44 gap-1">
-                                            <FieldLabel htmlFor="date">To</FieldLabel>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Button
-                                                        variant="outline"
-                                                        className="justify-start font-normal"
+                                                        <ComboboxChips ref={genresAnchor} className="w-full md:max-w-xs">
+                                                            <ComboboxValue>
+                                                                {(values: IGDBGenres[]) => (
+                                                                    <React.Fragment>
+                                                                        {values.map((value: IGDBGenres) => (
+                                                                            <ComboboxChip key={value.slug}>{value.name}</ComboboxChip>
+                                                                        ))}
+                                                                        <ComboboxChipsInput />
+                                                                    </React.Fragment>
+                                                                )}
+                                                            </ComboboxValue>
+                                                        </ComboboxChips>
+                                                        <ComboboxContent anchor={genresAnchor}>
+                                                            <ComboboxEmpty>No items found.</ComboboxEmpty>
+                                                            <ComboboxList>
+                                                                {(item) => (
+                                                                    <ComboboxItem key={item.slug} value={item}>
+                                                                        {item.name}
+                                                                    </ComboboxItem>
+                                                                )}
+                                                            </ComboboxList>
+                                                        </ComboboxContent>
+                                                    </Combobox>
+                                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                                </Field>
+                                            )}
+                                        />
+                                        <Controller
+                                            name="themes"
+                                            control={form.control}
+                                            render={({ field, fieldState }) => (
+                                                <Field className="gap-1">
+                                                    <FieldLabel>
+                                                        Themes
+                                                    </FieldLabel>
+                                                    <Combobox
+                                                        multiple
+                                                        autoHighlight
+                                                        items={themes}
+                                                        value={field.value ?? []}
+                                                        onValueChange={(values) => field.onChange(Array.isArray(values) ? values : [])}
+                                                        isItemEqualToValue={(a, b) => a === b}
+                                                        defaultValue={[]}
                                                     >
-                                                        {field.value ? formatUnixTimeToDateTime(field.value).date : "Select date"}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                                                    <Calendar
-                                                        mode="single"
-                                                        captionLayout="dropdown"
-                                                        selected={field.value ? new Date(Number(field.value) * 1000) : undefined}
-                                                        onSelect={(date) => { field.onChange(date ? toUnixString(date) : "") }}
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
-                                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                                        </Field>
-                                    )}
-                                />
-                            </FieldGroup>
-                        </FieldGroup>
+                                                        <ComboboxChips ref={themesAnchor} className="w-full md:max-w-xs">
+                                                            <ComboboxValue>
+                                                                {(values: IGDBThemes[]) => (
+                                                                    <React.Fragment>
+                                                                        {values.map((value: IGDBThemes) => (
+                                                                            <ComboboxChip key={value.slug}>{value.name}</ComboboxChip>
+                                                                        ))}
+                                                                        <ComboboxChipsInput />
+                                                                    </React.Fragment>
+                                                                )}
+                                                            </ComboboxValue>
+                                                        </ComboboxChips>
+                                                        <ComboboxContent anchor={themesAnchor}>
+                                                            <ComboboxEmpty>No items found.</ComboboxEmpty>
+                                                            <ComboboxList>
+                                                                {(item) => (
+                                                                    <ComboboxItem key={item.slug} value={item}>
+                                                                        {item.name}
+                                                                    </ComboboxItem>
+                                                                )}
+                                                            </ComboboxList>
+                                                        </ComboboxContent>
+                                                    </Combobox>
+                                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                                </Field>
+                                            )}
+                                        />
+                                        <Controller
+                                            name="consoles"
+                                            control={form.control}
+                                            render={({ field, fieldState }) => (
+                                                <Field className="gap-1">
+                                                    <FieldLabel>
+                                                        Consoles
+                                                    </FieldLabel>
+                                                    <Combobox
+                                                        multiple
+                                                        autoHighlight
+                                                        items={consoles}
+                                                        value={field.value ?? []}
+                                                        onValueChange={(values) => field.onChange(Array.isArray(values) ? values : [])}
+                                                        isItemEqualToValue={(a, b) => a === b}
+                                                        defaultValue={[]}
+                                                    >
+                                                        <ComboboxChips ref={consoleAnchor} className="w-full md:max-w-xs">
+                                                            <ComboboxValue>
+                                                                {(values: IGDBThemes[]) => (
+                                                                    <React.Fragment>
+                                                                        {values.map((value: IGDBThemes) => (
+                                                                            <ComboboxChip key={value.slug}>{value.name}</ComboboxChip>
+                                                                        ))}
+                                                                        <ComboboxChipsInput />
+                                                                    </React.Fragment>
+                                                                )}
+                                                            </ComboboxValue>
+                                                        </ComboboxChips>
+                                                        <ComboboxContent anchor={consoleAnchor}>
+                                                            <ComboboxEmpty>No items found.</ComboboxEmpty>
+                                                            <ComboboxList>
+                                                                {(item) => (
+                                                                    <ComboboxItem key={item.slug} value={item}>
+                                                                        {item.name}
+                                                                    </ComboboxItem>
+                                                                )}
+                                                            </ComboboxList>
+                                                        </ComboboxContent>
+                                                    </Combobox>
+                                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                                </Field>
+                                            )}
+                                        />
+                                        <FieldGroup className="flex flex-row">
+                                            <Controller
+                                                name="fromDate"
+                                                control={form.control}
+                                                render={({ field, fieldState }) => (
+                                                    <Field className=" w-44 gap-1">
+                                                        <FieldLabel htmlFor="date">From</FieldLabel>
+                                                        <Popover>
+                                                            <PopoverTrigger asChild>
+                                                                <Button
+                                                                    variant="outline"
+                                                                    className="justify-start font-normal"
+                                                                >
+                                                                    {field.value ? formatUnixTimeToDateTime(field.value).date : "Select date"}
+                                                                </Button>
+                                                            </PopoverTrigger>
+                                                            <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                                                                <Calendar
+                                                                    mode="single"
+                                                                    captionLayout="dropdown"
+                                                                    selected={field.value ? new Date(Number(field.value) * 1000) : undefined}
+                                                                    onSelect={(date) => { field.onChange(date ? toUnixString(date) : "") }}
+                                                                />
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                                    </Field>
+                                                )}
+                                            />
+                                            <Controller
+                                                name="toDate"
+                                                control={form.control}
+                                                render={({ field, fieldState }) => (
+                                                    <Field className="w-44 gap-1">
+                                                        <FieldLabel htmlFor="date">To</FieldLabel>
+                                                        <Popover>
+                                                            <PopoverTrigger asChild>
+                                                                <Button
+                                                                    variant="outline"
+                                                                    className="justify-start font-normal"
+                                                                >
+                                                                    {field.value ? formatUnixTimeToDateTime(field.value).date : "Select date"}
+                                                                </Button>
+                                                            </PopoverTrigger>
+                                                            <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                                                                <Calendar
+                                                                    mode="single"
+                                                                    captionLayout="dropdown"
+                                                                    selected={field.value ? new Date(Number(field.value) * 1000) : undefined}
+                                                                    onSelect={(date) => { field.onChange(date ? toUnixString(date) : "") }}
+                                                                />
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                                    </Field>
+                                                )}
+                                            />
+                                        </FieldGroup>
+                                    </FieldGroup>
+                                </AccordionContent>
+                            </AccordionItem>
+                        </Accordion>
                     }
                     <FieldGroup className="gap-2 flex flex-row justify-end">
                         <Button

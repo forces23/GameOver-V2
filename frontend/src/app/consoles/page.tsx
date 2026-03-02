@@ -7,7 +7,7 @@ import Image from 'next/image'
 import React, { useEffect, useState } from 'react'
 import PageSkeleton from '@/components/PageSkeleton';
 import SearchBar from '@/components/SearchBar';
-import { outOfOrder, url_igdb_t_original } from '@/lib/constants';
+import { missingImg, missingImgGrey, url_igdb_t_original } from '@/lib/constants';
 import PageError from '@/components/PageError';
 
 export default function page() {
@@ -65,7 +65,7 @@ export default function page() {
                             <li className="bg-background text-secondary-foreground p-2 rounded-lg w-32 cursor-pointer">
                                 <div className='relative w-32 aspect-3/4 bg-gray-300 rounded-2xl'>
                                     <Image
-                                        src={console.platform_logo?.image_id && console.platform_logo?.image_id !== undefined ? `${url_igdb_t_original}${console.platform_logo?.image_id}.jpg` : outOfOrder}
+                                        src={console.platform_logo?.image_id && console.platform_logo?.image_id !== undefined ? `${url_igdb_t_original}${console.platform_logo?.image_id}.jpg` : missingImgGrey}
                                         alt={`icon-${console.id}`}
                                         fill
                                         sizes="120px"

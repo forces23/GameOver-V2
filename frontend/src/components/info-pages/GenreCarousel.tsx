@@ -14,7 +14,7 @@ type GenreProps = {
     genre: string;
 }
 
-export default function GenreCarousel({title, games, genre }:GenreProps) {
+export default function GenreCarousel({ title, games, genre }: GenreProps) {
     return (
         <section className='w-full px-4'>
             <h4 className="text-2xl font-semibold mb-2">{title}</h4>
@@ -57,8 +57,8 @@ export default function GenreCarousel({title, games, genre }:GenreProps) {
                             </Link>
                         </CarouselItem> */}
                     </CarouselContent>
-                    <CarouselPrevious className='left-2' />
-                    <CarouselNext className='right-2' />
+                    <CarouselPrevious variant="default" className="left-0  hover:bottom-0 text-white [&_svg]:!size-6 w-10 h-10 -translate-y-0 rounded-full  bg-purple-500/40 border-purple-400/60 hover:h-auto hover:top-0 hover:rounded-none hover:bg-purple-500/30 hover:text-white hover:rounded-l-md " />
+                    <CarouselNext variant="default" className="right-0  bottom-0 text-white [&_svg]:!size-6 w-10 h-10 -translate-y-0 rounded-full  bg-purple-500/40 border-purple-400/60 hover:h-auto hover:top-0 hover:rounded-none hover:bg-purple-500/30 hover:text-white hover:rounded-r-md" />
                 </Carousel>
             </div>
         </section>
