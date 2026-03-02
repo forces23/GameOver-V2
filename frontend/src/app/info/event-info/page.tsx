@@ -3,7 +3,6 @@
 import PageSkeleton from '@/components/PageSkeleton';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { getEvent } from '@/lib/api/igdb';
-import { eventTestData } from '@/lib/testData';
 import { ApiError, event_networks, IGDBEvent } from '@/lib/types';
 import { formatUnixTime, formatUnixTimeToDateTime, getNetworkIcon, normalizedURL } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
