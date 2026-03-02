@@ -6,8 +6,10 @@ import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { outOfOrder, url_igdb_t_original } from '@/lib/constants';
 import { getAllTimeFavorites, getGameSearch } from '@/lib/api/igdb';
-import { GameData, ParamsObj } from '@/lib/types';
+import { ApiError, GameData, ParamsObj } from '@/lib/types';
 import { buildFiltersObject } from '@/lib/utils';
+import PageSkeleton from '@/components/PageSkeleton';
+import PageError from '@/components/PageError';
 
 export default function page() {
     const [games, setGames] = useState<GameData[]>([]);
@@ -15,6 +17,8 @@ export default function page() {
     const params = useSearchParams();
     const [paramFilters, setParamFilters] = useState<ParamsObj>();
     const router = useRouter();
+    const [error, setError] = useState<ApiError | null>(null);
+    const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
     const onSubmitFilters = (payload: ParamsObj) => {
         const sp = new URLSearchParams();
@@ -37,33 +41,45 @@ export default function page() {
         let active = true;
 
         console.log(params);
-        
+
         const run = async () => {
+            setStatus("loading");
+
             const filters = buildFiltersObject(params)
             setParamFilters(filters)
 
             // when no params it sets the data default to all time favorite list of games
             if (params.size === 0) {
                 // TODO: see if you can use the same endpoint /games-search instead
-                const result = await getAllTimeFavorites(50);
+                const atfResult = await getAllTimeFavorites(50);
                 if (!active) return;
-                if (result.ok) {
-                    setGames(result.data);
-                    setFilteredGames(result.data);
+                if (atfResult.ok) {
+                    setGames(atfResult.data);
+                    setFilteredGames(atfResult.data);
+                    setStatus("success");
+                } else {
+                    setStatus("error");
+                    setError(atfResult.error);
                 }
                 return;
             }
 
-            const result = await getGameSearch(filters)
+            const gsResult = await getGameSearch(filters)
             if (!active) return;
-            if (result.ok) {
-                setGames(result.data);
-                setFilteredGames(result.data);
+            if (gsResult.ok) {
+                setGames(gsResult.data);
+                setFilteredGames(gsResult.data);
+                setStatus("success");
+            } else {
+                setStatus("error");
+                setError(gsResult.error);
             }
         };
         run();
         return () => { active = false }
     }, [params]);
+    // if (status === "loading") return <PageSkeleton />
+    if (status === "error") return <PageError />
 
     return (
         <>
