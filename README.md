@@ -28,6 +28,16 @@ Or go here to access the Alt Auto Docs (provided by Redocs)
 http://127.0.0.1:8000/redoc
 ```
 
+## Deployment
+
+Frontend is hosted on Amplify in AWS.
+
+- If you need to deploy frontend changes, push to GitHub. This triggers an automatic Amplify deployment.
+
+Backend is hosted on App Runner, and Docker images are stored in ECR (Elastic Container Registry).
+
+- If you need to deploy backend changes, build a Docker image locally and push it to ECR in AWS.
+
 # Guides
 
 - [Environment Variable File](https://www.geeksforgeeks.org/python/how-to-create-and-use-env-files-in-python/)
