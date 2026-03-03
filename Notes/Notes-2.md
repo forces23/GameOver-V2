@@ -128,12 +128,11 @@ Backend:
 
 
      ```
-9. create a page to view more upcoming and more all time favorites
-10. Add backend caching for /platforms (even 5–15 min TTL) to avoid repeated IGDB hits.
-11. keeping 0.0.0.0/0 is a bad long-term setup.
+9. the videos "video_id" is the last part of this url :
+   https://www.youtube.com/watch?v=qeu4fFyRXLA
 
-    * Best practice:
-      * Use App Runner with VPC connector + NAT Gateway + Elastic IP, then whitelist only that EIP in Atlas.
-      * Better (most secure): use Atlas Private Endpoint / AWS PrivateLink if your tier supports it.
-      * Keep 0.0.0.0/0 only as a temporary debug state.
-12.
+   so the pice that needs to change is after "v="
+
+   https://www.youtube.com/watch?v=video_id
+10. 
+11.
