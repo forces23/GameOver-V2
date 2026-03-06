@@ -6,6 +6,7 @@ from routers.tgdb_routes import tgdb_router
 from routers.price_charting_routes import price_chart_router
 from routers.mongodb_routes import mongodb_router
 from routers.combined_api_routes import combo_router
+from routers.aws_routers import aws_router
 
 app = FastAPI(title=settings.APP_NAME)
 
@@ -29,6 +30,7 @@ app.include_router(price_chart_router)
 app.include_router(mongodb_router)
 app.include_router(tgdb_router)
 app.include_router(combo_router)
+app.include_router(aws_router)
 
 
 @app.get("/")

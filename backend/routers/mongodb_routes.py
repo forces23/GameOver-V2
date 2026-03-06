@@ -28,13 +28,17 @@ class GameSimple(BaseModel):
     cover_url: str
     first_release_date: str | None = None
     genres: list[str] = []
+    
+class Image(BaseModel):
+    filename:str
+    public_url:str
 
 class ProfilePut(BaseModel):  
     display_name: str
     bio: str
     email_visible: bool
-    avatar_url: str
-    banner_url: str
+    avatar: Image
+    banner: Image
     owned_systems: list[object]
     # favorite_game_ids: list[GameSimple] = []
     # favorite_platforms: list[str] = []

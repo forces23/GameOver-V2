@@ -71,6 +71,16 @@ http://127.0.0.1:8000/redoc
 - `backend/Dockerfile` is the source of truth for how the backend image is built and started. This keeps deployments reproducible across local, ECR, and App Runner.
 - `backend/.dockerignore` prevents unnecessary or sensitive files (virtual envs, caches, local env files, editor files) from being included in Docker build context, improving security and build performance.
 
+
+AWS Services Used:
+
+* Amplify
+* App Runner
+* S3
+* CloudFront(CDN)
+* ECR
+* 
+
 ## Guides
 
 - [Environment Variable File](https://www.geeksforgeeks.org/python/how-to-create-and-use-env-files-in-python/)

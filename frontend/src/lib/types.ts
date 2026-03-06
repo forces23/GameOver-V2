@@ -542,8 +542,14 @@ export type Profile = {
   display_name: string
   bio: string
   email_visible: boolean
-  avatar_url: string
-  banner_url: string
+  avatar: {
+    filename: string,
+    public_url: string
+  }
+  banner: {
+    filename: string,
+    public_url: string
+  }
   owned_systems: TGDBPlatform[]
   // favorite_game_ids: GameSimple[]
   // favorite_platforms: string[]

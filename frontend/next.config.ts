@@ -20,6 +20,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'cdn.thegamesdb.net'
       },
+      {
+        protocol: 'https',
+        hostname: 'd337ueu8tpafpu.cloudfront.net'
+      },
       
     ]
   }

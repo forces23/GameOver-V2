@@ -8,6 +8,7 @@ import { getFavorites, getProfile } from "@/lib/api/db";
 import { ApiError, GameSimple, Profile } from "@/lib/types";
 import { useUser } from "@auth0/nextjs-auth0";
 import Image from 'next/image';
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react"
 
@@ -26,11 +27,11 @@ export default function page() {
         const run = async () => {
             const tokenResponse = await fetch("/api/auth/token");
             const { accessToken } = await tokenResponse.json()
-            if(!active) return;
+            if (!active) return;
 
             const profileResp = await getProfile(accessToken);
             const favGamesResp = await getFavorites(accessToken);
-            if(!active) return;
+            if (!active) return;
 
             if (profileResp.ok) {
                 setProfile(profileResp.data.data);
@@ -48,18 +49,18 @@ export default function page() {
             }
         }
         run()
-        return () => {active = false}
+        return () => { active = false }
     }, [user])
 
     if (status === "loading") return <PageSkeleton />
-    if (status === "error" || !user) return <PageError /> 
+    if (status === "error" || !user) return <PageError />
 
     return (
         <div className="flex flex-col w-full p-4 max-w-500">
             <Card className="w-full p-4 bg-card">
                 <CardHeader className="relative aspect-9/3">
                     <Image
-                        src={"/imgs/psb.png"}
+                        src={profile?.banner.public_url || ""}
                         alt={"profile banner"}
                         fill
                         loading="eager"
@@ -70,7 +71,7 @@ export default function page() {
                     <div className="flex gap-3 flex-wrap">
                         <div className="relative w-50 aspect-square ">
                             <Image
-                                src={profile?.avatar_url || user.picture || ""}
+                                src={profile?.avatar.public_url || user.picture || ""}
                                 alt={"Profile Picture"}
                                 className="rounded-2xl object-cover"
                                 sizes="(max-width: 1024px) 50vw, 14vw"
@@ -91,21 +92,23 @@ export default function page() {
                             <h6 className="text-2xl font-semibold mb-2">Systems Owned</h6>
                             <ul className='flex flex-wrap gap-2'>
                                 {profile?.owned_systems.map((system) => (
-                                    <li
-                                        key={`dlc-${system.id}`}
+                                    <Link
+                                        key={`console-${system.id}`}
+                                        href={`/info/console-info?consoleId=${system.id}`}
                                         className="bg-background text-secondary-foreground p-2 rounded-lg w-25 cursor-pointer"
-                                    // onClick={() => goToConsole(system.id)}
                                     >
-                                        <div className='relative aspect-square'>
-                                            <Image
-                                                src={`https://cdn.thegamesdb.net/images/original/consoles/png48/${system.icon}`}
-                                                alt={`icon-${system.id}`}
-                                                fill
-                                                sizes="120px"
-                                            />
-                                        </div>
-                                        <span>{system.name}</span>
-                                    </li>
+                                        <li>
+                                            <div className='relative aspect-square'>
+                                                <Image
+                                                    src={`https://cdn.thegamesdb.net/images/original/consoles/png48/${system.icon}`}
+                                                    alt={`icon-${system.id}`}
+                                                    fill
+                                                    sizes="120px"
+                                                />
+                                            </div>
+                                            <span>{system.name}</span>
+                                        </li>
+                                    </Link>
                                 ))}
                             </ul>
                         </section>

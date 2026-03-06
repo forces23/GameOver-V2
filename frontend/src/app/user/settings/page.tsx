@@ -30,6 +30,8 @@ import {
 } from "@/components/ui/combobox"
 import PageSkeleton from '@/components/PageSkeleton'
 import PageError from '@/components/PageError'
+import { s3PresignedUrl } from '@/lib/api/aws'
+import { da } from 'date-fns/locale'
 
 
 
@@ -44,10 +46,16 @@ const formSchema = Z.object({
         .max(700, "Bio must be at most 700 characters"),
     email_visible: Z
         .boolean(),
-    avatar_url: Z
-        .string(),
-    banner_url: Z
-        .string(),
+    avatar: Z.object({
+        file: Z.instanceof(File).nullable(),
+        filename: Z.string(),
+        public_url: Z.string(),
+    }),
+    banner: Z.object({
+        file: Z.instanceof(File).nullable(),
+        filename: Z.string(),
+        public_url: Z.string(),
+    }),
     owned_systems: Z.array(
         Z.object({
             id: Z.number(),
@@ -66,15 +74,24 @@ export default function page() {
     const [systems, setSystems] = useState<TGDBPlatform[]>([]);
     const anchor = useComboboxAnchor();
     const [error, setError] = useState<ApiError | null>(null);
-    const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+    const [status, setStatus] = useState<"loading" | "success" | "error" | "submitting">("loading");
+
     const form = useForm<Z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             display_name: "",
             bio: "",
             email_visible: false,
-            avatar_url: "",
-            banner_url: "",
+            avatar: {
+                file: null,
+                filename: "",
+                public_url: "",
+            },
+            banner: {
+                file: null,
+                filename: "",
+                public_url: "",
+            },
             owned_systems: [],
         }
     })
@@ -90,19 +107,40 @@ export default function page() {
             const { accessToken } = await tokenResponse.json();
             if (!active) return;
 
-            const profileResp = await getProfile(accessToken);
-            if (!active) return;
             const platformsResp = await getPlatforms();
             if (!active) return;
+            if (platformsResp.ok) {
+                console.log(platformsResp)
+                setSystems(platformsResp.data);
+                setStatus("success");
+            } else {
+                setStatus("error")
+                setError(platformsResp.error);
+            }
 
+            const profileResp = await getProfile(accessToken);
+            if (!active) return;
             if (profileResp.ok) {
-                const data = profileResp.data.data
+                const data = profileResp.data.data;
+                if (!data) {
+                    setStatus("success");
+                    throw new Error("User data not loading");
+                }
+
                 form.reset({
-                    display_name: data.display_name,
-                    bio: data.bio,
-                    email_visible: data.email_visible,
-                    avatar_url: data.avatar_url,
-                    banner_url: data.banner_url,
+                    display_name: data.display_name || "",
+                    bio: data.bio || "",
+                    email_visible: data.email_visible || false,
+                    avatar: {
+                        file: null,
+                        filename: data.avatar?.filename ?? "",
+                        public_url: data.avatar?.public_url ?? ""
+                    },
+                    banner: {
+                        file: null,
+                        filename: data.banner?.filename ?? "",
+                        public_url: data.banner?.public_url ?? ""
+                    },
                     owned_systems: data.owned_systems ?? []
                 });
                 setDefaultData(profileResp.data.data);
@@ -112,17 +150,14 @@ export default function page() {
                 setError(profileResp.error);
             }
 
-            if (platformsResp.ok) {
-                console.log(platformsResp)
-                setSystems(platformsResp.data);
-                setStatus("success");
-            } else {
-                setStatus("error")
-                setError(platformsResp.error);
-            }
+
         }
-        run()
-        return () => {active = false}
+
+        toast.promise(run, {
+            error: "Failed to load the users profile data for settings"
+        });
+
+        return () => { active = false }
     }, [user])
 
     const submitProfile = async (data: Z.infer<typeof formSchema>) => {
@@ -131,7 +166,51 @@ export default function page() {
         const tokenResponse = await fetch("/api/auth/token");
         const { accessToken } = await tokenResponse.json();
 
-        const resp = await updateProfile(data, accessToken)
+        let avatarFilename = data.avatar.filename;
+        let avatarPublicUrl = data.avatar.public_url;
+        let bannerFilename = data.banner.filename;
+        let bannerPublicUrl = data.banner.public_url;
+
+        // checks if new avatar file has been selected, if yes proceed to upload to s3
+        if (data.avatar.file) {
+            const avatarS3URI = await s3PresignedUrl(
+                "images/avatar/",
+                "avatar",
+                data.avatar.file,
+                accessToken
+            );
+            if (!avatarS3URI.ok) return;
+            avatarFilename = data.avatar.filename;
+            avatarPublicUrl = avatarS3URI.data.url;
+        }
+
+        // checks if new banner file has been selected, if yes proceed to upload to s3
+        if (data.banner.file) {
+            const bannerS3URI = await s3PresignedUrl(
+                "images/banner/",
+                "banner",
+                data.banner.file,
+                accessToken
+            );
+            if (!bannerS3URI.ok) return;
+            bannerFilename = data.banner.file.name;
+            bannerPublicUrl = bannerS3URI.data.url;
+        }
+
+        const resp = await updateProfile({
+            display_name: data.display_name,
+            bio: data.bio,
+            email_visible: data.email_visible,
+            avatar: {
+                filename: avatarFilename || "",
+                public_url: avatarPublicUrl || "",
+            },
+            banner: {
+                filename: bannerFilename || "",
+                public_url: bannerPublicUrl || "",
+            },
+            owned_systems: data.owned_systems,
+        }, accessToken);
 
         if (resp.ok) console.log(resp);
     }
@@ -141,6 +220,7 @@ export default function page() {
 
     return (
         <div className="flex grow flex-col gap-4 w-full max-w-500 px-4">
+            <Toaster />
             <Tabs defaultValue="overview">
                 <TabsList variant="line">
                     <TabsTrigger value="overview">Profile</TabsTrigger>
@@ -151,7 +231,15 @@ export default function page() {
 
             <Card>
                 <CardContent>
-                    <form id="form-profile-info" onSubmit={form.handleSubmit(submitProfile)}>
+                    <form id="form-profile-info" onSubmit={form.handleSubmit(async (data) => {
+                        setStatus("submitting");
+                        await toast.promise(submitProfile(data), {
+                            loading: "Submitting your profile settings...",
+                            success: "Profile data saved successfully!",
+                            error: "Oops something went wrong. Try again.."
+                        })
+                        setStatus("success");
+                    })}>
                         <FieldGroup>
                             <FieldGroup className="flex flex-row flex-wrap sm:flex-nowrap">
                                 <Controller
@@ -273,7 +361,7 @@ export default function page() {
                                 )}
                             />
                             <Controller
-                                name="avatar_url"
+                                name="avatar"
                                 control={form.control}
                                 render={({ field, fieldState }) => (
                                     <Field>
@@ -281,10 +369,24 @@ export default function page() {
                                             Profile picture
                                         </FieldLabel>
                                         <Input
-                                            {...field}
                                             aria-invalid={fieldState.invalid}
                                             id="profile-avatar-url"
+                                            type='file'
+                                            accept='image/*'
+                                            onBlur={field.onBlur}
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0] ?? null
+                                                field.onChange({
+                                                    ...field.value,
+                                                    filename: file?.name ?? "",
+                                                    file,
+
+                                                })
+                                            }}
                                         />
+                                        <FieldDescription>
+                                            {field.value.filename || "No file selected"}
+                                        </FieldDescription>
                                         {fieldState.invalid && (
                                             <FieldError errors={[fieldState.error]} />
                                         )}
@@ -292,7 +394,7 @@ export default function page() {
                                 )}
                             />
                             <Controller
-                                name="banner_url"
+                                name="banner"
                                 control={form.control}
                                 render={({ field, fieldState }) => (
                                     <Field>
@@ -300,10 +402,24 @@ export default function page() {
                                             Profile Banner
                                         </FieldLabel>
                                         <Input
-                                            {...field}
                                             aria-invalid={fieldState.invalid}
                                             id="profile-banner-url"
+                                            type='file'
+                                            accept='image/*'
+                                            onBlur={field.onBlur}
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0] ?? null
+                                                field.onChange({
+                                                    ...field.value,
+                                                    filename: file?.name ?? "",
+                                                    file,
+
+                                                })
+                                            }}
                                         />
+                                        <FieldDescription>
+                                            {field.value.filename || "No file selected"}
+                                        </FieldDescription>
                                         {fieldState.invalid && (
                                             <FieldError errors={[fieldState.error]} />
                                         )}
@@ -311,8 +427,8 @@ export default function page() {
                                 )}
                             />
                             <Field orientation="horizontal" className="justify-end" >
-                                <Button type="submit" form="form-profile-info">
-                                    Submit
+                                <Button type="submit" form="form-profile-info" disabled={status === "submitting"}>
+                                    {status === "submitting" ? "Saving..." : "Submit"}
                                 </Button>
                             </Field>
                         </FieldGroup>
@@ -320,7 +436,5 @@ export default function page() {
                 </CardContent>
             </Card>
         </div>
-
-
     )
 }

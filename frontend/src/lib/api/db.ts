@@ -98,8 +98,14 @@ export const updateProfile = async (profile: Profile, accessToken: string): Prom
 
         return { ok: true, data: resp }
     } catch (err) {
-        console.error("Failed to push user profile data:", err);
-        throw err; // Re-throw so caller can handle it
+        return {
+            ok: false,
+            error: {
+                status: 502,
+                code: "PROFILE_UPDATE_FAILED",
+                message: `When trying to update the users profile data a error occurred`,
+            }
+        }
     }
 }
 
@@ -114,12 +120,18 @@ export const getProfile = async (accessToken: string): Promise<Result<any>> => {
 
         return { ok: true, data: response.data.data }
     } catch (err) {
-        console.error("Failed to get user profile data:", err);
-        throw err; // Re-throw so caller can handle it
+        return {
+            ok: false,
+            error: {
+                status: 502,
+                code: "PROFILE_RETRIEVAL_FAILED",
+                message: `When trying to retrieve the users profile data a error occurred`,
+            }
+        }
     }
 }
 
-export const getFavorites = async (accessToken:string): Promise<Result<any>> => {
+export const getFavorites = async (accessToken: string): Promise<Result<any>> => {
     try {
         const response = await axios.get(`${url_omega}/user/games/favorites`,
             {
