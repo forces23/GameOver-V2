@@ -102,7 +102,7 @@ export default function page() {
                     <hr className="" />
                 </div>
                 <section>
-                    <ul className='flex flex-wrap gap-3'>
+                    <ul className='flex flex-wrap gap-3 justify-center'>
                         {filteredGames.map((game) => (
                             <div
                                 key={`console-${game.id}-${game.slug}`}

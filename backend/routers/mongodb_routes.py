@@ -60,6 +60,7 @@ async def save_game( game: GameCreate, user_id: str = Depends(get_current_user) 
                     "cover_url": game.cover_url,
                     "first_release_date":game.first_release_date,
                     "genres": game.genres,
+                    # "for_consoles": [],
                     "collected": game.collected,
                     "wishlist": game.wishlist,
                     "favorite": game.favorite,
