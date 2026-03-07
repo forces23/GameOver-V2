@@ -2,15 +2,13 @@
 #                             TGDB API Calls
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##   
 import httpx
-from utils.constatnts import URL_TGDB
+from utils.constants import URL_TGDB
 from utils.tgdb_helpers import tgdb_normalization
 from config import settings
 from fastapi import APIRouter, HTTPException
 
 tgdb_router = APIRouter(prefix="/tgdb", tags=["tgdb"])
-
 tgdb_header = {"Accept": "application/json"}
-
 
 # platform fields
 # icon,console,controller,developer,manufacturer,media,cpu,memory,graphics,sound,maxcontrollers,display,overview,youtube

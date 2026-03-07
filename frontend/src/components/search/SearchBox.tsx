@@ -10,8 +10,7 @@ import { getSearchResults } from '@/lib/api/combo'
 import { useRouter } from 'next/navigation'
 import { TbSearch } from "react-icons/tb";
 import { Kbd } from "@/components/ui/kbd"
-
-const url_igdb_t_original = process.env.NEXT_PUBLIC_URL_IGDB_T_ORIGINAL;
+import { missingImg, url_igdb_t_original } from '@/lib/constants'
 
 export default function SearchBox() {
     const router = useRouter();
@@ -24,8 +23,29 @@ export default function SearchBox() {
         if (gameTitle) {
             const run = async () => {
                 if (!gameTitle) return;
+
+                // contains extra field for later use if i decide to use them
+                // only ones being used is query, page, limit, and sort
+                const payload = {
+                    game: {
+                        "query": gameTitle ?? "",
+                        "genres": [],
+                        "themes": [],
+                        "consoles": [],
+                        "fromDate": "",
+                        "toDate": "",
+                        "page": 1,
+                        "limit": 15,
+                        "sort": "desc"
+                    },
+                    platform: {
+                        "query": gameTitle ?? "",
+                        "limit": 15
+                    }
+                }
+
                 // TODO: Need to implement the console search in the backend. it was using TGDB but i removed and now backend only returns [] for consoles
-                const result = await getSearchResults(gameTitle);
+                const result = await getSearchResults(payload);
                 if (result.ok) {
                     setSearchResults({ games: result.data.games, consoles: result.data.consoles });
                 }
@@ -62,12 +82,12 @@ export default function SearchBox() {
         setOpen(false);
     }
 
-    
+
     return (
         <div className=" ">
             <div className='md:hidden'>
                 <button onClick={() => setOpen(true)} className="w-fit cursor-pointer">
-                    <TbSearch  size={25}/> 
+                    <TbSearch size={25} />
                 </button>
             </div>
             <div className='hidden md:flex'>
@@ -84,7 +104,7 @@ export default function SearchBox() {
                         placeholder="Start typing to search..." />
                     <CommandList className="max-h-none">
                         <CommandEmpty>No results found.</CommandEmpty>
-                        <CommandGroup heading="Games">
+                        <CommandGroup heading="Games" className='[&_[cmdk-group-heading]]:text-xl'>
                             {searchResults.games.map((result: any, index: number) => {
                                 return (
                                     <CommandItem
@@ -93,15 +113,22 @@ export default function SearchBox() {
                                         onSelect={() => handleSelectedGame(result.id)}
                                         className="flex items-center gap-3"
                                     >
-                                        {result.cover &&
-                                            <Image
-                                                src={`${url_igdb_t_original}${result.cover.image_id}.jpg`}
-                                                alt={`${result.name}+Cover`}
-                                                height={50}
-                                                width={100}
-                                            />}
+                                        {result.cover ?
+                                                <Image
+                                                    src={`${url_igdb_t_original}${result.cover.image_id}.jpg`}
+                                                    alt={`${result.name}+Cover`}
+                                                    height={50}
+                                                    width={100}
+                                                />
+                                            : <div className='bg-gray-300 h-[130] w-[100]'></div>
+                                        }
                                         <div className="flex flex-col">
                                             <span className="font-medium">{result.name}</span>
+                                            <span className="text-xs opacity-70">
+                                                {result.platforms && result.platforms.map((platform: any, index: number) => (
+                                                    <span>{`${platform.name}${index < result.platforms.length - 1 ? ", " : ""}`}</span>
+                                                ))}
+                                            </span>
                                             <span className="text-xs opacity-70">
                                                 {formatUnixTime(result.first_release_date)}
                                             </span>
@@ -111,7 +138,7 @@ export default function SearchBox() {
                             })}
                         </CommandGroup>
                         <CommandSeparator />
-                        <CommandGroup heading="Consoles">
+                        <CommandGroup heading="Consoles" className='[&_[cmdk-group-heading]]:text-xl'>
                             {searchResults.consoles.map((result: any, index: number) => {
                                 return (
                                     <CommandItem
@@ -120,13 +147,14 @@ export default function SearchBox() {
                                         onSelect={() => handleSelectedConsole(result.id)}
                                         className="flex items-center gap-3"
                                     >
-                                        {result.console &&
+                                        <div className='bg-gray-300 rounded-2xl px-2 py-4'>
                                             <Image
-                                                src={`https://cdn.thegamesdb.net/images/original/consoles/png48/${result.icon}`}
+                                                src={result.platform_logo?.image_id && result.platform_logo?.image_id !== undefined ? `${url_igdb_t_original}${result.platform_logo?.image_id}.jpg` : missingImg}
                                                 alt={`${result.name}+Cover`}
                                                 height={50}
                                                 width={100}
-                                            />}
+                                            />
+                                        </div>
                                         <div className="flex flex-col">
                                             <span className="font-medium">{result.name}</span>
                                             {/* <span className="text-xs opacity-70">

@@ -1,8 +1,7 @@
-from utils.constatnts import MONGO_DB
+from utils.constants import MONGO_DB
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 from dotenv import load_dotenv, dotenv_values
-
 
 load_dotenv(".env")
 load_dotenv(".env.local")

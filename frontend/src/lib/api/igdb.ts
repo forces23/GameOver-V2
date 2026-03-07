@@ -2,7 +2,7 @@ import axios, { AxiosError } from "axios";
 import { AllTimeFavs, ApiError, GameData, QuickSearch, Result, UpcomingEvents, UpcomingReleases, IGDBEvent, IGDBPlatformDetail } from "../types";
 import { toApiError } from "../utils";
 import qs from "qs";
-import { ep_all_time_favs, ep_game_details, ep_quick_search, ep_upcoming_events, ep_upcoming_games, url_omega } from "../constants";
+import { ep_all_time_favs, ep_game_details, ep_upcoming_events, ep_upcoming_games, url_omega } from "../constants";
 
 const todaysDate = Math.floor(Date.now() / 1000);
 
@@ -19,7 +19,7 @@ export const getGameDetails = async (gameId: string): Promise<Result<GameData>> 
 
 export const getIGDBGenres = async (): Promise<Result<any[]>> => {
     try {
-        const response = await axios.get<{ data: any[] }>(`${url_omega}/genres`);
+        const response = await axios.get<{ data: any[] }>(`${url_omega}/igdb/games/genres`);
         return { ok: true, data: response.data.data };
     } catch (err) {
         return { ok: false, error: toApiError(err) };
@@ -28,18 +28,7 @@ export const getIGDBGenres = async (): Promise<Result<any[]>> => {
 
 export const getIGDBThemes = async (): Promise<Result<any[]>> => {
     try {
-        const response = await axios.get<{ data: any[] }>(`${url_omega}/themes`);
-        return { ok: true, data: response.data.data };
-    } catch (err) {
-        return { ok: false, error: toApiError(err) };
-    }
-}
-
-export const getQuickSearchInfo = async (gameTitle: string): Promise<Result<QuickSearch[]>> => {
-    try {
-        const response = await axios.get<{ data: QuickSearch[] }>(`${url_omega}${ep_quick_search}`, {
-            params: { q: gameTitle },
-        });
+        const response = await axios.get<{ data: any[] }>(`${url_omega}/igdb/games/themes`);
         return { ok: true, data: response.data.data };
     } catch (err) {
         return { ok: false, error: toApiError(err) };
@@ -58,7 +47,7 @@ export const getGameSearch = async (payload: {
     toDate: string
 }): Promise<Result<GameData[]>> => {
     try {
-        const response = await axios.post<{ data: GameData[] }>(`${url_omega}/game-search`, payload, {
+        const response = await axios.post<{ data: GameData[] }>(`${url_omega}/igdb/games/game-search`, payload, {
             headers: { "Content-Type": "application/json" }
         });
         return { ok: true, data: response.data.data };
@@ -70,7 +59,7 @@ export const getGameSearch = async (payload: {
 export const getUpcomingEvents = async (): Promise<Result<UpcomingEvents[]>> => {
     try {
         const response = await axios.get<{ data: UpcomingEvents[] }>(`${url_omega}${ep_upcoming_events}`, {
-            params: { currentDate: todaysDate }
+            params: { currentDate: todaysDate, limit: 10 }
         });
         return { ok: true, data: response.data.data };
     } catch (err) {
@@ -113,8 +102,8 @@ export const getAllTimeFavorites = async (limit?: number): Promise<Result<GameDa
 
 export const getConsoleGamesById = async (consoleId: string): Promise<Result<GameData[]>> => {
     try {
-        const response = await axios.get<{ data: GameData[] }>(`${url_omega}/games/console`, {
-            params: { console_id: consoleId }
+        const response = await axios.get<{ data: GameData[] }>(`${url_omega}/igdb/games/console`, {
+            params: { console_id: consoleId, limit: 25 }
         });
         return { ok: true, data: response.data.data };
     } catch (err) {
@@ -133,7 +122,7 @@ export const getAllGames = async (): Promise<Result<AllTimeFavs[]>> => {
 
 export const getPlatformById = async (consoleId: string): Promise<Result<IGDBPlatformDetail[]>> => {
     try {
-        const response = await axios.get<{ data: IGDBPlatformDetail[] }>(`${url_omega}/platforms/single`, {
+        const response = await axios.get<{ data: IGDBPlatformDetail[] }>(`${url_omega}/igdb/platforms/single`, {
             params: { console_id: consoleId }
         });
         return { ok: true, data: response.data.data };
@@ -144,7 +133,7 @@ export const getPlatformById = async (consoleId: string): Promise<Result<IGDBPla
 
 export const getAllPlatforms = async (): Promise<Result<any>> => {
     try {
-        const response = await axios.get<{ data: any }>(`${url_omega}/platforms`);
+        const response = await axios.get<{ data: any }>(`${url_omega}/igdb/platforms`);
         return { ok: true, data: response.data.data };
     } catch (err) {
         return { ok: false, error: toApiError(err) }
@@ -153,7 +142,7 @@ export const getAllPlatforms = async (): Promise<Result<any>> => {
 
 export const getMultiplePlatforms = async (consoleList: any[]): Promise<Result<any>> => {
     try {
-        const response = await axios.get(`${url_omega}/platforms/multiple`, {
+        const response = await axios.get(`${url_omega}/igdb/platforms/multiple`, {
             params: { console_list: consoleList },
             paramsSerializer: (params => qs.stringify(params, { arrayFormat: "repeat" }))
         });

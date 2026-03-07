@@ -1,47 +1,15 @@
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##     
 #                        MongoDB API Calls
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##  
+from utils.schemas.mongodb import GameCreate, ProfilePut
 from fastapi.responses import JSONResponse
-import httpx
 from mongodb import get_db
-from config import settings
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
 from auth import get_current_user
 from datetime import datetime
 from pymongo.errors import DuplicateKeyError, ServerSelectionTimeoutError, PyMongoError
 
 mongodb_router = APIRouter(tags=["mongodb"])
-
-class GameCreate(BaseModel):
-    igdb_id: int
-    name: str
-    cover_url: str | None = None
-    first_release_date: int
-    genres: list
-    collected: bool = False
-    wishlist: bool = False
-    favorite: bool = False
-    
-class GameSimple(BaseModel):
-    name: str
-    cover_url: str
-    first_release_date: str | None = None
-    genres: list[str] = []
-    
-class Image(BaseModel):
-    filename:str
-    public_url:str
-
-class ProfilePut(BaseModel):  
-    display_name: str
-    bio: str
-    email_visible: bool
-    avatar: Image
-    banner: Image
-    owned_systems: list[object]
-    # favorite_game_ids: list[GameSimple] = []
-    # favorite_platforms: list[str] = []
 
 # Check specific Game id to see if it is saved or collected
 @mongodb_router.get("/games/check/{igdb_id}")
@@ -78,7 +46,7 @@ async def game_check(igdb_id:int, user_id:str = Depends(get_current_user)):
 
 # Save a game to user's collection
 @mongodb_router.post("/games/save")
-async def save_game( game: GameCreate, user_id: str = Depends(get_current_user) ):  # Depends() Adds auth requirement
+async def save_game( game: GameCreate, user_id: str = Depends(get_current_user) ):
     db = get_db()
     collection = db["games"]
     
@@ -199,6 +167,7 @@ async def get_user_collection(category:str, user_id:str = Depends(get_current_us
             {"_id": 0}
         )
         
+        # look into the .to_list(length=200) maybe its like limit which i should pass it in 
         games = await result.to_list(length=200)
         
     except ServerSelectionTimeoutError:
@@ -219,7 +188,6 @@ async def get_user_collection(category:str, user_id:str = Depends(get_current_us
         },
         "message": "Collected games discovered successfully!"
     }
-    
     
 @mongodb_router.get("/user/games/favorites")
 async def get_user_collection(user_id:str = Depends(get_current_user)):

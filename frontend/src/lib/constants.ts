@@ -1,19 +1,19 @@
 
 
 // URL PREFIXES
-// export const url_omega = "http://127.0.0.1:8000";
-export const url_omega = "https://pfzcrggqfu.us-east-1.awsapprunner.com";
+export const url_omega = "http://127.0.0.1:8000";
+// export const url_omega = "https://pfzcrggqfu.us-east-1.awsapprunner.com";
 
 
 
 // URL ENDPOINTS
 export const ep_db_save_game = "/games/save";
 export const ep_db_delete_game = "/games/delete";
-export const ep_quick_search = "/quick-search"
-export const ep_game_details = "/full-game-details"
-export const ep_upcoming_games = "/upcoming-games"
-export const ep_upcoming_events = "/upcoming-events"
-export const ep_all_time_favs = "/all-time-favs"
+// export const ep_quick_search = "/igdb/games/quick-search"
+export const ep_game_details = "/igdb/games/full-game-details"
+export const ep_upcoming_games = "/igdb/games/upcoming-games"
+export const ep_upcoming_events = "/igdb/events/upcoming-events"
+export const ep_all_time_favs = "/igdb/games/all-time-favs"
 
 
 // IMAGES

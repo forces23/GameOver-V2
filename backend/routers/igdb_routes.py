@@ -3,21 +3,18 @@
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##   
 from typing import Annotated
 import httpx
-from utils.constatnts import URL_IGDB
+from utils.schemas.igdb import IGDBGameSearchPayload
+from utils.constants import URL_IGDB
 from config import settings
 from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel
 
-# igdb_router = APIRouter(prefix="/igdb") # prefix allows you to have the endpoint be /igdb/endpoint
-igdb_router = APIRouter(tags=["igdb"])
-
-
+igdb_router = APIRouter(prefix="/igdb", tags=["igdb"])
 igdb_headers = {
     "Client-ID": settings.API_KEY_IGDB_CLIENT_ID,
     "Authorization": f'Bearer {settings.TWITCH_ACCESS_TOKEN}',
 } 
 
-@igdb_router.get("/genres")
+@igdb_router.get("/games/genres")
 async def getIGDBGenres():
     url = f'{URL_IGDB}/genres'
     data = f"""
@@ -42,12 +39,14 @@ async def getIGDBGenres():
     return {
         "data": response.json()
     }
-    
-@igdb_router.get("/themes")
+@igdb_router.get("/games/themes")
 async def getIGDBThemes():
     url = f'{URL_IGDB}/themes'
     data = f"""
-        fields id,name,slug;
+        fields 
+            id,
+            name,
+            slug;
         sort name asc;
         limit 500;
     """
@@ -69,74 +68,66 @@ async def getIGDBThemes():
         "data": response.json()
     }
 
+# # TODO: add param for limit, 
+# @igdb_router.get("/games/quick-search")
+# async def quick_search(q:str, limit:int = 15):
+#     url = f'{URL_IGDB}/games'
+#     data = f"""
+#         search "{q}";
+#         fields 
+#             name, 
+#             first_release_date, 
+#             cover.image_id, 
+#             platforms.name, 
+#             genres.name,
+#             genres.slug,
+#             game_type.type,
+#             themes.name,
+#             themes.slug,
+#             hypes;
+#         limit {limit};
+#     """
+    
+#     async with httpx.AsyncClient() as client:
+#         try:
+#             response = await client.post(url, headers=igdb_headers, content=data)
+#             response.raise_for_status()
+            
+#         except httpx.TimeoutException:
+#             raise HTTPException(
+#                 status_code=504,
+#                 detail={
+#                     "code": "UPSTREAM_TIMEOUT", 
+#                     "message": "IGDB timeout on quick search",
+#                     "status": 504
+#                 }
+#             )
+#         except httpx.HTTPStatusError as e:
+#             raise HTTPException (
+#                 status_code=502,
+#                 detail={
+#                     "code": "UPSTREAM_ERROR", 
+#                     "message": "IGDB request failed on quick search",
+#                     "status": 502
+#                 }
+#             )
+            
+#         payload = response.json()
+#         if not payload:
+#             raise HTTPException(
+#                 status_code=404,
+#                 detail={
+#                     "code": "GAMES_NOT_FOUND", 
+#                     "message": f"No games were found with search of {q} in IGDB",
+#                     "status": 404
+#                 }
+#             )
+            
+#         return {"data": payload}
 
-@igdb_router.get("/quick-search")
-async def quick_search(q:str):
+@igdb_router.post("/games/game-search")
+async def game_search(criteria:IGDBGameSearchPayload):
     url = f'{URL_IGDB}/games'
-    data = f"""
-        search "{q}";
-        fields 
-            cover.*,
-            first_release_date,
-            name;
-        limit 15;
-    """
-    
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.post(url, headers=igdb_headers, content=data)
-            response.raise_for_status()
-            
-        except httpx.TimeoutException:
-            raise HTTPException(
-                status_code=504,
-                detail={
-                    "code": "UPSTREAM_TIMEOUT", 
-                    "message": "IGDB timeout on quick search",
-                    "status": 504
-                }
-            )
-        except httpx.HTTPStatusError as e:
-            raise HTTPException (
-                status_code=502,
-                detail={
-                    "code": "UPSTREAM_ERROR", 
-                    "message": "IGDB request failed on quick search",
-                    "status": 502
-                }
-            )
-            
-        payload = response.json()
-        if not payload:
-            raise HTTPException(
-                status_code=404,
-                detail={
-                    "code": "GAMES_NOT_FOUND", 
-                    "message": f"No games were found with search of {q} in IGDB",
-                    "status": 404
-                }
-            )
-            
-        return {"data": payload}
-
-
-class SearchPayload(BaseModel):
-    query: str = ""
-    genres: list[int] = []
-    themes: list[int] = []
-    consoles: list[int] = []
-    fromDate: str | None = None
-    toDate: str | None = None
-    page: int = 1
-    limit: int = 25
-    sort: str = "asc"
-
-    
-@igdb_router.post("/game-search")
-async def game_search(criteria:SearchPayload):
-    url = f'{URL_IGDB}/games'
-    
-    print(criteria)
     
     genres = ",".join(f'{id}' for id in criteria.genres)
     themes = ",".join(f'{id}' for id in criteria.themes)
@@ -149,21 +140,24 @@ async def game_search(criteria:SearchPayload):
     if consoles: filters.append(f"platforms = ({consoles})")
     if criteria.fromDate: filters.append(f"first_release_date >= {criteria.fromDate}")
     if criteria.toDate: filters.append(f"first_release_date <= {criteria.toDate}") 
+    if criteria.query: filters.append(f'name ~ *"{criteria.query}"*')
     
     where_line = f"where {" & ".join(filters)};" if filters else ""
     search_line = f'search "{criteria.query.strip()}";' if criteria.query.strip() else ""
-    sort_line = f"sort hyp desc;" if not criteria.query.strip() else ""
+    sort_line = "sort _score desc;" if criteria.query.strip() else "sort hypes desc;"
         
-    print(where_line)
-    print(search_line)
-    
-    # sort name {criteria.sort};
     data = f"""
-        {search_line}
         fields 
-            cover.*,
-            first_release_date,
-            name;
+            name, 
+            first_release_date, 
+            cover.image_id, 
+            platforms.*, 
+            genres.name,
+            genres.slug,
+            game_type.type,
+            themes.name,
+            themes.slug,
+            hypes;
         {where_line}
         {sort_line}
         limit {criteria.limit};
@@ -209,8 +203,7 @@ async def game_search(criteria:SearchPayload):
         return {"data": payload, "page": criteria.page}
         
         
-
-@igdb_router.get("/upcoming-games")
+@igdb_router.get("/games/upcoming-games")
 async def upcoming_games(currentDate:str, limit:int):
     url = f'{URL_IGDB}/games'
     data = f"""
@@ -268,11 +261,10 @@ async def upcoming_games(currentDate:str, limit:int):
             )
         
         response_release_sorted = sorted(payload, key=lambda x: x['first_release_date'])
-            
         return {"data": response_release_sorted}
 
-@igdb_router.get("/upcoming-events")
-async def upcoming_events(currentDate:str):
+@igdb_router.get("/events/upcoming-events")
+async def upcoming_events(currentDate:str, limit:int = 10):
     url = f'{URL_IGDB}/events'
     data = f"""
         fields 
@@ -288,7 +280,7 @@ async def upcoming_events(currentDate:str):
             event_logo.url;
         where start_time > {currentDate};
         sort start_time asc;
-        limit 10;
+        limit {limit};
     """
     
     async with httpx.AsyncClient() as client:
@@ -327,8 +319,8 @@ async def upcoming_events(currentDate:str):
             )
             
         return {"data": payload}
-    
-@igdb_router.get("/igdb/events/single")
+
+@igdb_router.get("/events/single")
 async def get_event(event_id:str):
     url = f'{URL_IGDB}/events'
     data = f"""
@@ -396,7 +388,8 @@ async def get_event(event_id:str):
         # print(payload)
         return {"data": payload[0]}
 
-@igdb_router.get("/all-time-favs")
+# TODO: make console-all-time-favs work with this endpoint and remove console-all-time-favs
+@igdb_router.get("/games/all-time-favs")
 async def all_time_favorites(currentDate:str, limit:int = 25):
     url = f'{URL_IGDB}/games'
     data = f"""
@@ -415,8 +408,6 @@ async def all_time_favorites(currentDate:str, limit:int = 25):
     """
     
     async with httpx.AsyncClient() as client:
-    
-        
         try:
             response = await client.post(url, headers=igdb_headers, content=data)
             response.raise_for_status()
@@ -457,7 +448,7 @@ async def all_time_favorites(currentDate:str, limit:int = 25):
     
 
 @igdb_router.get("/games/console")
-async def all_time_favorites(console_id:str):
+async def console_all_time_favs(console_id:str, limit:int=25):
     url = f'{URL_IGDB}/games'
     data = f"""
         fields
@@ -470,7 +461,7 @@ async def all_time_favorites(console_id:str):
             genres.name;
         where platforms = ({console_id}) & game_type = 0;
         sort first_release_date desc;
-        limit 25;
+        limit {limit};
     """
     
     async with httpx.AsyncClient() as client:
@@ -510,7 +501,7 @@ async def all_time_favorites(console_id:str):
         return {"data": payload}   
     
 
-@igdb_router.get("/full-game-details")
+@igdb_router.get("/games/full-game-details")
 async def full_game_details(id:str):
     url = f'{URL_IGDB}/games'
     data = f"""
@@ -587,7 +578,7 @@ async def full_game_details(id:str):
             videos.*,
             websites.*,
             websites.type.type;
-        limit 15;
+        limit 1;
     """
         
     async with httpx.AsyncClient() as client:
@@ -626,27 +617,73 @@ async def full_game_details(id:str):
             )
             
         return {"data": payload[0]}
+
+@igdb_router.get("/platforms")
+async def search_platforms(platformName:str="", limit:int=500):
+    url = f'{URL_IGDB}/platforms'
     
+    print(platformName)
+    print(limit)
     
-
-
-# TODO: Set up correct error handling for below endpoints if i end up using them
-
-@igdb_router.get("/cover-image")
-async def getCoverImage(cover_id:str):
-    url = f'{URL_IGDB}/covers'
+    where_line = f'where name ~ *"{platformName}"*;' if platformName else ""
     
     data = f"""
-        fields *;
-        where id = ({cover_id});
+        fields 
+            abbreviation,
+            alternative_name,
+            checksum,
+            name,
+            platform_logo.alpha_channel,
+            platform_logo.animated,
+            platform_logo.checksum,
+            platform_logo.image_id,
+            platform_type.name,
+            versions.platform_version_release_dates.date,
+            versions.slug,
+            slug;
+        {where_line}
+        sort name asc;
+        limit {limit};
     """
     
+    
+    print(data)
     async with httpx.AsyncClient() as Client:
-        response = await Client.post(url, headers=igdb_headers, content=data)
-        
-    # print ("response: %s" % str(response.json()))
-    return response.json()
-
+        try:
+            response = await Client.post(url, headers=igdb_headers, content=data)  
+            response.raise_for_status()
+                
+        except httpx.TimeoutException:
+            raise HTTPException(
+                status_code=504,
+                detail={
+                    "code": "UPSTREAM_TIMEOUT", 
+                    "message": f"IGDB timeout on getting all platforms",
+                    "status": 504
+                }
+            )
+        except httpx.HTTPStatusError as e:
+            raise HTTPException (
+                status_code=502,
+                detail={
+                    "code": "UPSTREAM_ERROR", 
+                    "message": f"IGDB request failed getting platforms:: {e.response.text}",
+                    "status": e.response.status_code
+                }
+            )
+            
+        payload = response.json()
+        if not payload:
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "code": "PLATFORMS_NOT_FOUND", 
+                    "message": f"No platforms found",
+                    "status": 404
+                }
+            )
+            
+        return {"data": payload}
 
 @igdb_router.get("/platforms/single")
 async def getPlatformsSingle(console_id:str):
@@ -738,68 +775,6 @@ async def getPlatformsSingle(console_id:str):
             )
             
         return {"data": response.json()}
-    
-    
-    
-@igdb_router.get("/platforms")
-async def getAllPlatforms():
-    url = f'{URL_IGDB}/platforms'
-    limit = 500
-    data = f"""
-        fields 
-            abbreviation,
-            alternative_name,
-            checksum,
-            name,
-            platform_logo.alpha_channel,
-            platform_logo.animated,
-            platform_logo.checksum,
-            platform_logo.image_id,
-            platform_type.name,
-            versions.platform_version_release_dates.date,
-            versions.slug,
-            slug;
-        sort name asc;
-        limit {limit};
-    """
-    
-    async with httpx.AsyncClient() as Client:
-        try:
-            response = await Client.post(url, headers=igdb_headers, content=data)  
-            response.raise_for_status()
-                
-        except httpx.TimeoutException:
-            raise HTTPException(
-                status_code=504,
-                detail={
-                    "code": "UPSTREAM_TIMEOUT", 
-                    "message": f"IGDB timeout on getting all platforms",
-                    "status": 504
-                }
-            )
-        except httpx.HTTPStatusError as e:
-            raise HTTPException (
-                status_code=502,
-                detail={
-                    "code": "UPSTREAM_ERROR", 
-                    "message": f"IGDB request failed getting platforms:: {e.response.text}",
-                    "status": e.response.status_code
-                }
-            )
-            
-        payload = response.json()
-        if not payload:
-            raise HTTPException(
-                status_code=404,
-                detail={
-                    "code": "PLATFORMS_NOT_FOUND", 
-                    "message": f"No platforms found",
-                    "status": 404
-                }
-            )
-            
-        return {"data": payload}
-    
 
 @igdb_router.get("/platforms/multiple")
 async def getMultiplePlatforms(console_list:Annotated[list[str], Query()]):

@@ -3,11 +3,11 @@
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##   
 
 import httpx
-from utils.constatnts import URL_PRICE_CHARTING
+from utils.constants import URL_PRICE_CHARTING
 from config import settings
 from fastapi import APIRouter
 
-price_chart_router = APIRouter(tags=["price-charting"])
+price_chart_router = APIRouter(prefix="/price-charting", tags=["price-charting"])
 
 @price_chart_router.get("/search-products/{query}")
 async def search_products(query:str):
