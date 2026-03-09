@@ -21,6 +21,11 @@ import ImagesCarousel from '@/components/ImagesCarousel';
 import Videos from '@/components/info-pages/Videos';
 import GamesCarousel from '@/components/info-pages/GamesCarousel';
 import { outOfOrder, url_igdb_t_original } from '@/lib/constants';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Field, FieldGroup } from '@/components/ui/field';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 type Mark = "wishlist" | "collected" | null;
 
@@ -35,6 +40,7 @@ export default function GameInfo() {
     const { user } = useUser();
     const [error, setError] = useState<ApiError | null>(null)
     const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+    const [extraDetailOpen, setExtraDetailsOpen] = useState<boolean>(false);
 
     const currentPath = `/info/game-info?gameId=${gameId}`;
 
@@ -105,6 +111,12 @@ export default function GameInfo() {
         const prevMark = mark;
         const newMark = mark === next ? null : next;
         setMark(newMark);
+
+        if (mark != next) {
+            setExtraDetailsOpen(true)
+        }
+
+
 
         const runMark = (async () => {
             // Fetch access token from Auth0
@@ -199,17 +211,17 @@ export default function GameInfo() {
                         <div className='flex justify-between'>
                             <h1 className='ps-6 text-4xl text-center font-bold w-full justify-center flex'>{gameDetails.name}</h1>
                             <div className="flex gap-3 pe-3">
-                                <span onClick={() => { handleMark("wishlist") }}>
+                                <span onClick={() => { handleMark("wishlist") }} className='md:text-2xl'>
                                     {mark === "wishlist" ?
                                         <BsBookmarkCheckFill /> : <BsBookmark />
                                     }
                                 </span>
-                                <span onClick={() => { handleMark("collected") }}>
+                                <span onClick={() => { handleMark("collected") }} className='md:text-2xl'>
                                     {mark === "collected" ?
                                         <BsCollectionFill /> : <BsCollection />
                                     }
                                 </span>
-                                <span onClick={() => { handleFavorites() }}>
+                                <span onClick={() => { handleFavorites() }} className='md:text-2xl'>
                                     {favorite ?
                                         <FaStar /> : <FaRegStar />
                                     }
@@ -385,6 +397,61 @@ export default function GameInfo() {
                 )}
 
             </div >
+            {/* <Dialog>
+                <form>
+                    <DialogTrigger asChild>
+                        <Button variant="outline">Open Dialog</Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-sm">
+                        <DialogHeader>
+                            <DialogTitle>Extra Details</DialogTitle>
+                            <DialogDescription>
+                                Add additional details here for this game 
+                            </DialogDescription>
+                        </DialogHeader>
+                        <FieldGroup>
+                            <Field>
+                                <Label htmlFor="name-1">Purchase Date</Label>
+                                <Input id="name-1" name="name" defaultValue="01/01/1999" />
+                            </Field>
+                            <Field>
+                                <Label htmlFor="username-1">Purchase Price</Label>
+                                <Input id="username-1" name="username" defaultValue="$5.00" />
+                            </Field>
+                            <Field>
+                                <Label htmlFor="username-1">Storage Location</Label>
+                                <Input id="username-1" name="username" defaultValue="Room A / Shelf 2 / Bin 4" />
+                            </Field>
+                            <Field>
+                                <Label htmlFor="username-1">Media Type</Label>
+                                <Input id="username-1" name="username" defaultValue="digital, cib, media_only, incomplete, sealed" />
+                            </Field>
+                            <Field>
+                                <Label htmlFor="username-1">Condition</Label>
+                                <Input id="username-1" name="username" defaultValue="mint, excellent, good, fair, poor" />
+                            </Field>
+                            <Field>
+                                <Label htmlFor="username-1">Consoles</Label>
+                                <Input id="username-1" name="username" defaultValue="Xbox" />
+                            </Field>
+                            <Field>
+                                <Label htmlFor="username-1">Rating</Label>
+                                <Input id="username-1" name="username" defaultValue="X X X X X" />
+                            </Field>
+                            <Field>
+                                <Label htmlFor="username-1">Notes</Label>
+                                <Input id="username-1" name="username" defaultValue="" />
+                            </Field>
+                        </FieldGroup>
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button variant="outline">Cancel</Button>
+                            </DialogClose>
+                            <Button type="submit">Save changes</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </form>
+            </Dialog> */}
         </main >
     )
 }

@@ -54,6 +54,18 @@ export const toUnixString = (date: Date): string => {
   return unixSeconds.toString()
 }
 
+export const getTodaysDate = () => {
+  const todaysDate = toUnixString(new Date())
+  const {date, time} = formatUnixTimeToDateTime(todaysDate);
+
+  return {
+    unix: todaysDate,
+    localeDate: date,
+    localeTimne: time
+  }
+
+}
+
 export const isPublicRoute = (path: string) => {
   const privatePathPrefixes = new Set(["/user/collection", "/user/wishlist", "/user/settings", "/user/profile"]);
   const pathname = path.split("?")[0];
@@ -95,6 +107,7 @@ export const buildFiltersObject = (params: ReadonlyURLSearchParams): ParamsObj =
     query: params.get("query") ?? "",
     genres: toNumArray(params.getAll("genres")) ?? [],
     themes: toNumArray(params.getAll("themes")) ?? [],
+    gameModes: toNumArray(params.getAll("gameModes")) ?? [],
     consoles: toNumArray(params.getAll("consoles")) ?? [],
     fromDate: params.get("fromDate") ?? "",
     toDate: params.get("toDate") ?? "",

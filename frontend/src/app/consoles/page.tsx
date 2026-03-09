@@ -41,7 +41,7 @@ export default function page() {
     if (status === "error") return <PageError />
 
     return (
-        <div className="">
+        <div className="w-full">
             <div className="pb-4 text-center">
                 <h3 className="w-full pb-2">Consoles</h3>
                 <hr />

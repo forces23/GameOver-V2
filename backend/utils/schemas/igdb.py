@@ -6,6 +6,7 @@ class IGDBGameSearchPayload(BaseModel):
     genres: list[int] = []
     themes: list[int] = []
     consoles: list[int] = []
+    gameModes: list[int] = []
     fromDate: str | None = None
     toDate: str | None = None
     page: int = 1

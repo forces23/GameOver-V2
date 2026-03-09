@@ -35,6 +35,16 @@ export const getIGDBThemes = async (): Promise<Result<any[]>> => {
     }
 }
 
+
+export const getIGDBGameModes = async (): Promise<Result<any[]>> => {
+    try {
+        const response = await axios.get<{ data: any[] }>(`${url_omega}/igdb/games/game_modes`);
+        return { ok: true, data: response.data.data };
+    } catch (err) {
+        return { ok: false, error: toApiError(err) };
+    }
+}
+
 export const getGameSearch = async (payload: {
     query: string,
     genres: number[],
@@ -45,12 +55,29 @@ export const getGameSearch = async (payload: {
     sort: string
     fromDate: string,
     toDate: string
-}): Promise<Result<GameData[]>> => {
+}): Promise<Result<{
+    data: GameData[], pagination: {
+        page: string,
+        limit: string,
+        hasMore: boolean,
+        contentCount: string,
+        maxPages: string
+    }
+}>> => {
     try {
-        const response = await axios.post<{ data: GameData[] }>(`${url_omega}/igdb/games/game-search`, payload, {
+        const response = await axios.post<{
+            data: GameData[], pagination: {
+                page: string,
+                limit: string,
+                hasMore: boolean,
+                contentCount: string,
+                maxPages: string
+            }
+        }>(`${url_omega}/igdb/games/game-search`, payload, {
             headers: { "Content-Type": "application/json" }
         });
-        return { ok: true, data: response.data.data };
+        console.log(response)
+        return { ok: true, data: response.data };
     } catch (err) {
         return { ok: false, error: toApiError(err) };
     }

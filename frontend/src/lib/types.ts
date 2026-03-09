@@ -11,6 +11,7 @@ export type ParamsObj = {
   genres: number[];
   themes: number[];
   consoles: number[];
+  gameModes: number[];
   fromDate: string;
   toDate: string;
   page: number;

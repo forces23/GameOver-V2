@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState, useRef } from "react";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { getAllPlatforms, getGameSearch, getIGDBGenres, getIGDBThemes } from "@/lib/api/igdb";
+import { getAllPlatforms, getGameSearch, getIGDBGameModes, getIGDBGenres, getIGDBThemes } from "@/lib/api/igdb";
 import { formatUnixTimeToDateTime, toUnixString } from "@/lib/utils";
 import { Combobox, ComboboxChip, ComboboxChips, ComboboxChipsInput, ComboboxContent, ComboboxEmpty, ComboboxItem, ComboboxList, ComboboxValue, useComboboxAnchor } from "./ui/combobox";
 import * as Z from "zod"
@@ -15,6 +15,7 @@ import { Button } from "./ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Calendar } from "./ui/calendar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "./ui/select";
 
 type IGDBGenres = {
     id: number,
@@ -26,7 +27,11 @@ type IGDBThemes = {
     name: string,
     slug: string
 }
-
+type IGDBGameModes = {
+    id: number,
+    name: string,
+    slug: string
+}
 type IGDBConsole = {
     id: string,
     abbreviation: string,
@@ -57,6 +62,7 @@ type GameSearchPayload = {
     genres: number[];
     themes: number[];
     consoles: number[];
+    gameModes: number[];
     fromDate: string;
     toDate: string;
     page: number;
@@ -86,8 +92,17 @@ const formSchema = Z.object({
             name: Z.string(),
             slug: Z.string()
         })),
+    gameModes: Z.array(
+        Z.object({
+            id: Z.number(),
+            name: Z.string(),
+            slug: Z.string()
+        })
+    ),
     fromDate: Z.string().nullable(),
-    toDate: Z.string().nullable()
+    toDate: Z.string().nullable(),
+    sort: Z.string(),
+
 })
     .superRefine((data, ctx) => {
         if (!data.fromDate || !data.toDate) return;
@@ -121,8 +136,10 @@ type SearchBarProps = {
         genres?: number[],
         themes?: number[],
         consoles?: number[],
+        gameModes: number[],
         fromDate?: string,
-        toDate?: string
+        toDate?: string,
+        sort?: string,
     }
 }
 
@@ -134,20 +151,34 @@ export default function SearchBar({ originalData, setData, filters, searchType =
     const searchRef = useRef<HTMLDivElement>(null);
     const [themes, setThemes] = useState<IGDBThemes[]>([]);
     const [genres, setGenres] = useState<IGDBGenres[]>([]);
+    const [gameModes, setGameModes] = useState<IGDBGameModes[]>([]);
     const [consoles, setConsoles] = useState<IGDBConsole[]>([]);
+    const [sorts, setSorts] = useState<{ key: string, name: string, slug: string }[]>([
+        { key: "name asc", name: "Alphabetical", slug: "alphabetical" },
+        { key: "hypes desc", name: "Most Popular", slug: "most-popular" },
+        { key: "_score desc", name: "Relevance", slug: "relevance" },
+        { key: "total_rating_count desc", name: "Highly Rated", slug: "highly-rated" },
+        { key: "total_rating_count asc", name: "Least Rated", slug: "least-rated" },
+        { key: "first_release_date asc", name: "Oldest First", slug: "oldest-first" },
+        { key: "first_release_date desc", name: "Newest First", slug: "newest-first" },
+    ])
     const genresAnchor = useComboboxAnchor();
     const themesAnchor = useComboboxAnchor();
     const consoleAnchor = useComboboxAnchor();
+    const gameModesAnchor = useComboboxAnchor();
+    const defaultValues = {
+        query: "",
+        genres: [],
+        themes: [],
+        consoles: [],
+        gameModes: [],
+        sort: "",
+        fromDate: "",
+        toDate: "",
+    }
     const form = useForm<Z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
-        defaultValues: {
-            query: "",
-            genres: [],
-            themes: [],
-            consoles: [],
-            fromDate: "",
-            toDate: ""
-        }
+        defaultValues: defaultValues
     })
     const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
@@ -159,25 +190,33 @@ export default function SearchBar({ originalData, setData, filters, searchType =
 
             const genresResult = await getIGDBGenres();
             const themesResult = await getIGDBThemes();
+            const gameModesResult = await getIGDBGameModes();
             const consolesResult = await getAllPlatforms();
             if (!active) return;
 
             if (themesResult.ok) {
-                setStatus("loading");
+                setStatus("success");
                 setThemes(themesResult.data);
             } else {
                 setStatus("error");
             }
 
             if (genresResult.ok) {
-                setStatus("loading");
+                setStatus("success");
                 setGenres(genresResult.data);
             } else {
                 setStatus("error");
             }
 
+            if (gameModesResult.ok) {
+                setStatus("success");
+                setGameModes(gameModesResult.data);
+            } else {
+                setStatus("error");
+            }
+
             if (consolesResult.ok) {
-                setStatus("loading");
+                setStatus("success");
                 setConsoles(consolesResult.data);
             } else {
                 setStatus("error");
@@ -191,7 +230,7 @@ export default function SearchBar({ originalData, setData, filters, searchType =
     useEffect(() => {
         if (searchType !== "game") return;
         if (!filters) return;
-        if (!genres.length || !themes.length || !consoles.length) return;
+        if (!genres.length || !themes.length || !consoles.length || !gameModes.length) return;
 
         form.reset({
             query: filters.query ?? "",
@@ -201,11 +240,11 @@ export default function SearchBar({ originalData, setData, filters, searchType =
                 .filter(c => (filters.consoles ?? []).includes(Number(c.id)))
                 .map((c => ({ id: Number(c.id), name: c.name, slug: c.slug }))),
             fromDate: filters.fromDate ?? "",
-            toDate: filters.toDate ?? ""
+            toDate: filters.toDate ?? "",
+            gameModes: gameModes.filter(gm => (filters.gameModes ?? []).includes(gm.id)),
+            sort: filters.sort
         })
-    }, [filters, genres, themes, consoles, form, searchType])
-
-
+    }, [filters, genres, themes, consoles, gameModes, form, searchType])
 
     const searchData = async (values: Z.infer<typeof formSchema>) => {
         //normalize data to be pushed to api
@@ -216,9 +255,10 @@ export default function SearchBar({ originalData, setData, filters, searchType =
             "consoles": values.consoles.map((c) => c.id),
             "fromDate": values.fromDate ?? "",
             "toDate": values.toDate ?? "",
+            "gameModes": values.gameModes.map((gm) => gm.id),
             "page": 1,
             "limit": 50,
-            "sort": "asc"
+            "sort": values.sort
         }
 
         console.log(payload);
@@ -226,7 +266,7 @@ export default function SearchBar({ originalData, setData, filters, searchType =
             const result = await getGameSearch(payload);
             if (result.ok) {
                 router.replace(pathname, { scroll: false })
-                setData(result.data)
+                setData(result.data.data)
             }
             onSubmitFilters?.(payload);
             return;
@@ -272,12 +312,12 @@ export default function SearchBar({ originalData, setData, filters, searchType =
                             <AccordionItem value="item-1">
                                 <AccordionTrigger>Advanced Search</AccordionTrigger>
                                 <AccordionContent>
-                                    <FieldGroup className="flex md:flex-row gap-2 pb-4">
+                                    <FieldGroup className="flex flex-row flex-wrap gap-2 pb-4">
                                         <Controller
                                             name="genres"
                                             control={form.control}
                                             render={({ field, fieldState }) => (
-                                                <Field className="gap-1">
+                                                <Field className="gap-1 w-80">
                                                     <FieldLabel>
                                                         Genres
                                                     </FieldLabel>
@@ -289,8 +329,9 @@ export default function SearchBar({ originalData, setData, filters, searchType =
                                                         onValueChange={(values) => field.onChange(Array.isArray(values) ? values : [])}
                                                         isItemEqualToValue={(a, b) => a.id === b.id}
                                                         defaultValue={[]}
+
                                                     >
-                                                        <ComboboxChips ref={genresAnchor} className="w-full md:max-w-xs">
+                                                        <ComboboxChips ref={genresAnchor} className="">
                                                             <ComboboxValue>
                                                                 {(values: IGDBGenres[]) => (
                                                                     <React.Fragment>
@@ -321,7 +362,7 @@ export default function SearchBar({ originalData, setData, filters, searchType =
                                             name="themes"
                                             control={form.control}
                                             render={({ field, fieldState }) => (
-                                                <Field className="gap-1">
+                                                <Field className="gap-1 w-80">
                                                     <FieldLabel>
                                                         Themes
                                                     </FieldLabel>
@@ -334,7 +375,7 @@ export default function SearchBar({ originalData, setData, filters, searchType =
                                                         isItemEqualToValue={(a, b) => a === b}
                                                         defaultValue={[]}
                                                     >
-                                                        <ComboboxChips ref={themesAnchor} className="w-full md:max-w-xs">
+                                                        <ComboboxChips ref={themesAnchor} className="">
                                                             <ComboboxValue>
                                                                 {(values: IGDBThemes[]) => (
                                                                     <React.Fragment>
@@ -362,10 +403,54 @@ export default function SearchBar({ originalData, setData, filters, searchType =
                                             )}
                                         />
                                         <Controller
+                                            name="gameModes"
+                                            control={form.control}
+                                            render={({ field, fieldState }) => (
+                                                <Field className="gap-1 w-80">
+                                                    <FieldLabel>
+                                                        Game Modes
+                                                    </FieldLabel>
+                                                    <Combobox
+                                                        multiple
+                                                        autoHighlight
+                                                        items={gameModes}
+                                                        value={field.value ?? []}
+                                                        onValueChange={(values) => field.onChange(Array.isArray(values) ? values : [])}
+                                                        isItemEqualToValue={(a, b) => a === b}
+                                                        defaultValue={[]}
+                                                    >
+                                                        <ComboboxChips ref={gameModesAnchor} className="max-w-xs">
+                                                            <ComboboxValue>
+                                                                {(values: IGDBGameModes[]) => (
+                                                                    <React.Fragment>
+                                                                        {values.map((value: IGDBGameModes) => (
+                                                                            <ComboboxChip key={value.slug}>{value.name}</ComboboxChip>
+                                                                        ))}
+                                                                        <ComboboxChipsInput />
+                                                                    </React.Fragment>
+                                                                )}
+                                                            </ComboboxValue>
+                                                        </ComboboxChips>
+                                                        <ComboboxContent anchor={gameModesAnchor}>
+                                                            <ComboboxEmpty>No items found.</ComboboxEmpty>
+                                                            <ComboboxList>
+                                                                {(item) => (
+                                                                    <ComboboxItem key={item.slug} value={item}>
+                                                                        {item.name}
+                                                                    </ComboboxItem>
+                                                                )}
+                                                            </ComboboxList>
+                                                        </ComboboxContent>
+                                                    </Combobox>
+                                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                                </Field>
+                                            )}
+                                        />
+                                        <Controller
                                             name="consoles"
                                             control={form.control}
                                             render={({ field, fieldState }) => (
-                                                <Field className="gap-1">
+                                                <Field className="gap-1 w-80">
                                                     <FieldLabel>
                                                         Consoles
                                                     </FieldLabel>
@@ -378,7 +463,7 @@ export default function SearchBar({ originalData, setData, filters, searchType =
                                                         isItemEqualToValue={(a, b) => a === b}
                                                         defaultValue={[]}
                                                     >
-                                                        <ComboboxChips ref={consoleAnchor} className="w-full md:max-w-xs">
+                                                        <ComboboxChips ref={consoleAnchor} className="max-w-xs">
                                                             <ComboboxValue>
                                                                 {(values: IGDBThemes[]) => (
                                                                     <React.Fragment>
@@ -405,7 +490,34 @@ export default function SearchBar({ originalData, setData, filters, searchType =
                                                 </Field>
                                             )}
                                         />
-                                        <FieldGroup className="flex flex-row">
+                                        <Controller
+                                            name="sort"
+                                            control={form.control}
+                                            render={({ field, fieldState }) => (
+                                                <Field className="w-80 gap-1">
+                                                    <FieldLabel className="">
+                                                        Sort By
+                                                    </FieldLabel>
+                                                    <Select
+                                                        value={field.value}
+                                                        onValueChange={(value) => field.onChange(value)}
+                                                    >
+                                                        <SelectTrigger >
+                                                            <SelectValue placeholder="" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectGroup>
+                                                                {sorts.map((sort: any) => (
+                                                                    <SelectItem key={sort.slug} value={sort.key}>{sort.name}</SelectItem>
+                                                                ))}
+                                                            </SelectGroup>
+                                                        </SelectContent>
+                                                    </Select>
+                                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                                </Field>
+                                            )}
+                                        />
+                                        <FieldGroup className="flex flex-row w-80">
                                             <Controller
                                                 name="fromDate"
                                                 control={form.control}
@@ -478,7 +590,7 @@ export default function SearchBar({ originalData, setData, filters, searchType =
                         </Button>
                         <Button
                             type="reset"
-                            onClick={() => setData(originalData)}
+                            onClick={() => form.reset(defaultValues)}
                             className="bg-red-500 text-white hover:bg-red-700"
                         >
                             Reset

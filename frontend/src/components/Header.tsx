@@ -12,7 +12,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useUser } from '@auth0/nextjs-auth0'
-import { isPublicRoute } from '@/lib/utils'
+import { getTodaysDate, isPublicRoute } from '@/lib/utils'
 import { RiMenu5Line, RiMenu4Fill } from "react-icons/ri";
 import { TbSearch } from "react-icons/tb";
 import { useState } from 'react'
@@ -60,7 +60,7 @@ export default function Header() {
                         </button>
                         <button
                             className="whitespace-nowrap cursor-pointer text-xl text-white hover:text-purple-500 relative inline-block after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 hover:after:scale-x-100"
-                            onClick={() => router.push("/games")}
+                            onClick={() => router.push(`/games?toDate=${getTodaysDate().unix}&page=1&limit=50&sort=total_rating_count+desc`)}
                         >
                             Games
                         </button>

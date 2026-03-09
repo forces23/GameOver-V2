@@ -7,12 +7,13 @@ import { Card } from "@/components/ui/card";
 import { AllTimeFavs, ApiError, GameData, IGDBPlatform, UpcomingEvents, UpcomingReleases } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import Autoplay from "embla-carousel-autoplay";
-import { getAllTimeFavorites, getMultiplePlatforms, getUpcomingEvents, getUpcomingReleases } from "@/lib/api/igdb";
+import { getAllTimeFavorites, getGameSearch, getMultiplePlatforms, getUpcomingEvents, getUpcomingReleases } from "@/lib/api/igdb";
 import { outOfOrder, top15Consoles, url_igdb_t_original } from "@/lib/constants";
 import GamesCarousel from "@/components/info-pages/GamesCarousel";
 import ConsoleCarousel from "@/components/info-pages/ConsoleCarousel";
 import PageSkeleton from "@/components/PageSkeleton";
 import PageError from "@/components/PageError";
+import { getTodaysDate, toUnixString } from "@/lib/utils";
 
 export default function Home() {
   const router = useRouter();
@@ -23,14 +24,28 @@ export default function Home() {
   const [error, setError] = useState<ApiError | null>(null)
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
+
   useEffect(() => {
     let active = true;
 
     const run = async () => {
       setStatus("loading")
+      const atfPayload = {
+            "query": "",
+            "genres": [],
+            "themes": [],
+            "consoles": [],
+            "fromDate": "",
+            "toDate": getTodaysDate().unix,
+            "gameModes": [],
+            "page": 1,
+            "limit": 25,
+            "sort": "total_rating_count desc"
+        }
+
       const ueData = await getUpcomingEvents();
       const urData = await getUpcomingReleases(25);
-      const atfData = await getAllTimeFavorites();
+      const atfData = await getGameSearch(atfPayload);
       const popConData = await getMultiplePlatforms(top15Consoles);
       if (!active) return;
 
@@ -52,7 +67,7 @@ export default function Home() {
       }
 
       if (atfData.ok) {
-        setAllTimeFavs(atfData.data);
+        setAllTimeFavs(atfData.data.data);
         setStatus("success");
       } else {
         setStatus("error");
@@ -120,7 +135,6 @@ export default function Home() {
         <ConsoleCarousel title="" consoles={popularConsoles} />
       )}
 
-
       {/* UPCOMING RELEASES */}
       {upcomingReleases && upcomingReleases.length > 0 &&
         <GamesCarousel title="Biggest Upcoming Releases" games={upcomingReleases} moreUrl="/game-new-releases" />
@@ -128,7 +142,7 @@ export default function Home() {
 
       {/* ALL TIME FAVORITES */}
       {allTimeFavs && allTimeFavs.length > 0 &&
-        <GamesCarousel title="All Time Favorites" games={allTimeFavs} moreUrl="/games" />
+        <GamesCarousel title="All Time Favorites" games={allTimeFavs} moreUrl={`/games?toDate=${getTodaysDate().unix}&page=1&limit=50&sort=total_rating_count+desc`} />
       }
 
     </main>
