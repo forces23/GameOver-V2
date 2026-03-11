@@ -26,7 +26,7 @@ def igdb_query_builder(criteria:IGDBGameSearchPayload, fields:str = ""):
     offset = (criteria.page-1) * criteria.limit
     
     where_line = f"where {" & ".join(filters)};" if filters else ""
-    sort_line = f"sort {criteria.sort};" if criteria.sort else "sort hypes desc;"
+    sort_line = f"sort {criteria.sort};" if criteria.sort else "sort _score desc;"
     offset_line = f"offset {offset};" if offset != 0 else ""
     fields_line = f"fields {fields};" if fields else ""
     limit_line = f"limit {criteria.limit};" if criteria.limit else ""

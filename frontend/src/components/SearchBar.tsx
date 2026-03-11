@@ -16,6 +16,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Calendar } from "./ui/calendar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "./ui/select";
+import { defaultGameFilters } from "@/lib/defaults";
+import { sortByFilters } from "@/lib/constants";
 
 type IGDBGenres = {
     id: number,
@@ -153,32 +155,14 @@ export default function SearchBar({ originalData, setData, filters, searchType =
     const [genres, setGenres] = useState<IGDBGenres[]>([]);
     const [gameModes, setGameModes] = useState<IGDBGameModes[]>([]);
     const [consoles, setConsoles] = useState<IGDBConsole[]>([]);
-    const [sorts, setSorts] = useState<{ key: string, name: string, slug: string }[]>([
-        { key: "name asc", name: "Alphabetical", slug: "alphabetical" },
-        { key: "hypes desc", name: "Most Popular", slug: "most-popular" },
-        { key: "_score desc", name: "Relevance", slug: "relevance" },
-        { key: "total_rating_count desc", name: "Highly Rated", slug: "highly-rated" },
-        { key: "total_rating_count asc", name: "Least Rated", slug: "least-rated" },
-        { key: "first_release_date asc", name: "Oldest First", slug: "oldest-first" },
-        { key: "first_release_date desc", name: "Newest First", slug: "newest-first" },
-    ])
+    const [sorts, setSorts] = useState<{ key: string, name: string, slug: string }[]>(sortByFilters)
     const genresAnchor = useComboboxAnchor();
     const themesAnchor = useComboboxAnchor();
     const consoleAnchor = useComboboxAnchor();
     const gameModesAnchor = useComboboxAnchor();
-    const defaultValues = {
-        query: "",
-        genres: [],
-        themes: [],
-        consoles: [],
-        gameModes: [],
-        sort: "",
-        fromDate: "",
-        toDate: "",
-    }
     const form = useForm<Z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
-        defaultValues: defaultValues
+        defaultValues: defaultGameFilters
     })
     const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
@@ -590,7 +574,7 @@ export default function SearchBar({ originalData, setData, filters, searchType =
                         </Button>
                         <Button
                             type="reset"
-                            onClick={() => form.reset(defaultValues)}
+                            onClick={() => form.reset(defaultGameFilters)}
                             className="bg-red-500 text-white hover:bg-red-700"
                         >
                             Reset

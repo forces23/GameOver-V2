@@ -1,8 +1,8 @@
 
 
 // URL PREFIXES
-// export const url_omega = "http://127.0.0.1:8000";
-export const url_omega = "https://pfzcrggqfu.us-east-1.awsapprunner.com";
+export const url_omega = "http://127.0.0.1:8000";
+// export const url_omega = "https://pfzcrggqfu.us-east-1.awsapprunner.com";
 
 
 
@@ -48,6 +48,16 @@ export const top15Consoles = [
     "xbox",
     "ngc"
 ];
+
+export const sortByFilters = [
+        { key: "name asc", name: "Alphabetical", slug: "alphabetical" },
+        { key: "hypes desc", name: "Most Popular", slug: "most-popular" },
+        { key: "_score desc", name: "Relevance", slug: "relevance" },
+        { key: "total_rating_count desc", name: "Highly Rated", slug: "highly-rated" },
+        { key: "total_rating_count asc", name: "Least Rated", slug: "least-rated" },
+        { key: "first_release_date asc", name: "Oldest First", slug: "oldest-first" },
+        { key: "first_release_date desc", name: "Newest First", slug: "newest-first" },
+    ]
 
 
 

@@ -36,7 +36,7 @@ export default function SearchBox() {
                         "toDate": "",
                         "page": 1,
                         "limit": 15,
-                        "sort": "desc"
+                        "sort": ""
                     },
                     platform: {
                         "query": gameTitle ?? "",

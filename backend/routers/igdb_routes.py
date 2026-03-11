@@ -118,9 +118,7 @@ async def get_games_count(criteria:IGDBGameSearchPayload):
                     "status": e.response.status_code
                 }
             )
-    
     payload = response.json()
-    print(payload)
     
     return {
         "count": payload["count"],
