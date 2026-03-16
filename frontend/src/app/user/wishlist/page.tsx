@@ -110,7 +110,7 @@ export default function page() {
                                             ))}
                                         </ul>
                                     </ItemContent>
-                                    <ItemDescription>console: etc</ItemDescription>
+                                    {/* <ItemDescription>console: etc</ItemDescription> */}
                                 </ItemContent>
                                 <ItemContent className="flex-none text-center">
                                     <ItemDescription>{formatUnixTime(game.first_release_date)}</ItemDescription>

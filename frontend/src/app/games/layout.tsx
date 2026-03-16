@@ -8,7 +8,7 @@ export default function layout({
 }>) {
     return (
         <Suspense fallback={<PageSkeleton />}>
-            <div className='flex grow w-full max-w-500 items-center justify-center'>
+            <div className='flex grow w-full max-w-500 '>
                 {children}
             </div>
         </Suspense>

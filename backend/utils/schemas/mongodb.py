@@ -1,8 +1,11 @@
 from pydantic import BaseModel
 
-
+class GamePlatforms(BaseModel):
+    igdb_id: int
+    slug: str
+    name: str
 class GameCopies(BaseModel):
-    platform: str
+    platform: GamePlatforms
     media_type: str
     condition: str
     purchase_date: int

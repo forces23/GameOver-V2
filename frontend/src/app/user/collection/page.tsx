@@ -19,6 +19,7 @@ import { FaStar } from 'react-icons/fa';
 import SearchBar from '@/components/SearchBar';
 import PageSkeleton from '@/components/PageSkeleton';
 import PageError from '@/components/PageError';
+import { Accordion } from '@/components/ui/accordion';
 
 
 export default function page() {
@@ -44,6 +45,7 @@ export default function page() {
             if (resp.ok) {
                 setCollection(resp.data.games);
                 setFilteredCollection(resp.data.games);
+                console.log(resp.data)
                 setStatus("success");
             } else {
                 setStatus("error");
@@ -51,7 +53,7 @@ export default function page() {
             }
         }
         run();
-        return () => {active = false}
+        return () => { active = false }
     }, []);
 
     if (status === "loading") return <PageSkeleton />
@@ -104,7 +106,9 @@ export default function page() {
                                             ))}
                                         </ul>
                                     </ItemContent>
-                                    <ItemDescription>console: etc</ItemDescription>
+                                    <ItemDescription>Owned On: {game.copies.map((copy, index) => (
+                                        <span>{`${copy.platform.name}${index < game.copies.length - 1 ? ", " : ""}`}</span>
+                                    ))}</ItemDescription>
                                 </ItemContent>
                                 <ItemContent className="flex-none text-center ">
                                     <ItemDescription>{formatUnixTime(game.first_release_date)}</ItemDescription>

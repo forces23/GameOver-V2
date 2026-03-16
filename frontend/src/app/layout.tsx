@@ -35,7 +35,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${pressStart2p.variable} antialiased dark`}
       >
-        <div className="flex flex-col grow items-center justify-center font-sans bg-background text-foreground">
+        <div className="flex flex-col min-h-screen items-center font-sans bg-background text-foreground">
           <Header />
           {children}
           <Footer />

@@ -242,7 +242,7 @@ export default function SearchBar({ originalData, setData, filters, searchType =
             "gameModes": values.gameModes.map((gm) => gm.id),
             "page": 1,
             "limit": 50,
-            "sort": values.sort
+            "sort": values.sort || "_score desc"
         }
 
         console.log(payload);

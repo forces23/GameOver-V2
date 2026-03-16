@@ -42,7 +42,11 @@ const formSchema = Z.object({
     rating: Z.number(),
     copies: Z.array(
         Z.object({
-            platform: Z.string(),
+            platform: Z.object({
+                igdb_id: Z.number(),
+                slug: Z.string(),
+                name: Z.string(),
+            }),
             media_type: Z.string(),
             condition: Z.string(),
             purchase_date: Z.number(),
@@ -56,7 +60,11 @@ const formSchema = Z.object({
 })
 
 const defaultCopies = {
-    platform: "",
+    platform: {
+        igdb_id: 0,
+        slug: "",
+        name: "",
+    },
     media_type: "",
     condition: "",
     purchase_date: Number(getTodaysDate().unix),
@@ -86,10 +94,6 @@ export default function GameInfo() {
     const [error, setError] = useState<ApiError | null>(null)
     const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
     const [extraDetailOpen, setExtraDetailsOpen] = useState<boolean>(false);
-    const [gameCopies, setGameCopies] = useState<number>(1);
-
-    const [collected, setCollected] = useState<boolean>(false);
-    const [wishlist, setWishlist] = useState<boolean>(false);
     const [favorite, setFavorite] = useState<boolean>(false);
 
 
@@ -188,7 +192,7 @@ export default function GameInfo() {
         try {
             await runWishlist;
         } catch (error) {
-            setWishlist(false);
+            // TODO: DO SOMETHING
         }
     }
 
@@ -221,6 +225,7 @@ export default function GameInfo() {
             await run;
         } catch (error) {
             setMark(prevMark);
+            console.log("Mark Reversed")
         } finally {
             setExtraDetailsOpen(false);
         }
@@ -301,7 +306,7 @@ export default function GameInfo() {
 
 
     const handleSave = (next: Exclude<Mark, null>) => {
-        setPrevMark(next);
+        setPrevMark(mark);
         const newMark = (mark === next ? null : next);
         setMark(newMark);
 
@@ -577,7 +582,19 @@ export default function GameInfo() {
                                                 render={({ field }) => (
                                                     <Field>
                                                         <FieldLabel>Game Platform</FieldLabel>
-                                                        <Select value={field.value} onValueChange={field.onChange}>
+                                                        <Select value={`${field.value?.igdb_id}`} onValueChange={(id) => {
+                                                            const selectedPlatform = gameDetails?.platforms?.find(
+                                                                (platform) => String(platform.id) === id
+                                                            );
+
+                                                            if (!selectedPlatform) return;
+
+                                                            field.onChange({
+                                                                igdb_id: selectedPlatform.id,
+                                                                slug: selectedPlatform.slug,
+                                                                name: selectedPlatform.name
+                                                            });
+                                                        }}>
                                                             <SelectTrigger >
                                                                 <SelectValue placeholder="Select Game Platform" />
                                                             </SelectTrigger>
@@ -676,7 +693,13 @@ export default function GameInfo() {
                                             />
                                             <Field>
                                                 <FieldLabel>Purchase Price</FieldLabel>
-                                                <Input {...form.register(`copies.${index}.purchase_price`, { valueAsNumber: true })} type="number" placeholder="$0.00" className='[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none' />
+                                                <div className="relative">
+                                                    <span className="pointer-events-none absolute left-1 top-4 -translate-y-1/2 text-muted-foreground">
+                                                        $
+                                                    </span>
+
+                                                    <Input {...form.register(`copies.${index}.purchase_price`, { valueAsNumber: true })} type="number" step={0.01} min={0} placeholder="$0.00" className='ps-4 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none' />
+                                                </div>
                                             </Field>
                                             <Field>
                                                 <FieldLabel>Storage Location</FieldLabel>
@@ -687,12 +710,12 @@ export default function GameInfo() {
                                                 <FieldLabel>Copies</FieldLabel>
                                                 <Input {...form.register(`copies.${index}.copies`, { valueAsNumber: true })} type="number" placeholder="1" className='[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none' />
                                             </Field>
-                                            <Field className='col-span-3'>
+                                            <Field className='col-span-2 md:col-span-3'>
                                                 <FieldLabel>Game Copy Notes</FieldLabel>
                                                 <Textarea {...form.register(`copies.${index}.copy_notes`)} placeholder="Type your message here." />
                                             </Field>
                                             {(copyFields.length > 1) && (
-                                                <Button type="button" className='col-span-3 ' variant="destructive" onClick={() => removeCopies(index)}>Remove Copy</Button>
+                                                <Button type="button" className='col-span-2 md:col-span-3 ' variant="destructive" onClick={() => removeCopies(index)}>Remove Copy</Button>
                                             )}
                                         </FieldGroup>
                                         {(copyFields.length > 1 && index < copyFields.length - 1) && (<hr className='my-4' />)}
@@ -702,7 +725,7 @@ export default function GameInfo() {
                             </div>
                             <FieldGroup className=''>
                                 <div className='flex justify-end'>
-                                    <Button type="button" variant="outline" onClick={() => appendCopies({ ...defaultCopies })}>Add Copy</Button>
+                                    <Button type="button" variant="outline" onClick={() => appendCopies({ ...defaultCopies, platform: { ...defaultCopies.platform } })}>Add Copy</Button>
                                 </div>
                             </FieldGroup>
                             <FieldGroup className='grid grid-cols-2 md:grid-cols-3'>
@@ -710,7 +733,7 @@ export default function GameInfo() {
                                     name="notes"
                                     control={form.control}
                                     render={({ field, fieldState }) => (
-                                        <Field className='col-span-3'>
+                                        <Field className='col-span-2 md:col-span-3'>
                                             <FieldLabel htmlFor="notes_1">Notes</FieldLabel>
                                             <Textarea value={field.value} onChange={field.onChange} placeholder="Type your message here." />
                                             {fieldState.invalid && (<FieldError errors={[fieldState.error]} />)}

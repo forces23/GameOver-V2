@@ -528,6 +528,22 @@ export type GameSimple = {
   collected: boolean;
   wishlist: boolean;
   favorite: boolean;
+  rating: number;
+  notes: string;
+  copies: {
+    platform: {
+      igdb_id: number,
+      slug: string,
+      name: string,
+    },
+    media_type: string,
+    condition: string,
+    purchase_date: number,
+    purchase_price: number,
+    storage_location: string,
+    copies: number,
+    copy_notes: string
+  }[]
 }
 
 export type TGDBPlatform = {

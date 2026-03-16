@@ -12,7 +12,11 @@ type GameExtraDetails = {
     rating: number,
     notes: string,
     copies: {
-        platform: string,
+        platform: {
+            igdb_id: number,
+            slug: string,
+            name: string,
+        },
         media_type: string,
         condition: string,
         purchase_date: number,
@@ -56,7 +60,7 @@ export const saveGame = async (
             "wishlist": wishlist,
             "favorite": favorite,
             "added_at": todaysDate,
-            "rating": extraDetails?.rating || "",
+            "rating": extraDetails?.rating || 0,
             "notes": extraDetails?.notes || "",
             "copies": extraDetails?.copies || []
         }, {
