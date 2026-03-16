@@ -1,7 +1,15 @@
 from pydantic import BaseModel
 
 
-
+class GameCopies(BaseModel):
+    platform: str
+    media_type: str
+    condition: str
+    purchase_date: int
+    purchase_price: float
+    storage_location: str
+    copies: int
+    copy_notes: str
 
 class GameCreate(BaseModel):
     igdb_id: int
@@ -28,12 +36,3 @@ class ProfilePut(BaseModel):
     banner: Image
     owned_systems: list[object]
     
-class GameCopies(BaseModel):
-    platform: str
-    media_type: str
-    condition: str
-    purchase_date: int
-    purchase_price: float
-    storage_location: str
-    copies: int
-    copy_notes: str
