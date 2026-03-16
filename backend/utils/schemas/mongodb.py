@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 
 
+
+
 class GameCreate(BaseModel):
     igdb_id: int
     name: str
@@ -10,6 +12,9 @@ class GameCreate(BaseModel):
     collected: bool = False
     wishlist: bool = False
     favorite: bool = False
+    rating: int
+    notes: str
+    copies: list[GameCopies]
     
 class Image(BaseModel):
     filename:str
@@ -22,3 +27,13 @@ class ProfilePut(BaseModel):
     avatar: Image
     banner: Image
     owned_systems: list[object]
+    
+class GameCopies(BaseModel):
+    platform: str
+    media_type: str
+    condition: str
+    purchase_date: int
+    purchase_price: float
+    storage_location: str
+    copies: int
+    copy_notes: str

@@ -12,7 +12,7 @@ import PageSkeleton from '@/components/PageSkeleton';
 import { useUser } from '@auth0/nextjs-auth0';
 import { deleteGame, gameCheck, saveGame } from '@/lib/api/db';
 import { toast, Toaster } from 'sonner';
-import { formatUnixTime } from '@/lib/utils';
+import { formatUnixTime, getTodaysDate } from '@/lib/utils';
 import { FaRegStar, FaStar } from 'react-icons/fa';
 import Banner from '@/components/info-pages/Banner';
 import InfoList from '@/components/info-pages/InfoList';
@@ -23,9 +23,54 @@ import GamesCarousel from '@/components/info-pages/GamesCarousel';
 import { outOfOrder, url_igdb_t_original } from '@/lib/constants';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Field, FieldGroup } from '@/components/ui/field';
+import { Field, FieldGroup, FieldLabel, FieldError } from '@/components/ui/field';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ChevronDownIcon } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+
+import * as Z from "zod"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm, useFieldArray } from "react-hook-form";
+import { platform } from 'os';
+
+const formSchema = Z.object({
+    rating: Z.number(),
+    copies: Z.array(
+        Z.object({
+            platform: Z.string(),
+            media_type: Z.string(),
+            condition: Z.string(),
+            purchase_date: Z.number(),
+            purchase_price: Z.number(),
+            storage_location: Z.string(),
+            copies: Z.number(),
+            copy_notes: Z.string(),
+        })
+    ),
+    notes: Z.string(),
+})
+
+const defaultCopies = {
+    platform: "",
+    media_type: "",
+    condition: "",
+    purchase_date: Number(getTodaysDate().unix),
+    purchase_price: 0.00,
+    storage_location: "",
+    copies: 0,
+    copy_notes: ""
+}
+
+const defaultGameSave = {
+    rating: 0,
+    copies: [defaultCopies],
+    notes: ""
+}
 
 type Mark = "wishlist" | "collected" | null;
 
@@ -36,11 +81,27 @@ export default function GameInfo() {
     const [gameDetails, setGameDetails] = useState<GameData | null>(null);
     const [bannerBgUrl, setBannerBgUrl] = useState<string>();
     const [mark, setMark] = useState<Mark>(null);
-    const [favorite, setFavorite] = useState<boolean>(false);
+    const [prevMark, setPrevMark] = useState<Mark>(null);
     const { user } = useUser();
     const [error, setError] = useState<ApiError | null>(null)
     const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
     const [extraDetailOpen, setExtraDetailsOpen] = useState<boolean>(false);
+    const [gameCopies, setGameCopies] = useState<number>(1);
+
+    const [collected, setCollected] = useState<boolean>(false);
+    const [wishlist, setWishlist] = useState<boolean>(false);
+    const [favorite, setFavorite] = useState<boolean>(false);
+
+
+    const form = useForm<Z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
+        defaultValues: defaultGameSave
+    });
+
+    const { fields: copyFields, append: appendCopies, remove: removeCopies } = useFieldArray({
+        control: form.control,
+        name: "copies"
+    })
 
     const currentPath = `/info/game-info?gameId=${gameId}`;
 
@@ -101,49 +162,96 @@ export default function GameInfo() {
         } else setBannerBgUrl("") // TODO:should have a default image here 
     }, [gameDetails])
 
-    const handleMark = async (next: Exclude<Mark, null>) => {
+    const saveToWishlist = async () => {
         if (!gameDetails) return;
         if (!user) {
             window.location.href = `/auth/login?returnTo=${encodeURIComponent(currentPath)}`;
             return;
         }
 
-        const prevMark = mark;
-        const newMark = mark === next ? null : next;
-        setMark(newMark);
-
-        if (mark != next) {
-            setExtraDetailsOpen(true)
-        }
-
-
-
-        const runMark = (async () => {
+        const runWishlist = (async () => {
             // Fetch access token from Auth0
             const tokenResponse = await fetch('/api/auth/token');
             const { accessToken } = await tokenResponse.json();
 
-            if (mark === next) {
-                // delete and set mark to null
-                const resp = await deleteGame(gameDetails.id, accessToken)
-                if (!resp.ok) throw new Error("Delete Failed!");
-                return { action: "deleted from", target: prevMark ?? next }
-            } else {
-                const resp = await saveGame(gameDetails, accessToken, next === "collected", next === "wishlist");
-                if (!resp.ok) throw new Error("Save Failed!");
-                return { action: "added to", target: next }
-
-            }
+            const resp = await saveGame(gameDetails, null, accessToken, false, true);
+            if (!resp.ok) throw new Error("Save Failed!");
+            return { action: "added to", target: "wishlist" }
         })();
 
-        toast.promise(runMark, {
-            loading: `Adding to ${mark}${mark === "wishlist" ? "'s" : ""}`,
-            success: ({ action, target }) => `Game ${action} ${target}${next === "wishlist" ? "'s" : ""}`,
-            error: "Failed to update game status"
+        toast.promise(runWishlist, {
+            loading: `Adding to wishlist`,
+            success: ({ action, target }) => `Game ${action} ${target}`,
+            error: "Failed to add game to wishlist"
         });
 
         try {
-            await runMark;
+            await runWishlist;
+        } catch (error) {
+            setWishlist(false);
+        }
+    }
+
+    const saveToCollection = async (values: Z.infer<typeof formSchema>) => {
+        if (!gameDetails) return;
+        if (!user) {
+            window.location.href = `/auth/login?returnTo=${encodeURIComponent(currentPath)}`;
+            return;
+        }
+
+        const run = (async () => {
+            // Fetch access token from Auth0
+            const tokenResponse = await fetch('/api/auth/token');
+            const { accessToken } = await tokenResponse.json();
+
+            // save to collection 
+            // add extra details to send to the backend on the backend if empty then just ignore it
+            const resp = await saveGame(gameDetails, values, accessToken, true, false);
+            if (!resp.ok) throw new Error("Save Failed!");
+            return { action: "added to", target: mark }
+        })();
+
+        toast.promise(run, {
+            loading: `Adding to collection`,
+            success: ({ action, target }) => `Game ${action} ${target}`,
+            error: "Failed to add game to collection"
+        });
+
+        try {
+            await run;
+        } catch (error) {
+            setMark(prevMark);
+        } finally {
+            setExtraDetailsOpen(false);
+        }
+    }
+
+    const deleteFromCollection = async () => {
+        if (!gameDetails) return;
+        if (!user) {
+            window.location.href = `/auth/login?returnTo=${encodeURIComponent(currentPath)}`;
+            return;
+        }
+
+        const run = (async () => {
+            // Fetch access token from Auth0
+            const tokenResponse = await fetch('/api/auth/token');
+            const { accessToken } = await tokenResponse.json();
+
+            // delete from collection
+            const resp = await deleteGame(gameDetails.id, accessToken)
+            if (!resp.ok) throw new Error("Delete Failed!");
+            return { action: "removed from", target: mark }
+        })();
+
+        toast.promise(run, {
+            loading: `Removing game`,
+            success: ({ action, target }) => `Game ${action} ${target}`,
+            error: `Failed remove game`
+        });
+
+        try {
+            await run;
         } catch (error) {
             setMark(prevMark);
         }
@@ -166,11 +274,12 @@ export default function GameInfo() {
 
             if (!favState && mark === null) {
                 // delete and set mark to null
-                const resp = await deleteGame(gameDetails.id, accessToken)
-                if (!resp.ok) throw new Error("Delete Failed!");
+                // const resp = await deleteGame(gameDetails.id, accessToken)
+                // if (!resp.ok) throw new Error("Delete Failed!");
+                deleteFromCollection();
                 return { action: "removed from", target: "your collection" }
             } else {
-                const resp = await saveGame(gameDetails, accessToken, mark === "collected", mark === "wishlist", favState);
+                const resp = await saveGame(gameDetails, null, accessToken, mark === "collected", mark === "wishlist", favState);
                 if (!resp.ok) throw new Error("Save Failed!");
                 return { action: `${favState ? "added to" : "removed from"}`, target: "favorites" }
 
@@ -187,6 +296,21 @@ export default function GameInfo() {
             await runFav;
         } catch (error) {
             setFavorite(!favState);
+        }
+    }
+
+
+    const handleSave = (next: Exclude<Mark, null>) => {
+        setPrevMark(next);
+        const newMark = (mark === next ? null : next);
+        setMark(newMark);
+
+        if (newMark === "collected") {
+            setExtraDetailsOpen(true);
+        } else if (newMark === "wishlist") {
+            saveToWishlist();
+        } else {
+            deleteFromCollection();
         }
     }
 
@@ -211,12 +335,17 @@ export default function GameInfo() {
                         <div className='flex justify-between'>
                             <h1 className='ps-6 text-4xl text-center font-bold w-full justify-center flex'>{gameDetails.name}</h1>
                             <div className="flex gap-3 pe-3">
-                                <span onClick={() => { handleMark("wishlist") }} className='md:text-2xl'>
+                                <span
+                                    onClick={() => { handleSave("wishlist") }}
+                                    className='md:text-2xl'>
                                     {mark === "wishlist" ?
                                         <BsBookmarkCheckFill /> : <BsBookmark />
                                     }
                                 </span>
-                                <span onClick={() => { handleMark("collected") }} className='md:text-2xl'>
+                                <span
+                                    // onClick={() => { handleMark("collected") }}
+                                    onClick={() => { handleSave("collected") }}
+                                    className='md:text-2xl'>
                                     {mark === "collected" ?
                                         <BsCollectionFill /> : <BsCollection />
                                     }
@@ -397,61 +526,218 @@ export default function GameInfo() {
                 )}
 
             </div >
-            {/* <Dialog>
-                <form>
-                    <DialogTrigger asChild>
-                        <Button variant="outline">Open Dialog</Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-sm">
+            {/* EXTRA DETAILS DIALOG */}
+            <Dialog open={extraDetailOpen}>
+                <DialogContent className="sm:max-w-2xl ">
+                    <form id='form-extra-save-details' onSubmit={form.handleSubmit(saveToCollection)}>
                         <DialogHeader>
                             <DialogTitle>Extra Details</DialogTitle>
                             <DialogDescription>
-                                Add additional details here for this game 
+                                Add additional details and copies here for this game
                             </DialogDescription>
                         </DialogHeader>
-                        <FieldGroup>
-                            <Field>
-                                <Label htmlFor="name-1">Purchase Date</Label>
-                                <Input id="name-1" name="name" defaultValue="01/01/1999" />
-                            </Field>
-                            <Field>
-                                <Label htmlFor="username-1">Purchase Price</Label>
-                                <Input id="username-1" name="username" defaultValue="$5.00" />
-                            </Field>
-                            <Field>
-                                <Label htmlFor="username-1">Storage Location</Label>
-                                <Input id="username-1" name="username" defaultValue="Room A / Shelf 2 / Bin 4" />
-                            </Field>
-                            <Field>
-                                <Label htmlFor="username-1">Media Type</Label>
-                                <Input id="username-1" name="username" defaultValue="digital, cib, media_only, incomplete, sealed" />
-                            </Field>
-                            <Field>
-                                <Label htmlFor="username-1">Condition</Label>
-                                <Input id="username-1" name="username" defaultValue="mint, excellent, good, fair, poor" />
-                            </Field>
-                            <Field>
-                                <Label htmlFor="username-1">Consoles</Label>
-                                <Input id="username-1" name="username" defaultValue="Xbox" />
-                            </Field>
-                            <Field>
-                                <Label htmlFor="username-1">Rating</Label>
-                                <Input id="username-1" name="username" defaultValue="X X X X X" />
-                            </Field>
-                            <Field>
-                                <Label htmlFor="username-1">Notes</Label>
-                                <Input id="username-1" name="username" defaultValue="" />
-                            </Field>
-                        </FieldGroup>
+                        <div className='no-scrollbar overflow-y-auto -mx-4 max-h-[75vh] bg-card p-2 rounded-2xl'>
+                            <FieldGroup className='grid grid-cols-2 md:grid-cols-3'>
+                                <Controller
+                                    name='rating'
+                                    control={form.control}
+                                    render={({ field, fieldState }) => (
+                                        <Field>
+                                            <FieldLabel>Rating</FieldLabel>
+                                            <Select
+                                                value={String(field.value)}
+                                                onValueChange={(value) => field.onChange(Number(value))}
+                                            >
+                                                <SelectTrigger >
+                                                    <SelectValue placeholder={<><FaRegStar /><FaRegStar /><FaRegStar /><FaRegStar /><FaRegStar /></>} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectGroup>
+                                                        <SelectLabel>Rating</SelectLabel>
+                                                        <SelectItem value="1"><FaStar /><FaRegStar /><FaRegStar /><FaRegStar /><FaRegStar /></SelectItem>
+                                                        <SelectItem value="2"><FaStar /><FaStar /><FaRegStar /><FaRegStar /><FaRegStar /></SelectItem>
+                                                        <SelectItem value="3"><FaStar /><FaStar /><FaStar /><FaRegStar /><FaRegStar /></SelectItem>
+                                                        <SelectItem value="4"><FaStar /><FaStar /><FaStar /><FaStar /><FaRegStar /></SelectItem>
+                                                        <SelectItem value="5"><FaStar /><FaStar /><FaStar /><FaStar /><FaStar /></SelectItem>
+                                                    </SelectGroup>
+                                                </SelectContent>
+                                            </Select>
+                                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                        </Field>
+                                    )}
+                                />
+                            </FieldGroup>
+                            <div className='py-4'>
+                                {copyFields.map((copy, index) => (
+                                    <div key={copy.id}>
+                                        <FieldGroup className='grid grid-cols-2 md:grid-cols-3'>
+                                            <Controller
+                                                name={`copies.${index}.platform`}
+                                                control={form.control}
+                                                render={({ field }) => (
+                                                    <Field>
+                                                        <FieldLabel>Game Platform</FieldLabel>
+                                                        <Select value={field.value} onValueChange={field.onChange}>
+                                                            <SelectTrigger >
+                                                                <SelectValue placeholder="Select Game Platform" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectGroup>
+                                                                    <SelectLabel>Game Platform</SelectLabel>
+                                                                    {gameDetails?.platforms?.map((platform, index) => (
+                                                                        <SelectItem key={`${platform.slug}-${platform.id}`} value={`${platform.id}`}>{platform.name}</SelectItem>
+                                                                    ))}
+                                                                </SelectGroup>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </Field>
+                                                )}
+                                            />
+                                            <Controller
+                                                name={`copies.${index}.media_type`}
+                                                control={form.control}
+                                                render={({ field }) => (
+                                                    <Field>
+                                                        <FieldLabel>Media Type</FieldLabel>
+                                                        <Select value={field.value} onValueChange={field.onChange}>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Select Media Type" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectGroup>
+                                                                    <SelectLabel>Media Type</SelectLabel>
+                                                                    <SelectItem value="digital">Digital</SelectItem>
+                                                                    <SelectItem value="cib">CIB</SelectItem>
+                                                                    <SelectItem value="media-only">Media Only</SelectItem>
+                                                                    <SelectItem value="incomplete">Incomplete</SelectItem>
+                                                                    <SelectItem value="factory-sealed">Factory Sealed</SelectItem>
+                                                                    <SelectItem value="graded">Graded</SelectItem>
+                                                                </SelectGroup>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </Field>
+                                                )}
+                                            />
+                                            <Controller
+                                                name={`copies.${index}.condition`}
+                                                control={form.control}
+                                                render={({ field }) => (
+                                                    <Field>
+                                                        <FieldLabel>Condition</FieldLabel>
+                                                        <Select value={field.value} onValueChange={field.onChange}>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Select Condition" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectGroup>
+                                                                    <SelectLabel>Condition</SelectLabel>
+                                                                    <SelectItem value="mint">Mint</SelectItem>
+                                                                    <SelectItem value="excellent">Excellent</SelectItem>
+                                                                    <SelectItem value="good">Good</SelectItem>
+                                                                    <SelectItem value="fair">Fair</SelectItem>
+                                                                    <SelectItem value="poor">Poor</SelectItem>
+                                                                </SelectGroup>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </Field>
+                                                )}
+                                            />
+                                            <Controller
+                                                name={`copies.${index}.purchase_date`}
+                                                control={form.control}
+                                                render={({ field }) => (
+                                                    <Field>
+                                                        <FieldLabel>Purchase Date</FieldLabel>
+                                                        <Popover>
+                                                            <PopoverTrigger asChild>
+                                                                <Button
+                                                                    variant="outline"
+                                                                    data-empty={!field.value}
+                                                                    className="w-[212px] justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
+                                                                >
+                                                                    {field.value ? format(new Date(field.value * 1000), "PPP") : <span>Pick a date</span>}
+                                                                    <ChevronDownIcon />
+                                                                </Button>
+                                                            </PopoverTrigger>
+                                                            <PopoverContent className="w-auto p-0" align="start">
+                                                                <Calendar
+                                                                    mode="single"
+                                                                    selected={field.value ? new Date(field.value * 1000) : undefined}
+                                                                    defaultMonth={field.value ? new Date(field.value * 1000) : undefined}
+                                                                    onSelect={(date) =>
+                                                                        field.onChange(date ? Math.floor(date.getTime() / 1000) : 0)
+                                                                    }
+                                                                />
+
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                    </Field>
+                                                )}
+                                            />
+                                            <Field>
+                                                <FieldLabel>Purchase Price</FieldLabel>
+                                                <Input {...form.register(`copies.${index}.purchase_price`, { valueAsNumber: true })} type="number" placeholder="$0.00" className='[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none' />
+                                            </Field>
+                                            <Field>
+                                                <FieldLabel>Storage Location</FieldLabel>
+                                                <Input {...form.register(`copies.${index}.storage_location`)} placeholder="Room A / Shelf 2 / Bin 4" />
+                                            </Field>
+
+                                            <Field>
+                                                <FieldLabel>Copies</FieldLabel>
+                                                <Input {...form.register(`copies.${index}.copies`, { valueAsNumber: true })} type="number" placeholder="1" className='[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none' />
+                                            </Field>
+                                            <Field className='col-span-3'>
+                                                <FieldLabel>Game Copy Notes</FieldLabel>
+                                                <Textarea {...form.register(`copies.${index}.copy_notes`)} placeholder="Type your message here." />
+                                            </Field>
+                                            {(copyFields.length > 1) && (
+                                                <Button type="button" className='col-span-3 ' variant="destructive" onClick={() => removeCopies(index)}>Remove Copy</Button>
+                                            )}
+                                        </FieldGroup>
+                                        {(copyFields.length > 1 && index < copyFields.length - 1) && (<hr className='my-4' />)}
+                                    </div>
+
+                                ))}
+                            </div>
+                            <FieldGroup className=''>
+                                <div className='flex justify-end'>
+                                    <Button type="button" variant="outline" onClick={() => appendCopies({ ...defaultCopies })}>Add Copy</Button>
+                                </div>
+                            </FieldGroup>
+                            <FieldGroup className='grid grid-cols-2 md:grid-cols-3'>
+                                <Controller
+                                    name="notes"
+                                    control={form.control}
+                                    render={({ field, fieldState }) => (
+                                        <Field className='col-span-3'>
+                                            <FieldLabel htmlFor="notes_1">Notes</FieldLabel>
+                                            <Textarea value={field.value} onChange={field.onChange} placeholder="Type your message here." />
+                                            {fieldState.invalid && (<FieldError errors={[fieldState.error]} />)}
+                                        </Field>
+
+                                    )}
+                                />
+                            </FieldGroup>
+                        </div>
+
                         <DialogFooter>
                             <DialogClose asChild>
-                                <Button variant="outline">Cancel</Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        setExtraDetailsOpen(false);
+                                        setMark(null)
+                                    }}
+                                >
+                                    Cancel
+                                </Button>
                             </DialogClose>
-                            <Button type="submit">Save changes</Button>
+                            <Button type="submit">Save Game</Button>
                         </DialogFooter>
-                    </DialogContent>
-                </form>
-            </Dialog> */}
+                    </form>
+                </DialogContent>
+            </Dialog>
         </main >
     )
 }

@@ -8,6 +8,20 @@ type Resp = { data: { game_id: String }; message: String }
 
 type Result<T> = { ok: true; data: T; } | { ok: false; error: ApiError }
 
+type GameExtraDetails = {
+    rating: number,
+    notes: string,
+    copies: {
+        platform: string,
+        media_type: string,
+        condition: string,
+        purchase_date: number,
+        purchase_price: number,
+        storage_location: string,
+        copies: number,
+        copy_notes: string
+    }[]
+}
 
 export const gameCheck = async (igdb_id: number, accessToken?: string) => {
     const response = await axios.get(`${url_omega}/games/check/${igdb_id}`, {
@@ -22,13 +36,15 @@ export const gameCheck = async (igdb_id: number, accessToken?: string) => {
 
 export const saveGame = async (
     gameDetails: GameData,
+    extraDetails: GameExtraDetails | null,
     accessToken: string,
     collected?: Boolean,
     wishlist?: Boolean,
     favorite?: Boolean,
 ): Promise<Result<Resp>> => {
 
-    console.log(gameDetails)
+    console.log(gameDetails);
+    console.log(extraDetails);
     try {
         const response = await axios.post(`${url_omega}${ep_db_save_game}`, {
             "igdb_id": gameDetails.id,
@@ -39,9 +55,10 @@ export const saveGame = async (
             "collected": collected,
             "wishlist": wishlist,
             "favorite": favorite,
-            "added_at": todaysDate
-            // "platform": gameDetails.platform,
-            // "notes": game.notes,
+            "added_at": todaysDate,
+            "rating": extraDetails?.rating || "",
+            "notes": extraDetails?.notes || "",
+            "copies": extraDetails?.copies || []
         }, {
             headers: {
                 Authorization: `Bearer ${accessToken}`
