@@ -13,7 +13,7 @@ import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { getProfile, updateProfile } from '@/lib/api/db'
 import { useUser } from '@auth0/nextjs-auth0'
-import { ApiError, Profile, TGDBPlatform } from '@/lib/types'
+import { ApiError, IGDBPlatform, Profile, TGDBPlatform } from '@/lib/types'
 import { getPlatforms } from '@/lib/api/tgdb'
 import { toast, Toaster } from 'sonner';
 import {
@@ -31,10 +31,7 @@ import {
 import PageSkeleton from '@/components/PageSkeleton'
 import PageError from '@/components/PageError'
 import { s3PresignedUrl } from '@/lib/api/aws'
-import { da } from 'date-fns/locale'
-
-
-
+import { getAllPlatforms } from '@/lib/api/igdb'
 
 const formSchema = Z.object({
     display_name: Z
@@ -56,22 +53,36 @@ const formSchema = Z.object({
         filename: Z.string(),
         public_url: Z.string(),
     }),
+    // owned_systems: Z.array(
+    //     Z.object({
+    //         id: Z.number(),
+    //         name: Z.string(),
+    //         alias: Z.string(),
+    //         icon: Z.string(),
+    //         console: Z.string(),
+    //         manufacturer: Z.string(),
+    //     })
+    // ),
     owned_systems: Z.array(
         Z.object({
             id: Z.number(),
             name: Z.string(),
-            alias: Z.string(),
-            icon: Z.string(),
-            console: Z.string(),
-            manufacturer: Z.string(),
+            slug: Z.string(),
+            abbreviation: Z.string(),
+            alternative_name: Z.string(),
+            platform_logo: Z.object({
+                id: Z.number(),
+                image_id: Z.string(),
+            }),
         })
     ),
 })
 
 export default function page() {
-    const { user, isLoading } = useUser()
+    const { user } = useUser()
     const [defaultData, setDefaultData] = useState<Profile>();
-    const [systems, setSystems] = useState<TGDBPlatform[]>([]);
+    // const [systems, setSystems] = useState<TGDBPlatform[]>([]);
+    const [systems, setSystems] = useState<IGDBPlatform[]>([]);
     const anchor = useComboboxAnchor();
     const [error, setError] = useState<ApiError | null>(null);
     const [status, setStatus] = useState<"loading" | "success" | "error" | "submitting">("loading");
@@ -107,7 +118,8 @@ export default function page() {
             const { accessToken } = await tokenResponse.json();
             if (!active) return;
 
-            const platformsResp = await getPlatforms();
+            // const platformsResp = await getPlatforms();
+            const platformsResp = await getAllPlatforms();
             if (!active) return;
             if (platformsResp.ok) {
                 console.log(platformsResp)
@@ -233,7 +245,7 @@ export default function page() {
                 <CardContent>
                     <form id="form-profile-info" onSubmit={form.handleSubmit(async (data) => {
                         setStatus("submitting");
-                        await toast.promise(submitProfile(data), {
+                        toast.promise(submitProfile(data), {
                             loading: "Submitting your profile settings...",
                             success: "Profile data saved successfully!",
                             error: "Oops something went wrong. Try again.."
@@ -313,7 +325,8 @@ export default function page() {
                                                     <ComboboxValue>
                                                         {(values) => (
                                                             <React.Fragment>
-                                                                {values.map((item: TGDBPlatform, i: number) => (
+                                                                {/* {values.map((item: TGDBPlatform, i: number) => ( */}
+                                                                {values.map((item: IGDBPlatform, i: number) => (
                                                                     <ComboboxChip key={`${item.id}-${i}`}>{item.name}</ComboboxChip>
                                                                 ))}
                                                                 <ComboboxChipsInput placeholder="Select platforms..." />
@@ -325,7 +338,8 @@ export default function page() {
                                                 <ComboboxContent anchor={anchor}>
                                                     <ComboboxEmpty>No items found.</ComboboxEmpty>
                                                     <ComboboxList>
-                                                        {(item: TGDBPlatform, i: number) => (
+                                                        {/* {(item: TGDBPlatform, i: number) => ( */}
+                                                        {(item: IGDBPlatform, i: number) => (
                                                             <ComboboxItem key={`${item.id}-${i + 1}`} value={item}>
                                                                 {item.name}
                                                             </ComboboxItem>

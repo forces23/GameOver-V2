@@ -4,16 +4,17 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Card } from "@/components/ui/card";
-import { AllTimeFavs, ApiError, GameData, IGDBPlatform, UpcomingEvents, UpcomingReleases } from "@/lib/types";
+import { ApiError, GameData, IGDBPlatform, UpcomingEvents } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import Autoplay from "embla-carousel-autoplay";
-import { getAllTimeFavorites, getGameSearch, getMultiplePlatforms, getUpcomingEvents, getUpcomingReleases } from "@/lib/api/igdb";
-import { outOfOrder, top15Consoles, url_igdb_t_original } from "@/lib/constants";
+import { getGameSearch, getMultiplePlatforms, getUpcomingEvents, getUpcomingReleases } from "@/lib/api/igdb";
+import { outOfOrder, url_igdb_t_original } from "@/lib/constants";
 import GamesCarousel from "@/components/info-pages/GamesCarousel";
 import ConsoleCarousel from "@/components/info-pages/ConsoleCarousel";
 import PageSkeleton from "@/components/PageSkeleton";
 import PageError from "@/components/PageError";
-import { getTodaysDate, toUnixString } from "@/lib/utils";
+import { getTodaysDate } from "@/lib/utils";
+import { atfFilterPayload, top15Consoles } from "@/lib/defaults";
 
 export default function Home() {
   const router = useRouter();
@@ -30,22 +31,9 @@ export default function Home() {
 
     const run = async () => {
       setStatus("loading")
-      const atfPayload = {
-            "query": "",
-            "genres": [],
-            "themes": [],
-            "consoles": [],
-            "fromDate": "",
-            "toDate": getTodaysDate().unix,
-            "gameModes": [],
-            "page": 1,
-            "limit": 25,
-            "sort": "total_rating_count desc"
-        }
-
       const ueData = await getUpcomingEvents();
       const urData = await getUpcomingReleases(25);
-      const atfData = await getGameSearch(atfPayload);
+      const atfData = await getGameSearch(atfFilterPayload);
       const popConData = await getMultiplePlatforms(top15Consoles);
       if (!active) return;
 

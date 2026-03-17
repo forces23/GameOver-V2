@@ -64,8 +64,8 @@ export default function GamesCarousel({ title = "", games, moreUrl = "", moreAct
                             </CarouselItem>
                         )}
                     </CarouselContent>
-                    <CarouselPrevious variant="default" className="left-0  hover:bottom-0 text-white md:[&_svg]:!size-6 md:w-10 md:h-10 -translate-y-0 rounded-full  bg-purple-500/40 border-purple-400/60 hover:h-auto hover:top-0 hover:rounded-none hover:bg-purple-500/30 hover:text-white hover:rounded-l-md " />
-                    <CarouselNext variant="default" className="right-0  bottom-0 text-white md:[&_svg]:!size-6 md:w-10 md:h-10 -translate-y-0 rounded-full  bg-purple-500/40 border-purple-400/60 hover:h-auto hover:top-0 hover:rounded-none hover:bg-purple-500/30 hover:text-white hover:rounded-r-md" />
+                    <CarouselPrevious variant="default" className="left-0  hover:bottom-0 text-white md:[&_svg]:!size-6 -translate-y-0 rounded-full  bg-purple-500/40 border-purple-400/60 hover:h-auto hover:top-0 hover:rounded-none hover:bg-purple-500/30 hover:text-white hover:rounded-l-md " />
+                    <CarouselNext variant="default" className="right-0  bottom-0 text-white md:[&_svg]:!size-6 -translate-y-0 rounded-full  bg-purple-500/40 border-purple-400/60 hover:h-auto hover:top-0 hover:rounded-none hover:bg-purple-500/30 hover:text-white hover:rounded-r-md" />
                 </Carousel>
             </div>
         </section>

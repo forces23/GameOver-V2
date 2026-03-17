@@ -16,7 +16,7 @@ import { formatUnixTime } from '@/lib/utils';
 import { ApiError, GameData, Genre } from '@/lib/types';
 import Link from 'next/link';
 import { FaStar } from 'react-icons/fa';
-import SearchBar from '@/components/SearchBar';
+import SearchBar from '@/components/search/SearchBar';
 import PageSkeleton from '@/components/PageSkeleton';
 import PageError from '@/components/PageError';
 

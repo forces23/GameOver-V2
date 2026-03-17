@@ -134,7 +134,6 @@ async def game_search(criteria:IGDBGameSearchPayload):
     max_pages = 0
     
     counts = await get_games_count(criteria)
-    print(counts)
     if counts:
         content_count = counts["count"]
         max_pages = counts["max_pages"]
@@ -153,8 +152,6 @@ async def game_search(criteria:IGDBGameSearchPayload):
         hypes
         """)
     
-    print(game_search_content)
-        
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(url, headers=igdb_headers, content=game_search_content)
@@ -384,7 +381,7 @@ async def get_event(event_id:str):
                     "status": 404
                 }
             )
-        # print(payload)
+            
         return {"data": payload[0]}
 
 # TODO: make console-all-time-favs work with this endpoint and remove console-all-time-favs

@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation'
 import { TbSearch } from "react-icons/tb";
 import { Kbd } from "@/components/ui/kbd"
 import { missingImg, url_igdb_t_original } from '@/lib/constants'
+import { gpPayload } from '@/lib/defaults'
 
 export default function SearchBox() {
     const router = useRouter();
@@ -27,35 +28,25 @@ export default function SearchBox() {
                 // contains extra field for later use if i decide to use them
                 // only ones being used is query, page, limit, and sort
                 const payload = {
+                    ...gpPayload,
                     game: {
-                        "query": gameTitle ?? "",
-                        "genres": [],
-                        "themes": [],
-                        "consoles": [],
-                        "fromDate": "",
-                        "toDate": "",
-                        "page": 1,
-                        "limit": 15,
-                        "sort": ""
+                        ...gpPayload.game,
+                        query: gameTitle || gpPayload.game.query
                     },
                     platform: {
-                        "query": gameTitle ?? "",
-                        "limit": 15
+                        ...gpPayload.platform,
+                        query: gameTitle || gpPayload.platform.query
                     }
                 }
 
-                // TODO: Need to implement the console search in the backend. it was using TGDB but i removed and now backend only returns [] for consoles
                 const result = await getSearchResults(payload);
                 if (result.ok) {
+                    console.log(result.data.consoles)
                     setSearchResults({ games: result.data.games, consoles: result.data.consoles });
                 }
-
-                // TODO: do something with errors that come back from quick search
             }
             run();
             setOpen(true);
-        } else {
-            // do something here later 
         }
     }, [gameTitle])
 
@@ -82,9 +73,8 @@ export default function SearchBox() {
         setOpen(false);
     }
 
-
     return (
-        <div className=" ">
+        <div>
             <div className='md:hidden'>
                 <button onClick={() => setOpen(true)} className="w-fit cursor-pointer">
                     <TbSearch size={25} />
@@ -105,65 +95,68 @@ export default function SearchBox() {
                     <CommandList className="max-h-none">
                         <CommandEmpty>No results found.</CommandEmpty>
                         <CommandGroup heading="Games" className='[&_[cmdk-group-heading]]:text-xl'>
-                            {searchResults.games.map((result: any, index: number) => {
-                                return (
-                                    <CommandItem
-                                        key={`${result.name}-${index}`}
-                                        value={result.name}
-                                        onSelect={() => handleSelectedGame(result.id)}
-                                        className="flex items-center gap-3"
-                                    >
-                                        {result.cover ?
+                            <div className='grid grid-cols-1 md:grid-cols-2'>
+                                {searchResults.games.map((result: any, index: number) => {
+                                    return (
+                                        <CommandItem
+                                            key={`${result.name}-${index}`}
+                                            value={result.name}
+                                            onSelect={() => handleSelectedGame(result.id)}
+                                            className="flex items-center gap-3"
+                                        >
+                                            {result.cover ?
                                                 <Image
                                                     src={`${url_igdb_t_original}${result.cover.image_id}.jpg`}
                                                     alt={`${result.name}+Cover`}
                                                     height={50}
                                                     width={100}
                                                 />
-                                            : <div className='bg-gray-300 h-[130] w-[100]'></div>
-                                        }
-                                        <div className="flex flex-col">
-                                            <span className="font-medium">{result.name}</span>
-                                            <span className="text-xs opacity-70">
-                                                {result.platforms && result.platforms.map((platform: any, index: number) => (
-                                                    <span>{`${platform.name}${index < result.platforms.length - 1 ? ", " : ""}`}</span>
-                                                ))}
-                                            </span>
-                                            <span className="text-xs opacity-70">
-                                                {formatUnixTime(result.first_release_date)}
-                                            </span>
-                                        </div>
-                                    </CommandItem>
-                                )
-                            })}
+                                                : <div className='bg-gray-300 h-[130] w-[100]'></div>
+                                            }
+                                            <div className="flex flex-col">
+                                                <span className="font-medium">{result.name}</span>
+                                                <span className="text-xs opacity-70">
+                                                    {result.platforms && result.platforms.map((platform: any, index: number) => (
+                                                        <span>{`${platform.name}${index < result.platforms.length - 1 ? ", " : ""}`}</span>
+                                                    ))}
+                                                </span>
+                                                <span className="text-xs opacity-70">
+                                                    {result.first_release_date && (
+                                                        `Released: ${formatUnixTime(result.first_release_date)}`
+                                                    )}
+                                                </span>
+                                            </div>
+                                        </CommandItem>
+                                    )
+                                })}
+                            </div>
                         </CommandGroup>
                         <CommandSeparator />
                         <CommandGroup heading="Consoles" className='[&_[cmdk-group-heading]]:text-xl'>
-                            {searchResults.consoles.map((result: any, index: number) => {
-                                return (
-                                    <CommandItem
-                                        key={`${result.name}-${index}`}
-                                        value={result.name}
-                                        onSelect={() => handleSelectedConsole(result.id)}
-                                        className="flex items-center gap-3"
-                                    >
-                                        <div className='bg-gray-300 rounded-2xl px-2 py-4'>
-                                            <Image
-                                                src={result.platform_logo?.image_id && result.platform_logo?.image_id !== undefined ? `${url_igdb_t_original}${result.platform_logo?.image_id}.jpg` : missingImg}
-                                                alt={`${result.name}+Cover`}
-                                                height={50}
-                                                width={100}
-                                            />
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="font-medium">{result.name}</span>
-                                            {/* <span className="text-xs opacity-70">
-                                                {formatUnixTime(result.first_release_date)}
-                                            </span> */}
-                                        </div>
-                                    </CommandItem>
-                                )
-                            })}
+                            <div className='grid grid-cols-1 md:grid-cols-3'>
+                                {searchResults.consoles.map((result: any, index: number) => {
+                                    return (
+                                        <CommandItem
+                                            key={`${result.name}-${index}`}
+                                            value={result.name}
+                                            onSelect={() => handleSelectedConsole(result.id)}
+                                            className="flex items-center gap-3"
+                                        >
+                                            <div className='relative bg-card-foreground rounded-2xl w-25 aspect-square px-2 py-4'>
+                                                <Image
+                                                    src={result.platform_logo?.image_id && result.platform_logo?.image_id !== undefined ? `${url_igdb_t_original}${result.platform_logo?.image_id}.jpg` : missingImg}
+                                                    alt={`${result.name}+Cover`}
+                                                    fill
+                                                    className='object-contain'
+                                                />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="font-medium">{result.name}</span>
+                                            </div>
+                                        </CommandItem>
+                                    )
+                                })}
+                            </div>
                         </CommandGroup>
                     </CommandList>
                 </Command>

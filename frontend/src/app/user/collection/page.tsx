@@ -15,8 +15,8 @@ import {
 import { formatUnixTime } from '@/lib/utils';
 import { ApiError, GameSimple, Genre } from '@/lib/types';
 import Link from 'next/link';
-import { FaStar } from 'react-icons/fa';
-import SearchBar from '@/components/SearchBar';
+import { FaRegEye, FaRegStar, FaStar } from 'react-icons/fa';
+import SearchBar from '@/components/search/SearchBar';
 import PageSkeleton from '@/components/PageSkeleton';
 import PageError from '@/components/PageError';
 import { Accordion } from '@/components/ui/accordion';
@@ -113,7 +113,9 @@ export default function page() {
                                 <ItemContent className="flex-none text-center ">
                                     <ItemDescription>{formatUnixTime(game.first_release_date)}</ItemDescription>
                                 </ItemContent>
-                                {game.favorite && (<h6 className="absolute top-4 right-4"><FaStar /></h6>)}
+                                <h6 className="absolute top-4 right-4">
+                                    {game.favorite ? <FaStar /> : <FaRegStar />}
+                                </h6>
                             </Link>
                         </Item>
                     )

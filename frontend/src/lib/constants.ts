@@ -1,8 +1,8 @@
 
 
 // URL PREFIXES
-// export const url_omega = "http://127.0.0.1:8000";
-export const url_omega = "https://pfzcrggqfu.us-east-1.awsapprunner.com";
+export const url_omega = "http://127.0.0.1:8000";
+// export const url_omega = "https://pfzcrggqfu.us-east-1.awsapprunner.com";
 
 
 
@@ -30,34 +30,17 @@ export const url_igdb_t_screenshot_med = "https://images.igdb.com/igdb/image/upl
 export const url_igdb_t_screenshot_huge = "https://images.igdb.com/igdb/image/upload/t_screenshot_huge/"
 export const url_igdb_t_720p = "https://images.igdb.com/igdb/image/upload/t_720p/"
 
-// Top 15 consoles
-export const top15Consoles = [
-    // "n64", 
-    "nes", 
-    // "switch", 
-    "switch-2", 
-    "ps2", 
-    // "snes", 
-    "xbox360", 
-    // "genesis-slash-megadrive", 
-    "xboxone", 
-    "steam",
-    "ps5", 
-    "ps4--1",
-    "series-x-s",
-    "xbox",
-    "ngc"
-];
+
 
 export const sortByFilters = [
-        { key: "name asc", name: "Alphabetical", slug: "alphabetical" },
-        { key: "hypes desc", name: "Most Popular", slug: "most-popular" },
-        { key: "_score desc", name: "Relevance", slug: "relevance" },
-        { key: "total_rating_count desc", name: "Highly Rated", slug: "highly-rated" },
-        { key: "total_rating_count asc", name: "Least Rated", slug: "least-rated" },
-        { key: "first_release_date asc", name: "Oldest First", slug: "oldest-first" },
-        { key: "first_release_date desc", name: "Newest First", slug: "newest-first" },
-    ]
+    { key: "name asc", name: "Alphabetical", slug: "alphabetical" },
+    { key: "hypes desc", name: "Most Popular", slug: "most-popular" },
+    { key: "_score desc", name: "Relevance", slug: "relevance" },
+    { key: "total_rating_count desc", name: "Highly Rated", slug: "highly-rated" },
+    { key: "total_rating_count asc", name: "Least Rated", slug: "least-rated" },
+    { key: "first_release_date asc", name: "Oldest First", slug: "oldest-first" },
+    { key: "first_release_date desc", name: "Newest First", slug: "newest-first" },
+]
 
 
 

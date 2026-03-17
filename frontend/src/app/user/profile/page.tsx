@@ -5,6 +5,7 @@ import PageSkeleton from "@/components/PageSkeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { getFavorites, getProfile } from "@/lib/api/db";
+import { missingImg, url_igdb_t_original } from "@/lib/constants";
 import { ApiError, GameSimple, Profile } from "@/lib/types";
 import { useUser } from "@auth0/nextjs-auth0";
 import Image from 'next/image';
@@ -95,12 +96,13 @@ export default function page() {
                                     <Link
                                         key={`console-${system.id}`}
                                         href={`/info/console-info?consoleId=${system.id}`}
-                                        className="bg-background text-secondary-foreground p-2 rounded-lg w-25 cursor-pointer"
+                                        className="bg-background text-secondary-foreground p-2 rounded-lg w-30 cursor-pointer"
                                     >
                                         <li>
-                                            <div className='relative aspect-square'>
+                                            <div className='relative  aspect-square bg-gray-600 rounded-2xl'>
                                                 <Image
-                                                    src={`https://cdn.thegamesdb.net/images/original/consoles/png48/${system.icon}`}
+                                                    // src={`https://cdn.thegamesdb.net/images/original/consoles/png48/${system.icon}`}
+                                                    src={system.platform_logo?.image_id != undefined ? `${url_igdb_t_original}${system.platform_logo?.image_id}.jpg` : missingImg}
                                                     alt={`icon-${system.id}`}
                                                     fill
                                                     sizes="120px"

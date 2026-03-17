@@ -6,6 +6,8 @@ export type ApiError = {
 }
 export type Result<T> = { ok: true; data: T; } | { ok: false; error: ApiError }
 
+export type Mark = "wishlist" | "collected" | null;
+
 export type ParamsObj = {
   query: string;
   genres: number[];
@@ -567,9 +569,18 @@ export type Profile = {
     filename: string,
     public_url: string
   }
-  owned_systems: TGDBPlatform[]
-  // favorite_game_ids: GameSimple[]
-  // favorite_platforms: string[]
+  // owned_systems: TGDBPlatform[]
+  owned_systems: {
+    id: number;
+    name: string;
+    slug: string;
+    abbreviation: string;
+    alternative_name: string;
+    platform_logo: {
+      id: number;
+      image_id: string;
+    }
+  }[]
 }
 
 

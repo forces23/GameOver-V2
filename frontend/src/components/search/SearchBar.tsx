@@ -7,15 +7,15 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { Input } from "@/components/ui/input"
 import { getAllPlatforms, getGameSearch, getIGDBGameModes, getIGDBGenres, getIGDBThemes } from "@/lib/api/igdb";
 import { formatUnixTimeToDateTime, toUnixString } from "@/lib/utils";
-import { Combobox, ComboboxChip, ComboboxChips, ComboboxChipsInput, ComboboxContent, ComboboxEmpty, ComboboxItem, ComboboxList, ComboboxValue, useComboboxAnchor } from "./ui/combobox";
+import { Combobox, ComboboxChip, ComboboxChips, ComboboxChipsInput, ComboboxContent, ComboboxEmpty, ComboboxItem, ComboboxList, ComboboxValue, useComboboxAnchor } from "../ui/combobox";
 import * as Z from "zod"
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "./ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { Calendar } from "./ui/calendar";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "./ui/select";
+import { Button } from "../ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Calendar } from "../ui/calendar";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "../ui/select";
 import { defaultGameFilters } from "@/lib/defaults";
 import { sortByFilters } from "@/lib/constants";
 
@@ -245,13 +245,7 @@ export default function SearchBar({ originalData, setData, filters, searchType =
             "sort": values.sort || "_score desc"
         }
 
-        console.log(payload);
         if (searchType === "game") {
-            const result = await getGameSearch(payload);
-            if (result.ok) {
-                router.replace(pathname, { scroll: false })
-                setData(result.data.data)
-            }
             onSubmitFilters?.(payload);
             return;
         }
