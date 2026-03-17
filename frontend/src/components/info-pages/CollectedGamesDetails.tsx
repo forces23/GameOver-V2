@@ -67,7 +67,7 @@ type CollectedGamesDetailsProps = {
     setExtraDetailsOpen: React.Dispatch<React.SetStateAction<boolean>>
     mark: Mark
     setMark: React.Dispatch<React.SetStateAction<Mark>>
-    gameDetails: GameData
+    gameDetails: GameData | null
     prevMark: Mark
 
 }
