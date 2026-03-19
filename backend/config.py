@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     # IGDB
     API_KEY_IGDB_CLIENT_SECRET:str
     API_KEY_IGDB_CLIENT_ID:str
-    TWITCH_ACCESS_TOKEN:str
+    # TWITCH_ACCESS_TOKEN:str
     
     # Auth0
     AUTH0_AUDIENCE:str

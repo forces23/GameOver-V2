@@ -1,7 +1,38 @@
 import datetime
-
+import time
+from config import settings
+import httpx
 from utils.schemas.igdb import IGDBGameSearchPayload
 
+_cached_twitch_tokken: str | None = None
+_twitch_tokken_expires_at: float | None = None
+
+async def fetch_twitch_token() -> str:
+    global _cached_twitch_tokken, _twitch_tokken_expires_at
+    
+    now = time.time()
+    buffer_seconds = 300
+    
+    if _cached_twitch_tokken and _twitch_tokken_expires_at and now < (_twitch_tokken_expires_at - buffer_seconds):
+        return _cached_twitch_tokken
+    
+    url = "https://id.twitch.tv/oauth2/token"
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            url,
+            params={
+                "client_id": settings.API_KEY_IGDB_CLIENT_ID,
+                "client_secret": settings.API_KEY_IGDB_CLIENT_SECRET,
+                "grant_type": "client_credentials",
+            }
+        )
+        response.raise_for_status()
+        payload = response.json()
+    
+        _cached_twitch_tokken = payload["access_token"]
+        _twitch_tokken_expires_at = payload["expires_in"]
+        
+    return _cached_twitch_tokken
 
 def getTimestamp():
     return datetime.datetime.now(datetime.timezone.utc)
@@ -38,7 +69,5 @@ def igdb_query_builder(criteria:IGDBGameSearchPayload, fields:str = ""):
         {offset_line}
         {limit_line}
     """
-    
     # print(data)
-    
     return data
