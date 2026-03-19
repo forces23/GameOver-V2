@@ -31,45 +31,31 @@ export default function Home() {
 
     const run = async () => {
       setStatus("loading")
-      const ueData = await getUpcomingEvents();
-      const urData = await getUpcomingReleases(25);
-      const atfData = await getGameSearch(atfFilterPayload);
-      const popConData = await getMultiplePlatforms(top15Consoles);
+
+      const [ueData, urData, atfData, popConData] = await Promise.all([
+        getUpcomingEvents(),
+        getUpcomingReleases(25),
+        getGameSearch(atfFilterPayload),
+        getMultiplePlatforms(top15Consoles),
+      ])
       if (!active) return;
 
       // TODO: implement error handling for below
-      if (ueData.ok) {
-        setUpcomingEvents(ueData.data);
-        setStatus("success");
-      } else {
-        setStatus("error");
-        setError(ueData.error)
-      }
+      let hasError = false;
 
-      if (urData.ok) {
-        setUpcomingReleases(urData.data);
-        setStatus("success");
-      } else {
-        setStatus("error");
-        setError(urData.error)
-      }
+      if (ueData.ok) setUpcomingEvents(ueData.data);
+      else hasError = true;
 
-      if (atfData.ok) {
-        setAllTimeFavs(atfData.data.data);
-        setStatus("success");
-      } else {
-        setStatus("error");
-        setError(atfData.error)
-      }
+      if (urData.ok) setUpcomingReleases(urData.data);
+      else hasError = true;
 
-      if (popConData.ok) {
-        setPopularConsoles(popConData.data);
-        setStatus("success");
-      } else {
-        setStatus("error");
-        setError(popConData.error)
-      }
+      if (atfData.ok) setAllTimeFavs(atfData.data.data);
+      else hasError = true;
 
+      if (popConData.ok) setPopularConsoles(popConData.data);
+      else hasError = true;
+
+      setStatus(hasError ? "error" : "success");
     }
     run();
     return () => { active = false }

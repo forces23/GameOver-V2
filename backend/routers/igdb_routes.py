@@ -24,7 +24,7 @@ async def get_igdb_headers() -> dict[str, str]:
 @igdb_router.get("/games/genres")
 async def getIGDBGenres():
     url = f'{URL_IGDB}/genres'
-    headers = get_igdb_headers()
+    headers = await get_igdb_headers()
     data = f"""
         fields id,name,slug;
         sort name asc;
@@ -33,7 +33,7 @@ async def getIGDBGenres():
     
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(url, headers, content=data)
+            response = await client.post(url, headers=headers, content=data)
             response.raise_for_status()
         
         except httpx.HTTPStatusError as e:
@@ -51,7 +51,7 @@ async def getIGDBGenres():
 @igdb_router.get("/games/themes")
 async def getIGDBThemes():
     url = f'{URL_IGDB}/themes'
-    headers = get_igdb_headers()
+    headers = await get_igdb_headers()
     data = f"""
         fields 
             id,
@@ -63,7 +63,7 @@ async def getIGDBThemes():
     
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(url, headers, content=data)
+            response = await client.post(url, headers=headers, content=data)
             response.raise_for_status()
         
         except httpx.HTTPStatusError as e:
@@ -82,7 +82,7 @@ async def getIGDBThemes():
 @igdb_router.get("/games/game_modes")
 async def getIGDBThemes():
     url = f'{URL_IGDB}/game_modes'
-    headers = get_igdb_headers()
+    headers = await get_igdb_headers()
     data = f"""
         fields 
             id,
@@ -93,7 +93,7 @@ async def getIGDBThemes():
     """
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(url, headers, content=data)
+            response = await client.post(url, headers=headers, content=data)
             response.raise_for_status()
         
         except httpx.HTTPStatusError as e:
@@ -112,12 +112,12 @@ async def getIGDBThemes():
 @igdb_router.post("/games/count")
 async def get_games_count(criteria:IGDBGameSearchPayload):
     url = f'{URL_IGDB}/games/count'
-    headers = get_igdb_headers()
+    headers = await get_igdb_headers()
     count_content = igdb_query_builder(criteria)
     
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(url, headers, content=count_content)
+            response = await client.post(url, headers=headers, content=count_content)
         
         except httpx.HTTPStatusError as e:
             raise HTTPException (
@@ -139,7 +139,7 @@ async def get_games_count(criteria:IGDBGameSearchPayload):
 @igdb_router.post("/games/game-search")
 async def game_search(criteria:IGDBGameSearchPayload):
     url = f'{URL_IGDB}/games'
-    headers = get_igdb_headers()
+    headers = await get_igdb_headers()
     
     content_count = 0
     max_pages = 0
@@ -165,7 +165,7 @@ async def game_search(criteria:IGDBGameSearchPayload):
     
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(url, headers, content=game_search_content)
+            response = await client.post(url, headers=headers, content=game_search_content)
             response.raise_for_status()
             
         except httpx.TimeoutException:
@@ -213,7 +213,7 @@ async def game_search(criteria:IGDBGameSearchPayload):
 @igdb_router.get("/games/upcoming-games")
 async def upcoming_games(currentDate:str, limit:int):
     url = f'{URL_IGDB}/games'
-    headers = get_igdb_headers()
+    headers = await get_igdb_headers()
     data = f"""
         fields 
             name, 
@@ -235,7 +235,7 @@ async def upcoming_games(currentDate:str, limit:int):
     """
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(url, headers, content=data)
+            response = await client.post(url, headers=headers, content=data)
             response.raise_for_status()
             
         except httpx.TimeoutException:
@@ -274,7 +274,7 @@ async def upcoming_games(currentDate:str, limit:int):
 @igdb_router.get("/events/upcoming-events")
 async def upcoming_events(currentDate:str, limit:int = 10):
     url = f'{URL_IGDB}/events'
-    headers = get_igdb_headers()
+    headers = await get_igdb_headers()
     data = f"""
         fields 
             checksum,
@@ -294,7 +294,7 @@ async def upcoming_events(currentDate:str, limit:int = 10):
     
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(url, headers, content=data)
+            response = await client.post(url, headers=headers, content=data)
             response.raise_for_status()
             
         except httpx.TimeoutException:
@@ -332,7 +332,7 @@ async def upcoming_events(currentDate:str, limit:int = 10):
 @igdb_router.get("/events/single")
 async def get_event(event_id:str):
     url = f'{URL_IGDB}/events'
-    headers = get_igdb_headers()
+    headers = await get_igdb_headers()
     data = f"""
         fields 
             id,
@@ -362,7 +362,7 @@ async def get_event(event_id:str):
     
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(url, headers, content=data)
+            response = await client.post(url, headers=headers, content=data)
             response.raise_for_status()
             
         except httpx.TimeoutException:
@@ -402,7 +402,7 @@ async def get_event(event_id:str):
 @igdb_router.get("/games/all-time-favs")
 async def all_time_favorites(currentDate:str, limit:int = 25):
     url = f'{URL_IGDB}/games'
-    headers = get_igdb_headers()
+    headers = await get_igdb_headers()
     data = f"""
         fields 
             name, 
@@ -420,7 +420,7 @@ async def all_time_favorites(currentDate:str, limit:int = 25):
     
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(url, headers, content=data)
+            response = await client.post(url, headers=headers, content=data)
             response.raise_for_status()
             
         except httpx.TimeoutException:
@@ -461,7 +461,7 @@ async def all_time_favorites(currentDate:str, limit:int = 25):
 @igdb_router.get("/games/console")
 async def console_all_time_favs(console_id:str, limit:int=25):
     url = f'{URL_IGDB}/games'
-    headers = get_igdb_headers()
+    headers = await get_igdb_headers()
     data = f"""
         fields
             id,
@@ -478,7 +478,7 @@ async def console_all_time_favs(console_id:str, limit:int=25):
     
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(url, headers, content=data)
+            response = await client.post(url, headers=headers, content=data)
             response.raise_for_status()
             
         except httpx.TimeoutException:
@@ -516,7 +516,7 @@ async def console_all_time_favs(console_id:str, limit:int=25):
 @igdb_router.get("/games/full-game-details")
 async def full_game_details(id:str):
     url = f'{URL_IGDB}/games'
-    headers = get_igdb_headers()
+    headers = await get_igdb_headers()
     data = f"""
         where id = {id};
         fields 
@@ -596,7 +596,7 @@ async def full_game_details(id:str):
         
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(url, headers, content=data)   
+            response = await client.post(url, headers=headers, content=data)   
             response.raise_for_status()
             
         except httpx.TimeoutException:
@@ -634,7 +634,7 @@ async def full_game_details(id:str):
 @igdb_router.get("/platforms")
 async def search_platforms(platformName:str="", limit:int=500):
     url = f'{URL_IGDB}/platforms'
-    headers = get_igdb_headers()
+    headers = await get_igdb_headers()
     
     where_line = f'where name ~ *"{platformName}"*;' if platformName else ""
     data = f"""
@@ -658,7 +658,7 @@ async def search_platforms(platformName:str="", limit:int=500):
     
     async with httpx.AsyncClient() as Client:
         try:
-            response = await Client.post(url, headers, content=data)  
+            response = await Client.post(url, headers=headers, content=data)  
             response.raise_for_status()
                 
         except httpx.TimeoutException:
@@ -696,7 +696,7 @@ async def search_platforms(platformName:str="", limit:int=500):
 @igdb_router.get("/platforms/single")
 async def getPlatformsSingle(console_id:str):
     url = f'{URL_IGDB}/platforms'
-    headers = get_igdb_headers()
+    headers = await get_igdb_headers()
     data = f"""
         fields 
             abbreviation,
@@ -747,7 +747,7 @@ async def getPlatformsSingle(console_id:str):
     async with httpx.AsyncClient() as Client:
         
         try:
-            response = await Client.post(url, headers, content=data)  
+            response = await Client.post(url, headers=headers, content=data)  
             response.raise_for_status()
             
         except httpx.TimeoutException:
@@ -785,7 +785,7 @@ async def getPlatformsSingle(console_id:str):
 @igdb_router.get("/platforms/multiple")
 async def getMultiplePlatforms(console_list:Annotated[list[str], Query()]):
     url = f'{URL_IGDB}/platforms'
-    headers = get_igdb_headers()
+    headers = await get_igdb_headers()
     slug_list = ",".join(f'"{slug}"' for slug in console_list)
     limit = 50
     data = f"""
@@ -809,7 +809,7 @@ async def getMultiplePlatforms(console_list:Annotated[list[str], Query()]):
     
     async with httpx.AsyncClient() as Client:
         try:
-            response = await Client.post(url, headers, content=data)  
+            response = await Client.post(url, headers=headers, content=data)  
             response.raise_for_status()
                 
         except httpx.TimeoutException:

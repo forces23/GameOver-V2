@@ -30,7 +30,7 @@ async def fetch_twitch_token() -> str:
         payload = response.json()
     
         _cached_twitch_tokken = payload["access_token"]
-        _twitch_tokken_expires_at = payload["expires_in"]
+        _twitch_tokken_expires_at = now + payload["expires_in"]
         
     return _cached_twitch_tokken
 
