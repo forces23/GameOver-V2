@@ -11,7 +11,6 @@ import { getGameSearch, getMultiplePlatforms, getUpcomingEvents, getUpcomingRele
 import { outOfOrder, url_igdb_t_original } from "@/lib/constants";
 import GamesCarousel from "@/components/info-pages/GamesCarousel";
 import ConsoleCarousel from "@/components/info-pages/ConsoleCarousel";
-import PageSkeleton from "@/components/PageSkeleton";
 import PageError from "@/components/PageError";
 import { getTodaysDate } from "@/lib/utils";
 import { atfFilterPayload, top15Consoles } from "@/lib/defaults";

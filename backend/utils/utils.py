@@ -1,4 +1,5 @@
 import datetime
+from http.client import HTTPException
 import time
 from config import settings
 import httpx
@@ -17,21 +18,30 @@ async def fetch_twitch_token() -> str:
         return _cached_twitch_tokken
     
     url = "https://id.twitch.tv/oauth2/token"
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            url,
-            params={
-                "client_id": settings.API_KEY_IGDB_CLIENT_ID,
-                "client_secret": settings.API_KEY_IGDB_CLIENT_SECRET,
-                "grant_type": "client_credentials",
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                url,
+                params={
+                    "client_id": settings.API_KEY_IGDB_CLIENT_ID,
+                    "client_secret": settings.API_KEY_IGDB_CLIENT_SECRET,
+                    "grant_type": "client_credentials",
+                }
+            )
+            response.raise_for_status()
+            payload = response.json()
+        
+            _cached_twitch_tokken = payload["access_token"]
+            _twitch_tokken_expires_at = now + payload["expires_in"]
+    except httpx.HTTPStatusError as e:
+        raise HTTPException (
+            status_code=502,
+            detail={
+                "code": "UPSTREAM_ERROR", 
+                "message": f"IGDB request failed, Upstream Error: {e.response.text}",
+                "status": e.response.status_code
             }
         )
-        response.raise_for_status()
-        payload = response.json()
-    
-        _cached_twitch_tokken = payload["access_token"]
-        _twitch_tokken_expires_at = now + payload["expires_in"]
-        
     return _cached_twitch_tokken
 
 def getTimestamp():
