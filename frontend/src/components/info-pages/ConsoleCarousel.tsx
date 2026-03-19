@@ -25,7 +25,8 @@ export default function GamesCarousel({ title = "", consoles }: ConsoleCarouselP
                             <CarouselItem key={index} className="basis-1/4 pl-1 sm:basis-1/6 md:basis-1/8 lg:basis-1/10 cursor-pointer">
                                 <Link
                                     className=" rounded-lg"
-                                    href={`/info/console-info?consoleId=${console.id}`}
+                                    // href={`/info/console-info?consoleId=${console.id}`}
+                                    href={`/games?consoles=${console.id}&page=1&limit=50&sort=total_rating_count+desc`}
                                 >
                                     <Card className="relative aspect-3/4 bg-gray-300" >
                                         <Image

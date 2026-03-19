@@ -5,10 +5,10 @@ import { FiGlobe } from 'react-icons/fi';
 
 type NetworkIconProps = {
     url: string,
-    name: string
+    name?: string
 }
 
-export default function NetworkIcon({url, name}:NetworkIconProps) {
+export default function NetworkIcon({url, name = "website logo"}:NetworkIconProps) {
     const [failed, setFailed] = React.useState(false);
 
     const src = getNetworkIcon(url)

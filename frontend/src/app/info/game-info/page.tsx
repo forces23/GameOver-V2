@@ -8,20 +8,35 @@ import { ApiError, GameData, Mark } from '@/lib/types';
 import { getGameDetails } from '@/lib/api/igdb';
 import { BsBookmark, BsBookmarkCheckFill, BsCollection, BsCollectionFill } from "react-icons/bs";
 import PageError from '@/components/PageError';
-import PageSkeleton from '@/components/PageSkeleton';
 import { useUser } from '@auth0/nextjs-auth0';
 import { deleteGame, gameCheck, saveGame } from '@/lib/api/db';
 import { toast, Toaster } from 'sonner';
-import { formatUnixTime } from '@/lib/utils';
 import { FaRegStar, FaStar } from 'react-icons/fa';
 import Banner from '@/components/info-pages/Banner';
-import InfoList from '@/components/info-pages/InfoList';
-import SmallCards from '@/components/info-pages/SmallCards';
-import ImagesCarousel from '@/components/ImagesCarousel';
-import Videos from '@/components/info-pages/Videos';
 import GamesCarousel from '@/components/info-pages/GamesCarousel';
 import { outOfOrder, url_igdb_t_original } from '@/lib/constants';
 import CollectedGamesDetails from '@/components/info-pages/CollectedGamesDetails';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FaPaintBrush } from "react-icons/fa";
+import { RiVideoFill } from "react-icons/ri";
+import { GrMultiple } from "react-icons/gr";
+import { ImBoxAdd } from "react-icons/im";
+import { FaImage } from "react-icons/fa6"; import { GrOverview } from "react-icons/gr";
+import { GiExpander } from "react-icons/gi";
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import Overview from '@/components/info-pages/game-info/overview';
+import DLCs from '@/components/info-pages/game-info/DLCs';
+import Bundles from '@/components/info-pages/game-info/Bundles';
+import ExpandedGames from '@/components/info-pages/game-info/ExpandedGames';
+import Screenshots from '@/components/info-pages/game-info/Screenshots';
+import Artwork from '@/components/info-pages/game-info/Artwork';
+import Videos from '@/components/info-pages/game-info/Videos';
+import UserCollection from '@/components/info-pages/game-info/UserCollection';
+import NetworkIcon from '@/components/NetworkIcon';
+import AnimatedLoading from '@/components/AnimatedLoading';
+
+
 
 
 export default function GameInfo() {
@@ -37,6 +52,8 @@ export default function GameInfo() {
     const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
     const [extraDetailOpen, setExtraDetailsOpen] = useState<boolean>(false);
     const [favorite, setFavorite] = useState<boolean>(false);
+    const [tabView, setTabView] = useState<string>("overview");
+    const [userGameData, setUserGameData] = useState<any>()
 
     const currentPath = `/info/game-info?gameId=${gameId}`;
 
@@ -71,7 +88,8 @@ export default function GameInfo() {
         return () => { active = false }
     }, [gameId]);
 
-    useEffect(() => {
+
+    const userGameDataRefresh = () => {
         if (!gameDetails) return;
 
         // check if game is in users collection 
@@ -80,8 +98,9 @@ export default function GameInfo() {
             const tokenResponse = await fetch('/api/auth/token');
             const { accessToken } = await tokenResponse.json();
 
-            const resp = await gameCheck(gameDetails.id, accessToken)
+            const resp = await gameCheck(gameDetails.id, accessToken);
 
+            setUserGameData(resp.data.data)
             setFavorite(resp.data.data.favorite);
             if (resp.data.data.collected) setMark("collected");
             else if (resp.data.data.wishlist) setMark("wishlist");
@@ -94,7 +113,12 @@ export default function GameInfo() {
             setBannerBgUrl(`${url_igdb_t_original}${gameDetails['artworks'][0]['image_id']}.jpg`);
         } else if (gameDetails.screenshots && gameDetails.screenshots?.length > 0) {
             setBannerBgUrl(`${url_igdb_t_original}${gameDetails['screenshots'][0]['image_id']}.jpg`);
-        } else setBannerBgUrl("") // TODO:should have a default image here 
+        } else setBannerBgUrl("") // TODO:should have a default image here
+    }
+
+    useEffect(() => {
+        if (!gameDetails) return;
+        userGameDataRefresh();
     }, [gameDetails])
 
     const saveToWishlist = async () => {
@@ -175,15 +199,12 @@ export default function GameInfo() {
 
             if (!favState && mark === null) {
                 // delete and set mark to null
-                // const resp = await deleteGame(gameDetails.id, accessToken)
-                // if (!resp.ok) throw new Error("Delete Failed!");
                 deleteFromCollection();
                 return { action: "removed from", target: "your collection" }
             } else {
                 const resp = await saveGame(gameDetails, null, accessToken, mark === "collected", mark === "wishlist", favState);
                 if (!resp.ok) throw new Error("Save Failed!");
                 return { action: `${favState ? "added to" : "removed from"}`, target: "favorites" }
-
             }
         })();
 
@@ -200,7 +221,6 @@ export default function GameInfo() {
         }
     }
 
-
     const handleSave = (next: Exclude<Mark, null>) => {
         setPrevMark(mark);
         const newMark = (mark === next ? null : next);
@@ -212,16 +232,18 @@ export default function GameInfo() {
             saveToWishlist();
         } else {
             deleteFromCollection();
+            // userGameDataRefresh();
+            setTabView("overview");
         }
     }
 
-    if (status === "loading") return <PageSkeleton />;
+    if (status === "loading") return <AnimatedLoading />;
     if (status === "error") return <PageError />;
     // TODO: future change for error page
     // if (status === "error") return <PageError code={error?.code} message={error?.message} />; 
 
     return (
-        <main className="flex w-full flex-col ">
+        <main className="flex flex-col">
             <Toaster />
             <div className='flex flex-col gap-4 p-4'>
                 {/* Banner Image */}
@@ -247,24 +269,18 @@ export default function GameInfo() {
                                         }
                                     </span>
                                     <span
-                                        // onClick={() => { handleMark("collected") }}
                                         onClick={() => { handleSave("collected") }}
                                         className='md:text-2xl'>
                                         {mark === "collected" ?
                                             <BsCollectionFill /> : <BsCollection />
                                         }
                                     </span>
-                                    <span onClick={() => { handleFavorites() }} className='md:text-2xl'>
+                                    <span onClick={() => { mark === "collected" && handleFavorites() }} className='md:text-2xl'>
                                         {favorite ?
                                             <FaStar /> : <FaRegStar />
                                         }
                                     </span>
                                 </div>
-                                {mark === "collected" && (
-                                    <span className='whitespace-nowrap font-bold cursor-pointer'>
-                                        View your Copies
-                                    </span>
-                                )}
                             </div>
                         </div>
                     }
@@ -273,7 +289,7 @@ export default function GameInfo() {
                         <aside className="col-span-1 flex flex-col gap-4">
                             {/* Cover Image */}
                             {gameDetails?.cover &&
-                                <div className='relative h-96 w-full'>
+                                <div className='relative h-100 w-full'>
                                     <Image
                                         src={gameDetails.cover?.image_id && gameDetails.cover?.image_id !== undefined ? `${url_igdb_t_original}${gameDetails.cover?.image_id}.jpg` : outOfOrder}
                                         alt={`${gameDetails.name} cover art`}
@@ -283,168 +299,141 @@ export default function GameInfo() {
                                     />
                                 </div>
                             }
-
-                            {gameDetails?.rating && (
-                                <div>
-                                    <strong>Rating:</strong>
-                                    {gameDetails.rating.toFixed(2)} ({gameDetails.rating_count} votes)
-                                </div>
-                            )}
-                            {gameDetails?.total_rating && (
-                                <div>
-                                    <strong>Total Rating:</strong>
-                                    {gameDetails.total_rating.toFixed(2)} ({gameDetails.total_rating_count} votes)
-                                </div>
-                            )}
-                            {gameDetails?.first_release_date && (
-                                <div>
-                                    <strong>Release Date:</strong>
-                                    {formatUnixTime(gameDetails.first_release_date)}
-                                </div>
-                            )}
-                            {gameDetails?.game_type?.type && (
-                                <div>
-                                    <strong>Game Type:</strong>
-                                    {gameDetails.game_type.type}
-                                </div>
-                            )}
-
-                            {/* Franchises */}
-                            {gameDetails?.franchises && gameDetails.franchises.length > 0 &&
-                                <section>
-                                    <strong>Franchises</strong>
-                                    <ul className='flex flex-wrap gap-2'>
-                                        {gameDetails.franchises.map((franchise) => (
-                                            <li key={`franchise-${franchise.id}`} className="bg-background text-secondary-foreground p-2 rounded-lg">{franchise.name}</li>
-                                        ))}
-                                    </ul>
+                            {/* Websites */}
+                            {gameDetails?.websites && gameDetails.websites.length > 0 && (
+                                <section className='w-full flex items-center justify-center'>
+                                    <div className='max-w-sm flex flex-col items-center justify-center'>
+                                        <h4 className="text-2xl font-semibold mb-2">Related Websites</h4>
+                                        <ul className='flex flex-wrap gap-3'>
+                                            {gameDetails.websites.map((site, index) => (
+                                                site.url && site.type &&
+                                                <li key={`site-${site.id}`}>
+                                                    <a href={site.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
+                                                        <NetworkIcon url={site.url} />
+                                                    </a>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
                                 </section>
-                            }
-
-                            {/* Involved Companies */}
-                            {
-                                gameDetails?.involved_companies && gameDetails.involved_companies.length > 0 &&
-                                <section>
-                                    <strong>Involved Companies</strong>
-                                    <ul className='flex flex-wrap gap-2'>
-                                        {gameDetails.involved_companies.map((ic) => (
-                                            ic.company &&
-                                            <li key={`ic-${ic.id}`} className='bg-background px-3 gap-2 rounded-xl' >
-                                                {ic.company.name} ({ic.developer ? 'Developer' : ''}{ic.publisher ? 'Publisher' : ''}{ic.porting ? 'Porting' : ''}{ic.supporting ? 'Supporting' : ''})
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </section>
-                            }
+                            )}
                         </aside>
 
                         <section className="col-span-2 flex flex-col gap-4">
-                            {gameDetails?.summary &&
-                                <div>
-                                    <h2 className="text-2xl font-semibold mb-2">Summary</h2>
-                                    <p>{gameDetails.summary}</p>
-                                </div>
-                            }
-                            {gameDetails?.storyline &&
-                                <div>
-                                    <h2 className="text-2xl font-semibold mb-2">Storyline</h2>
-                                    <p>{gameDetails.storyline}</p>
-                                </div>
-                            }
-                            <div className='grid grid-cols-2'>
-                                {/* Platforms */}
-                                {gameDetails?.platforms && gameDetails.platforms.length > 0 && (
-                                    <InfoList title={"Platforms"} items={gameDetails.platforms} />
-                                )}
-
-                                {/* Genres */}
-                                {gameDetails?.genres && gameDetails.genres.length > 0 && (
-                                    <InfoList title={"Genres"} items={gameDetails.genres} />
-                                )}
-
-                                {/* Themes */}
-                                {gameDetails?.themes && gameDetails.themes.length > 0 && (
-                                    <InfoList title={"Themes"} items={gameDetails.themes} />
-                                )}
-
-                                {/* Player Perspectives */}
-                                {gameDetails?.player_perspectives && gameDetails.player_perspectives.length > 0 && (
-                                    <InfoList title={"Player Perspectives"} items={gameDetails.player_perspectives} />
-                                )}
-
-                                {/* Game Modes */}
-                                {gameDetails?.game_modes && gameDetails.game_modes.length > 0 && (
-                                    <InfoList title={'Game Modes'} items={gameDetails.game_modes} />
-                                )}
+                            <div className='md:hidden'>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" className='w-full'>
+                                            <div className="w-full flex items-center justify-center">
+                                                Menu
+                                            </div>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent
+                                        align="start"
+                                        className="w-[var(--radix-dropdown-menu-trigger-width)]"
+                                    >
+                                        <DropdownMenuGroup>
+                                            <DropdownMenuItem onClick={() => setTabView("overview")}>
+                                                <GrOverview />Overview
+                                            </DropdownMenuItem>
+                                            {mark === "collected" && (
+                                                <DropdownMenuItem onClick={() => setTabView("user-collection")}>
+                                                    <BsCollectionFill />Your Collection
+                                                </DropdownMenuItem>
+                                            )}
+                                            <DropdownMenuItem onClick={() => setTabView("dlcs")}>
+                                                <ImBoxAdd />DLCs
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => setTabView("bundles")}>
+                                                <GrMultiple />Bundles
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => setTabView("expanded-games")}>
+                                                <GiExpander />Expanded Games
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => setTabView("screenshots")}>
+                                                <FaImage />Screenshots
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => setTabView("artwork")}>
+                                                <FaPaintBrush />Artwork
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => setTabView("videos")}>
+                                                <RiVideoFill />Videos
+                                            </DropdownMenuItem>
+                                        </DropdownMenuGroup>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </div>
+                            <Tabs value={tabView} onValueChange={setTabView} defaultValue="overview" className='hidden md:flex'>
+                                <TabsList variant="line">
+                                    <TabsTrigger value="overview"><GrOverview />Overview</TabsTrigger>
+                                    {mark === "collected" && (
+                                        <TabsTrigger value="user-collection"><BsCollectionFill />Your Collection</TabsTrigger>
+                                    )}
+                                    <TabsTrigger value="dlcs"><ImBoxAdd />DLCs</TabsTrigger>
+                                    <TabsTrigger value="bundles"><GrMultiple />Bundles</TabsTrigger>
+                                    <TabsTrigger value="expanded-games"><GiExpander />Expanded Games</TabsTrigger>
+                                    <TabsTrigger value="screenshots"><FaImage />Screenshots</TabsTrigger>
+                                    <TabsTrigger value="artworks"><FaPaintBrush />Artwork</TabsTrigger>
+                                    <TabsTrigger value="videos"><RiVideoFill />Videos</TabsTrigger>
+                                </TabsList>
+                            </Tabs>
 
-                            {/* DLCs */}
-                            {gameDetails?.dlcs && gameDetails.dlcs.length > 0 && (
-                                <SmallCards title={'DLCs'} items={gameDetails.dlcs} />
+                            {gameDetails && tabView === "overview" && (
+                                <Overview gameDetails={gameDetails} />
                             )}
 
-                            {/* Bundles */}
-                            {gameDetails?.bundles && gameDetails.bundles.length > 0 && (
-                                <SmallCards title={'Bundles'} items={gameDetails.bundles} />
+                            {gameDetails && tabView === "user-collection" && (
+                                <UserCollection userGameData={userGameData} refreshPage={userGameDataRefresh} />
                             )}
 
-                            {/* Expanded Games */}
-                            {gameDetails?.expanded_games && gameDetails.expanded_games.length > 0 && (
-                                <SmallCards title={'Expanded Games'} items={gameDetails.expanded_games} />
+                            {gameDetails?.dlcs && tabView === "dlcs" && (
+                                <DLCs gameDetails={gameDetails} smallScreenOnlyTitle={true} />
+                            )}
+
+                            {gameDetails?.bundles && tabView === "bundles" && (
+                                <Bundles gameDetails={gameDetails} smallScreenOnlyTitle={true} />
+                            )}
+
+                            {gameDetails?.expanded_games && tabView === "expanded-games" && (
+                                <ExpandedGames gameDetails={gameDetails} smallScreenOnlyTitle={true} />
+                            )}
+
+
+                            {gameDetails?.screenshots && tabView === "screenshots" && (
+                                <Screenshots gameDetails={gameDetails} smallScreenOnlyTitle={true} />
+                            )}
+
+                            {gameDetails?.artworks && tabView === "artworks" && (
+                                <Artwork gameDetails={gameDetails} smallScreenOnlyTitle={true} />
+                            )}
+
+                            {gameDetails?.videos && tabView === "videos" && (
+                                <Videos gameDetails={gameDetails} smallScreenOnlyTitle={true} />
                             )}
                         </section>
+
+
                     </div>
                 </div>
-
-                {/* Screenshots */}
-                {gameDetails?.screenshots && gameDetails.screenshots.length > 0 && (
-                    <ImagesCarousel title={"Screenshots"} items={gameDetails.screenshots} />
-                )}
-
-                {/* Artworks */}
-                {gameDetails?.artworks && gameDetails.artworks.length > 0 && (
-                    <ImagesCarousel title={"Artworks"} items={gameDetails.artworks} />
-                )}
-
-                {/* Videos */}
-                {gameDetails?.videos && gameDetails.videos.length > 0 && (
-                    <Videos title={"Videos"} items={gameDetails.videos} />
-                )}
 
                 {/* Similar Games */}
                 {gameDetails?.similar_games && gameDetails.similar_games.length > 0 && (
                     <GamesCarousel title='Similar Games' games={gameDetails.similar_games} moreActive={false} />
                 )}
 
-                {/* Websites */}
-                {gameDetails?.websites && gameDetails.websites.length > 0 && (
-                    <section>
-                        <h2 className="text-2xl font-semibold mb-2">Related Websites</h2>
-                        <ul className='flex flex-wrap gap-2'>
-                            {gameDetails.websites.map((site, index) => (
-                                site.url && site.type &&
-                                <li key={`site-${site.id}`}>
-                                    <a href={site.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
-                                        {site.type.type}
-                                    </a>
-                                    {gameDetails.websites && index < gameDetails.websites.length - 1 && " |"}
-                                </li>
-                            ))}
-                        </ul>
-                    </section>
-                )}
-
             </div >
             {/* EXTRA DETAILS DIALOG */}
             <CollectedGamesDetails
-                extraDetailOpen={extraDetailOpen}
-                setExtraDetailsOpen={setExtraDetailsOpen}
-                mark={mark}
-                setMark={setMark}
+                open={extraDetailOpen}
+                setOpen={setExtraDetailsOpen}
+                // mark={mark}
+                // setMark={setMark}
+                // prevMark={prevMark}
+                mode="create"
                 gameDetails={gameDetails}
-                prevMark={prevMark}
+                onSaved={userGameDataRefresh}
             />
-
         </main >
     )
 }

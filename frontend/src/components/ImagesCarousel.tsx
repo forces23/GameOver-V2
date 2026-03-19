@@ -9,17 +9,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { url_igdb_t_original } from '@/lib/constants';
 
 type ImagesCarouselProps = {
-    title: string;
+    title?: string;
     items: Screenshot[] | Artwork[];
+    smallScreenOnlyTitle?: boolean;
 }
 
-export default function ImagesCarousel({ title = "", items }: ImagesCarouselProps) {
+export default function ImagesCarousel({ title = "", items, smallScreenOnlyTitle = false }: ImagesCarouselProps) {
     const [selectedImg, setSelectedImg] = useState<string | null>("");
 
     return (
         <>
             <section className='w-full'>
-                <h2 className="text-2xl font-semibold mb-2">{title}</h2>
+                <h2 className={`${smallScreenOnlyTitle && "md:hidden"} text-2xl font-semibold mb-2`}>{title}</h2>
                 <div className='flex justify-center'>
                     <Carousel className="w-full max-w-76 sm:max-w-xs md:max-w-sm xl:max-w-6xl">
                         <CarouselContent className="-ml-1">

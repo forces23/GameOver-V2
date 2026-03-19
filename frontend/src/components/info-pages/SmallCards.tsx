@@ -7,16 +7,17 @@ import React from 'react'
 import { outOfOrder, url_igdb_t_original } from '@/lib/constants';
 
 type SmallCardProps = {
-    title:string;
+    title?: string;
     items: Dlc[];
+    smallScreenOnlyTitle?: boolean;
 }
 
-export default function SmallCards({title = "", items}:SmallCardProps) {
+export default function SmallCards({ title = "", items, smallScreenOnlyTitle = false }: SmallCardProps) {
     const router = useRouter();
 
     return (
         <section>
-            <h4 className="text-2xl font-semibold mb-2">{title}</h4>
+            <h2 className={`${smallScreenOnlyTitle && "md:hidden"} text-2xl font-semibold mb-2`}>{title}</h2>
             <ul className='flex flex-wrap gap-2'>
                 {items.map((item) => (
                     <li

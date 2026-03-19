@@ -10,6 +10,7 @@ class GameCopies(BaseModel):
     condition: str
     purchase_date: int
     purchase_price: float
+    upc: str
     storage_location: str
     copies: int
     copy_notes: str

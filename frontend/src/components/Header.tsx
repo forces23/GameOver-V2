@@ -17,10 +17,11 @@ import { RiMenu5Line, RiMenu4Fill } from "react-icons/ri";
 import { TbSearch } from "react-icons/tb";
 import { useState } from 'react'
 import SearchBox from './search/SearchBox'
+import { Spinner } from './ui/spinner'
 
 export default function Header() {
     const router = useRouter();
-    const { user } = useUser();
+    const { user, isLoading } = useUser();
     // const pathName = usePathname();
     // const searchParams = useSearchParams();
     const [searchActive, setSearchActive] = useState<boolean>(false);
@@ -119,12 +120,16 @@ export default function Header() {
                                     </DropdownMenuItem>
                                 ) : (
                                     <DropdownMenuItem variant="default">
-                                        <button
-                                            onClick={() => handleAuthSession("login")}
-                                            className="button logout"
-                                        >
-                                            Log In
-                                        </button>
+                                        {isLoading ? (
+                                            <Spinner className="size-6" />
+                                        ) : (
+                                            <button
+                                                onClick={() => handleAuthSession("login")}
+                                                className="button logout"
+                                            >
+                                                Log In
+                                            </button>
+                                        )}
                                     </DropdownMenuItem>
                                 )}
                             </DropdownMenuGroup>
@@ -133,11 +138,15 @@ export default function Header() {
                 </div>
                 {!user && (
                     <div className='hidden md:flex'>
-                        <Button
-                            onClick={() => handleAuthSession("login")}
-                            className="login cursor-pointer">
-                            Log in
-                        </Button>
+                        {isLoading ? (
+                            <Spinner className="size-6" />
+                        ) : (
+                            <Button
+                                onClick={() => handleAuthSession("login")}
+                                className="login cursor-pointer">
+                                Log in
+                            </Button>
+                        )}
                     </div>
                 )}
             </div>

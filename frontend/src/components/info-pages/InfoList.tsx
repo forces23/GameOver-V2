@@ -1,10 +1,10 @@
-import { GameMode, Genre, IGDBPlatform, PlayerPerspective, Theme } from '@/lib/types'
+import { Franchise, GameMode, Genre, IGDBPlatform, PlayerPerspective, Theme } from '@/lib/types'
 import React from 'react'
 import { uuid } from 'zod'
 
 type ListProps = {
     title: string;
-    items: IGDBPlatform[] | Genre[] | Theme[] | PlayerPerspective[] | GameMode[];
+    items: IGDBPlatform[] | Genre[] | Theme[] | PlayerPerspective[] | GameMode[] | Franchise[];
 }
 
 export default function InfoList({ title = "", items }: ListProps) {

@@ -1,19 +1,18 @@
 "use client"
 
-import PageSkeleton from '@/components/PageSkeleton';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { getEvent } from '@/lib/api/igdb';
 import { ApiError, event_networks, IGDBEvent } from '@/lib/types';
-import { formatUnixTime, formatUnixTimeToDateTime, getNetworkIcon, normalizedURL } from '@/lib/utils';
+import { formatUnixTimeToDateTime, normalizedURL } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { FiGlobe } from "react-icons/fi";
 import NetworkIcon from '@/components/NetworkIcon';
 import { url_igdb_t_original } from '@/lib/constants';
 import GamesCarousel from '@/components/info-pages/GamesCarousel';
-import Videos from '@/components/info-pages/Videos';
+import Videos from '@/components/info-pages/VideosDisplay';
 import PageError from '@/components/PageError';
+import AnimatedLoading from '@/components/AnimatedLoading';
 
 export default function page() {
     const router = useRouter();
@@ -46,7 +45,7 @@ export default function page() {
         return () => { activate = false }
     }, [eventId]);
 
-    if (status === "loading") return <PageSkeleton />
+    if (status === "loading") return <AnimatedLoading />
     if (status === "error") return <PageError />
 
     return (

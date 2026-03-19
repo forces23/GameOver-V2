@@ -56,7 +56,7 @@ export const toUnixString = (date: Date): string => {
 
 export const getTodaysDate = () => {
   const todaysDate = toUnixString(new Date())
-  const {date, time} = formatUnixTimeToDateTime(todaysDate);
+  const { date, time } = formatUnixTimeToDateTime(todaysDate);
 
   return {
     unix: todaysDate,
@@ -113,7 +113,7 @@ export const buildFiltersObject = (params: ReadonlyURLSearchParams): ParamsObj =
     toDate: params.get("toDate") ?? "",
     page: Number(params.get("page")) ?? 1,
     limit: Number(params.get("limit")) && Number(params.get("limit")) !== 0 ? Number(params.get("limit")) : 50,
-    sort: params.get("sort") ?? "asc"
+    sort: params.get("sort") ?? "_score desc"
   }
 
   return filters
@@ -138,4 +138,39 @@ export const getNetworkIcon = (url: string) => {
   } catch {
     return ""
   }
+}
+
+export const formatCurrency = (value?: number) => {
+  if (value == null || Number.isNaN(value)) return "Not recorded";
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(value);
+};
+
+export const toTitleCase = (value?: string) => {
+  if (!value) return "Not specified";
+
+  return value
+    .split(/[-_ ]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+};
+
+export const updateSearchParams = (filters: ParamsObj, sp: URLSearchParams) => {
+  if (filters.query.trim()) sp.set("query", filters.query.trim());
+  filters.genres.forEach((id) => sp.append("genres", String(id)));
+  filters.themes.forEach((id) => sp.append("themes", String(id)));
+  filters.consoles.forEach((id) => sp.append("consoles", String(id)));
+  filters.gameModes.forEach((id) => sp.append("gameModes", String(id)));
+  if (filters.fromDate) sp.set("fromDate", filters.fromDate);
+  if (filters.toDate) sp.set("toDate", filters.toDate);
+
+  sp.set("page", String(filters.page));
+  sp.set("limit", String(filters.limit));
+  sp.set("sort", filters.sort.trim() || "_score desc" );
+
+  return sp;
 }

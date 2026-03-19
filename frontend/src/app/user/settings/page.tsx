@@ -2,10 +2,10 @@
 
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import * as Z from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Controller, useForm, UseFormReturn } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldTitle } from '@/components/ui/field'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
@@ -13,8 +13,7 @@ import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { getProfile, updateProfile } from '@/lib/api/db'
 import { useUser } from '@auth0/nextjs-auth0'
-import { ApiError, IGDBPlatform, Profile, TGDBPlatform } from '@/lib/types'
-import { getPlatforms } from '@/lib/api/tgdb'
+import { ApiError, IGDBPlatform, Profile } from '@/lib/types'
 import { toast, Toaster } from 'sonner';
 import {
     Combobox,
@@ -28,10 +27,10 @@ import {
     ComboboxValue,
     useComboboxAnchor,
 } from "@/components/ui/combobox"
-import PageSkeleton from '@/components/PageSkeleton'
 import PageError from '@/components/PageError'
 import { s3PresignedUrl } from '@/lib/api/aws'
 import { getAllPlatforms } from '@/lib/api/igdb'
+import AnimatedLoading from '@/components/AnimatedLoading'
 
 const formSchema = Z.object({
     display_name: Z
@@ -227,7 +226,7 @@ export default function page() {
         if (resp.ok) console.log(resp);
     }
 
-    if (status === "loading") return <PageSkeleton />
+    if (status === "loading") return <AnimatedLoading />
     if (status === "error") return <PageError />
 
     return (

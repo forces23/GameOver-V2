@@ -1,8 +1,8 @@
 "use client"
 
+import AnimatedLoading from '@/components/AnimatedLoading';
 import GamesCarousel from '@/components/info-pages/GamesCarousel';
 import PageError from '@/components/PageError';
-import PageSkeleton from '@/components/PageSkeleton';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getConsoleGamesById, getPlatformById } from '@/lib/api/igdb';
@@ -62,7 +62,7 @@ export default function page() {
         return () => { active = false }
     }, [consoleId])
 
-    if (status === "loading") return <PageSkeleton />;
+    if (status === "loading") return <AnimatedLoading />;
     if (status === "error") return <PageError />;
 
     return (

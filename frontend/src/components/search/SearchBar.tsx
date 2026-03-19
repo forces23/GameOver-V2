@@ -131,7 +131,7 @@ const formSchema = Z.object({
 type SearchBarProps = {
     originalData: any[];
     setData: React.Dispatch<React.SetStateAction<any[]>>
-    searchType: "console" | "game",
+    searchType: "console" | "game" | "collection" | "wishlist",
     onSubmitFilters?: (payload: GameSearchPayload) => void,
     filters?: {
         query: string,
@@ -248,16 +248,24 @@ export default function SearchBar({ originalData, setData, filters, searchType =
         if (searchType === "game") {
             onSubmitFilters?.(payload);
             return;
-        }
-        if (searchType === "console") {
+        } else if (searchType === "console") {
             const q = values.query.trim().toLowerCase();
-
             const results = originalData.filter((item) =>
                 item.name.toLowerCase().includes(q) || item.alias?.toLowerCase().includes(q)
             );
-
+            setData(results);
+        } else if (searchType === "collection" || searchType === "wishlist") {
+            const q = values.query.trim().toLowerCase();
+            const results = !q ? originalData :
+                originalData.filter((item) =>
+                    item.name.toLowerCase().includes(q) ||
+                    item.copies.some((copy: any) =>
+                        copy.platform.name.toLowerCase().includes(q)
+                    )
+                );
             setData(results);
         }
+
     }
 
     return (
@@ -286,11 +294,11 @@ export default function SearchBar({ originalData, setData, filters, searchType =
                         />
                     </FieldGroup>
                     {searchType === "game" &&
-                        <Accordion type="single" collapsible className="w-full">
+                        <Accordion type="single" collapsible className="w-full py-0">
                             <AccordionItem value="item-1">
                                 <AccordionTrigger>Advanced Search</AccordionTrigger>
                                 <AccordionContent>
-                                    <FieldGroup className="flex flex-row flex-wrap gap-2 pb-4">
+                                    <FieldGroup className="flex flex-row flex-wrap gap-2">
                                         <Controller
                                             name="genres"
                                             control={form.control}
@@ -558,7 +566,7 @@ export default function SearchBar({ originalData, setData, filters, searchType =
                             </AccordionItem>
                         </Accordion>
                     }
-                    <FieldGroup className="gap-2 flex flex-row justify-end">
+                    <FieldGroup className="gap-2 flex flex-row justify-end pt-3">
                         <Button
                             type="submit"
                             form="form-search-games"

@@ -21,6 +21,7 @@ type GameExtraDetails = {
         condition: string,
         purchase_date: number,
         purchase_price: number,
+        upc: string,
         storage_location: string,
         copies: number,
         copy_notes: string
@@ -33,7 +34,7 @@ export const gameCheck = async (igdb_id: number, accessToken?: string) => {
             Authorization: `Bearer ${accessToken}`
         }
     });
-
+    console.log(response);
     return response;
 }
 

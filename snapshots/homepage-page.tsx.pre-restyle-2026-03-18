@@ -15,7 +15,6 @@ import PageSkeleton from "@/components/PageSkeleton";
 import PageError from "@/components/PageError";
 import { getTodaysDate } from "@/lib/utils";
 import { atfFilterPayload, top15Consoles } from "@/lib/defaults";
-import AnimatedLoading from "@/components/AnimatedLoading";
 
 export default function Home() {
   const router = useRouter();
@@ -25,6 +24,7 @@ export default function Home() {
   const [popularConsoles, setPopularConsoles] = useState<IGDBPlatform[]>([]);
   const [error, setError] = useState<ApiError | null>(null)
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+
 
   useEffect(() => {
     let active = true;
@@ -75,11 +75,11 @@ export default function Home() {
     return () => { active = false }
   }, []);
 
-  if (status === "loading") return <AnimatedLoading />
+  if (status === "loading") return <PageSkeleton />
   if (status === "error") return <PageError />
 
   return (
-    <main className="flex py-8 grow w-full flex-col items-center gap-5 text-card-foreground sm:items-start">
+    <main className="flex py-8 grow w-full  flex-col items-center  gap-5  text-card-foreground sm:items-start">
       {/* UPCOMING EVENTS */}
       {upcomingEvents && upcomingEvents.length > 0 &&
         <section className='pb-4 md:pb-16 w-full max-w-500'>
@@ -136,3 +136,4 @@ export default function Home() {
     </main>
   );
 }
+

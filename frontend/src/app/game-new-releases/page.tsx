@@ -4,8 +4,8 @@ import React, { useEffect, useState } from 'react'
 import { getUpcomingReleases } from '@/lib/api/igdb'
 import ThemeCarousel from '@/components/info-pages/ThemeCarousel'
 import { ApiError, GameData } from '@/lib/types'
-import PageSkeleton from '@/components/PageSkeleton'
 import PageError from '@/components/PageError'
+import AnimatedLoading from '@/components/AnimatedLoading'
 
 
 export default function page() {
@@ -19,7 +19,7 @@ export default function page() {
         setStatus("loading");
         const run = async () => {
             const result = await getUpcomingReleases(500);
-            if(!active) return;
+            if (!active) return;
 
             if (result.ok) {
                 setReleases(result.data);
@@ -30,18 +30,22 @@ export default function page() {
             }
         }
         run();
-        return () => {active = false}
+        return () => { active = false }
     }, []);
 
-    if (status === "loading") return <PageSkeleton />
     if (status === "error") return <PageError />
 
     return (
-        <>
-            <ThemeCarousel title='Horror' games={releases} theme='horror' />
-            <ThemeCarousel title='Massive Open World' games={releases} theme='sandbox' />
-            <ThemeCarousel title='Science fiction' games={releases} theme='science-fiction' />
-            <ThemeCarousel title='Fantasy' games={releases} theme='fantasy' />
-        </>
+
+        status === "loading" ? (
+            <AnimatedLoading />
+        ) : (
+            <>
+                <ThemeCarousel title='Horror' games={releases} theme='horror' />
+                <ThemeCarousel title='Massive Open World' games={releases} theme='sandbox' />
+                <ThemeCarousel title='Science fiction' games={releases} theme='science-fiction' />
+                <ThemeCarousel title='Fantasy' games={releases} theme='fantasy' />
+            </>
+        )
     )
 }

@@ -3,11 +3,14 @@
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##  
 from utils.schemas.mongodb import GameCreate, ProfilePut
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 from mongodb import get_db
 from fastapi import APIRouter, Depends, HTTPException, status
 from auth import get_current_user
 from datetime import datetime
 from pymongo.errors import DuplicateKeyError, ServerSelectionTimeoutError, PyMongoError
+from bson import ObjectId
+
 
 mongodb_router = APIRouter(tags=["mongodb"])
 
@@ -34,14 +37,23 @@ async def game_check(igdb_id:int, user_id:str = Depends(get_current_user)):
             }
         }
         
+        
+        
     # if doc was found then return this
+    # return {
+    #     "data": {
+    #         "saved": True,
+    #         "wishlist": bool(doc.get("wishlist", False)),
+    #         "collected": bool(doc.get("collected", False)),
+    #         "favorite": bool(doc.get("favorite", False))
+    #     }
+    # }
+    
     return {
-        "data": {
-            "saved": True,
-            "wishlist": bool(doc.get("wishlist", False)),
-            "collected": bool(doc.get("collected", False)),
-            "favorite": bool(doc.get("favorite", False))
-        }
+        "data": jsonable_encoder(
+            doc,
+            custom_encoder={ObjectId:str}
+        )
     }
 
 # Save a game to user's collection
