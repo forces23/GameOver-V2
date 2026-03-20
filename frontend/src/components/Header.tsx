@@ -101,7 +101,7 @@ export default function Header() {
                                 {user && (
                                     <>
                                         <DropdownMenuItem onClick={() => { router.push("/user/profile") }}>Profile</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => router.push("/user/wishlist")}>wishlist</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => router.push("/user/wishlist")}>Wishlist</DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => router.push("/user/collection")}>Collection</DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => router.push("/user/settings")}>Settings</DropdownMenuItem>
                                     </>

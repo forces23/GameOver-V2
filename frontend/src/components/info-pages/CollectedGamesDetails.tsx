@@ -61,7 +61,7 @@ const defaultCopies = {
     purchase_price: 0.00,
     upc: "",
     storage_location: "",
-    copies: 0,
+    copies: 1,
     copy_notes: ""
 }
 
