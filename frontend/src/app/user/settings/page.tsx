@@ -31,6 +31,7 @@ import PageError from '@/components/PageError'
 import { s3PresignedUrl } from '@/lib/api/aws'
 import { getAllPlatforms } from '@/lib/api/igdb'
 import AnimatedLoading from '@/components/AnimatedLoading'
+import { getAccessToken } from '@/lib/utils'
 
 const formSchema = Z.object({
     display_name: Z
@@ -110,18 +111,16 @@ export default function page() {
         if (!user) return;
         let active = true;
 
-
         const run = async () => {
             setStatus("loading");
-            const tokenResponse = await fetch("/api/auth/token");
-            const { accessToken } = await tokenResponse.json();
+
+            const [accessToken, platformsResp] = await Promise.all([
+                getAccessToken(),
+                getAllPlatforms()
+            ])
             if (!active) return;
 
-            // const platformsResp = await getPlatforms();
-            const platformsResp = await getAllPlatforms();
-            if (!active) return;
             if (platformsResp.ok) {
-                console.log(platformsResp)
                 setSystems(platformsResp.data);
                 setStatus("success");
             } else {
@@ -160,8 +159,6 @@ export default function page() {
                 setStatus("error");
                 setError(profileResp.error);
             }
-
-
         }
 
         toast.promise(run, {
@@ -169,13 +166,11 @@ export default function page() {
         });
 
         return () => { active = false }
-    }, [user])
+    }, [user]);
 
     const submitProfile = async (data: Z.infer<typeof formSchema>) => {
         // handle submission
-        console.log(data);
-        const tokenResponse = await fetch("/api/auth/token");
-        const { accessToken } = await tokenResponse.json();
+        const accessToken = await getAccessToken();
 
         let avatarFilename = data.avatar.filename;
         let avatarPublicUrl = data.avatar.public_url;

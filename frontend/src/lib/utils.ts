@@ -8,6 +8,14 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// Fetch access token from Auth0
+export const getAccessToken = async () => {        
+  const tokenResponse = await fetch('/api/auth/token');
+  const { accessToken } = await tokenResponse.json();
+
+  return accessToken
+}
+
 export const toApiError = (err: unknown): ApiError => {
   const e = err as AxiosError<any>;
   const detail = e.response?.data?.detail;
@@ -170,7 +178,7 @@ export const updateSearchParams = (filters: ParamsObj, sp: URLSearchParams) => {
 
   sp.set("page", String(filters.page));
   sp.set("limit", String(filters.limit));
-  sp.set("sort", filters.sort.trim() || "_score desc" );
+  sp.set("sort", filters.sort.trim() || "_score desc");
 
   return sp;
 }

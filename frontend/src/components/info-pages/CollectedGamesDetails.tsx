@@ -1,6 +1,6 @@
 
-import React, { useEffect, useState } from 'react'
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import React, { useEffect, useRef, useState } from 'react'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { ChevronDownIcon } from 'lucide-react';
 import { FaRegStar, FaStar } from 'react-icons/fa';
 import { FieldGroup, Field, FieldLabel, FieldError, FieldDescription } from '../ui/field';
@@ -14,7 +14,7 @@ import { Input } from '../ui/input';
 import * as Z from "zod"
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm, useFieldArray } from "react-hook-form";
-import { getTodaysDate, toTitleCase } from '@/lib/utils';
+import { getAccessToken, getTodaysDate, toTitleCase } from '@/lib/utils';
 import { saveGame } from '@/lib/api/db';
 import { toast } from 'sonner';
 import { GameData, GameSimple, IGDBPlatform, Mark } from '@/lib/types';
@@ -80,6 +80,7 @@ type CollectedGamesDetailsProps = {
     mode: "create" | "edit";
     existingData?: GameSimple | null;
     onSaved?: () => Promise<void> | void;
+    onCancel?: () => void;
 }
 
 export default function CollectedGamesDetails({
@@ -88,12 +89,14 @@ export default function CollectedGamesDetails({
     gameDetails,
     mode,
     existingData,
-    onSaved
+    onSaved,
+    onCancel,
 }: CollectedGamesDetailsProps) {
     const { user } = useUser();
     const currentPath = `${window.location.pathname}${window.location.search}`;
     const [gameData, setGameData] = useState<GameData>();
     const [platforms, setPlatforms] = useState<IGDBPlatform[]>([]);
+    const skipCancelRef = useRef(false);
     const form = useForm<Z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: defaultGameSave
@@ -118,9 +121,7 @@ export default function CollectedGamesDetails({
         }
 
         const run = (async () => {
-            // Fetch access token from Auth0
-            const tokenResponse = await fetch('/api/auth/token');
-            const { accessToken } = await tokenResponse.json();
+            const accessToken = await getAccessToken();
 
             // save to collection 
             // add extra details to send to the backend on the backend if empty then just ignore it
@@ -140,8 +141,21 @@ export default function CollectedGamesDetails({
         } catch (error) {
             throw new Error("Save Failed");
         } finally {
+            skipCancelRef.current = true;
             setOpen(false);
         }
+    }
+
+    const handleOpenChange = (nextOpen: boolean) => {
+        if (!nextOpen && !skipCancelRef.current) {
+            onCancel?.();
+        }
+
+        if (skipCancelRef.current) {
+            skipCancelRef.current = false;
+        }
+
+        setOpen(nextOpen);
     }
 
     useEffect(() => {
@@ -175,7 +189,7 @@ export default function CollectedGamesDetails({
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="overflow-hidden p-0 sm:max-w-4xl">
                 <form id='form-extra-save-details' onSubmit={form.handleSubmit(
                     (values) => handleFormSubmit(values),
@@ -510,16 +524,13 @@ export default function CollectedGamesDetails({
                     </div>
 
                     <DialogFooter className="border-t px-6 py-4">
-                        <DialogClose asChild>
-                            <Button
-                                variant="outline"
-                                onClick={() => {
-                                    setOpen(false);
-                                }}
-                            >
-                                Cancel
-                            </Button>
-                        </DialogClose>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => handleOpenChange(false)}
+                        >
+                            Cancel
+                        </Button>
                         <Button type="submit">Save Game</Button>
                     </DialogFooter>
                 </form>

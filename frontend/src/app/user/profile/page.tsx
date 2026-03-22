@@ -10,6 +10,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { getFavorites, getProfile } from "@/lib/api/db";
 import { missingImg, url_igdb_t_original } from "@/lib/constants";
 import { ApiError, GameSimple, Profile } from "@/lib/types";
+import { getAccessToken } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0";
 import Image from 'next/image';
 import Link from "next/link";
@@ -57,12 +58,13 @@ export default function Page() {
         const run = async () => {
             setStatus("loading");
 
-            const tokenResponse = await fetch("/api/auth/token");
-            const { accessToken } = await tokenResponse.json()
+            const accessToken = await getAccessToken();
             if (!active) return;
 
-            const profileResp = await getProfile(accessToken);
-            const favGamesResp = await getFavorites(accessToken);
+            const [profileResp, favGamesResp] = await Promise.all([
+                getProfile(accessToken),
+                getFavorites(accessToken)
+            ])
             if (!active) return;
 
             if (!profileResp.ok) {

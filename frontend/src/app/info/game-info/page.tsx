@@ -8,7 +8,7 @@ import { ApiError, GameData, Mark } from '@/lib/types';
 import { getGameDetails } from '@/lib/api/igdb';
 import { BsBookmark, BsBookmarkCheckFill, BsCollection, BsCollectionFill } from "react-icons/bs";
 import PageError from '@/components/PageError';
-import { useUser } from '@auth0/nextjs-auth0';
+import { getAccessToken, useUser } from '@auth0/nextjs-auth0';
 import { deleteGame, gameCheck, saveGame } from '@/lib/api/db';
 import { toast, Toaster } from 'sonner';
 import { FaRegStar, FaStar } from 'react-icons/fa';
@@ -35,6 +35,8 @@ import Videos from '@/components/info-pages/game-info/Videos';
 import UserCollection from '@/components/info-pages/game-info/UserCollection';
 import NetworkIcon from '@/components/NetworkIcon';
 import AnimatedLoading from '@/components/AnimatedLoading';
+import { Badge } from '@/components/ui/badge';
+import { Spinner } from '@/components/ui/spinner';
 
 
 
@@ -49,7 +51,7 @@ export default function GameInfo() {
     const [prevMark, setPrevMark] = useState<Mark>(null);
     const { user } = useUser();
     const [error, setError] = useState<ApiError | null>(null)
-    const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+    const [status, setStatus] = useState<"loading" | "success" | "error" | "game-check">("loading");
     const [extraDetailOpen, setExtraDetailsOpen] = useState<boolean>(false);
     const [favorite, setFavorite] = useState<boolean>(false);
     const [tabView, setTabView] = useState<string>("overview");
@@ -77,6 +79,9 @@ export default function GameInfo() {
 
             if (result.ok) {
                 setGameDetails(result.data);
+                if (user) {
+                    gameColCheck(result.data.id)
+                }
                 setStatus("success");
             } else {
                 setError(result.error);
@@ -88,26 +93,23 @@ export default function GameInfo() {
         return () => { active = false }
     }, [gameId]);
 
+    // check if game is in users collection 
+    const gameColCheck = async (gameId: number) => {
+        setStatus("game-check");
+        const accessToken = await getAccessToken();
+        const resp = await gameCheck(gameId, accessToken);
+
+        setUserGameData(resp.data.data)
+        setFavorite(resp.data.data.favorite);
+        if (resp.data.data.collected) setMark("collected");
+        else if (resp.data.data.wishlist) setMark("wishlist");
+        else setMark(null);
+        setStatus("success");
+    }
 
     const userGameDataRefresh = () => {
         if (!gameDetails) return;
-
-        // check if game is in users collection 
-        const gameColCheck = async () => {
-            // Fetch access token from Auth0
-            const tokenResponse = await fetch('/api/auth/token');
-            const { accessToken } = await tokenResponse.json();
-
-            const resp = await gameCheck(gameDetails.id, accessToken);
-
-            setUserGameData(resp.data.data)
-            setFavorite(resp.data.data.favorite);
-            if (resp.data.data.collected) setMark("collected");
-            else if (resp.data.data.wishlist) setMark("wishlist");
-            else setMark(null);
-        }
-        if (user) gameColCheck();
-
+        if (user) gameColCheck(gameDetails.id);
 
         if (gameDetails.artworks && gameDetails.artworks.length > 0) {
             setBannerBgUrl(`${url_igdb_t_original}${gameDetails['artworks'][0]['image_id']}.jpg`);
@@ -129,11 +131,9 @@ export default function GameInfo() {
         }
 
         const runWishlist = (async () => {
-            // Fetch access token from Auth0
-            const tokenResponse = await fetch('/api/auth/token');
-            const { accessToken } = await tokenResponse.json();
-
+            const accessToken = await getAccessToken();
             const resp = await saveGame(gameDetails, null, accessToken, false, true);
+
             if (!resp.ok) throw new Error("Save Failed!");
             return { action: "added to", target: "wishlist" }
         })();
@@ -158,13 +158,11 @@ export default function GameInfo() {
             return;
         }
 
+        // delete from collection
         const run = (async () => {
-            // Fetch access token from Auth0
-            const tokenResponse = await fetch('/api/auth/token');
-            const { accessToken } = await tokenResponse.json();
-
-            // delete from collection
+            const accessToken = await getAccessToken();
             const resp = await deleteGame(gameDetails.id, accessToken)
+
             if (!resp.ok) throw new Error("Delete Failed!");
             return { action: "removed from", target: mark }
         })();
@@ -192,10 +190,9 @@ export default function GameInfo() {
         const favState = !favorite
         setFavorite(favState);
 
+        // add to favorites
         const runFav = (async () => {
-            // Fetch access token from Auth0 --- TODO: Need to make this happen one time per page for user logged in 
-            const tokenResponse = await fetch('/api/auth/token');
-            const { accessToken } = await tokenResponse.json();
+            const accessToken = await getAccessToken();
 
             if (!favState && mark === null) {
                 // delete and set mark to null
@@ -237,6 +234,10 @@ export default function GameInfo() {
         }
     }
 
+    const handleCollectionDialogCancel = () => {
+        setMark(prevMark);
+    }
+
     if (status === "loading") return <AnimatedLoading />;
     if (status === "error") return <PageError />;
     // TODO: future change for error page
@@ -259,29 +260,38 @@ export default function GameInfo() {
                             <h1 className='ps-6 text-4xl text-center font-bold w-full justify-center flex'>
                                 {gameDetails.name}
                             </h1>
-                            <div className='flex flex-col gap-3'>
-                                <div className="flex justify-center gap-3 pe-3">
-                                    <span
-                                        onClick={() => { handleSave("wishlist") }}
-                                        className='md:text-2xl'>
-                                        {mark === "wishlist" ?
-                                            <BsBookmarkCheckFill /> : <BsBookmark />
-                                        }
-                                    </span>
-                                    <span
-                                        onClick={() => { handleSave("collected") }}
-                                        className='md:text-2xl'>
-                                        {mark === "collected" ?
-                                            <BsCollectionFill /> : <BsCollection />
-                                        }
-                                    </span>
-                                    <span onClick={() => { mark === "collected" && handleFavorites() }} className='md:text-2xl'>
-                                        {favorite ?
-                                            <FaStar /> : <FaRegStar />
-                                        }
-                                    </span>
+                            {user && status === "game-check" ? (
+                                <div>
+                                    <Badge>
+                                        <Spinner data-icon="inline-start" />
+                                        Syncing
+                                    </Badge>
                                 </div>
-                            </div>
+                            ) : (
+                                <div className='flex flex-col gap-3'>
+                                    <div className="flex justify-center gap-3 pe-3">
+                                        <span
+                                            onClick={() => { handleSave("wishlist") }}
+                                            className='md:text-2xl'>
+                                            {mark === "wishlist" ?
+                                                <BsBookmarkCheckFill /> : <BsBookmark />
+                                            }
+                                        </span>
+                                        <span
+                                            onClick={() => { handleSave("collected") }}
+                                            className='md:text-2xl'>
+                                            {mark === "collected" ?
+                                                <BsCollectionFill /> : <BsCollection />
+                                            }
+                                        </span>
+                                        <span onClick={() => { mark === "collected" && handleFavorites() }} className='md:text-2xl'>
+                                            {favorite ?
+                                                <FaStar /> : <FaRegStar />
+                                            }
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     }
 
@@ -424,16 +434,14 @@ export default function GameInfo() {
 
             </div >
             {/* EXTRA DETAILS DIALOG */}
-            <CollectedGamesDetails
-                open={extraDetailOpen}
-                setOpen={setExtraDetailsOpen}
-                // mark={mark}
-                // setMark={setMark}
-                // prevMark={prevMark}
-                mode="create"
-                gameDetails={gameDetails}
-                onSaved={userGameDataRefresh}
-            />
+                                        <CollectedGamesDetails
+                                            open={extraDetailOpen}
+                                            setOpen={setExtraDetailsOpen}
+                                            mode="create"
+                                            gameDetails={gameDetails}
+                                            onSaved={userGameDataRefresh}
+                                            onCancel={handleCollectionDialogCancel}
+                                        />
         </main >
     )
 }

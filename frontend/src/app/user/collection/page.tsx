@@ -3,7 +3,7 @@
 import { getCollectedGames } from '@/lib/api/db';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react'
-import { formatUnixTime } from '@/lib/utils';
+import { formatUnixTime, getAccessToken } from '@/lib/utils';
 import { ApiError, GameSimple, Genre } from '@/lib/types';
 import Link from 'next/link';
 import { FaRegStar, FaStar } from 'react-icons/fa';
@@ -51,12 +51,8 @@ export default function Page() {
     const run = async () => {
         setStatus("loading");
 
-        const tokenResponse = await fetch("/api/auth/token");
-        const { accessToken } = await tokenResponse.json()
-        // if (!active) return;
-
+        const accessToken = await getAccessToken();
         const resp = await getCollectedGames("collected", accessToken);
-        // if (!active) return;
 
         if (resp.ok) {
             setCollection(resp.data.games);
@@ -69,9 +65,7 @@ export default function Page() {
     }
 
     useEffect(() => {
-        // let active = true;
         run();
-        // return () => { active = false }
     }, []);
 
     if (status === "loading") return <AnimatedLoading />
