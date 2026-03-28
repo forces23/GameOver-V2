@@ -172,6 +172,8 @@ export default function page() {
         // handle submission
         const accessToken = await getAccessToken();
 
+        console.log("profile submit: ",data);
+
         let avatarFilename = data.avatar.filename;
         let avatarPublicUrl = data.avatar.public_url;
         let bannerFilename = data.banner.filename;
@@ -185,6 +187,7 @@ export default function page() {
                 data.avatar.file,
                 accessToken
             );
+            console.log("s3 avatar upload: ", avatarS3URI);
             if (!avatarS3URI.ok) return;
             avatarFilename = data.avatar.filename;
             avatarPublicUrl = avatarS3URI.data.url;
@@ -198,6 +201,7 @@ export default function page() {
                 data.banner.file,
                 accessToken
             );
+            console.log("s3 avatar upload: ", bannerS3URI);
             if (!bannerS3URI.ok) return;
             bannerFilename = data.banner.file.name;
             bannerPublicUrl = bannerS3URI.data.url;

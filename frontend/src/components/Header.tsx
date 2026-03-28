@@ -11,26 +11,24 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useUser } from '@auth0/nextjs-auth0'
+import { getAccessToken, useUser } from '@auth0/nextjs-auth0'
 import { getTodaysDate, isPublicRoute } from '@/lib/utils'
 import { RiMenu5Line, RiMenu4Fill } from "react-icons/ri";
-import { TbSearch } from "react-icons/tb";
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import SearchBox from './search/SearchBox'
 import { Spinner } from './ui/spinner'
+import { Profile } from '@/lib/types'
+import { getProfile } from '@/lib/api/db'
 
 export default function Header() {
     const router = useRouter();
     const { user, isLoading } = useUser();
-    // const pathName = usePathname();
-    // const searchParams = useSearchParams();
-    const [searchActive, setSearchActive] = useState<boolean>(false);
     const [menuOpen, setMenuOpen] = useState<boolean>(false);
+    const [userProfile, setUserProfile] = useState<Profile>();
 
     const handleAuthSession = (authType: string) => {
         // get the current path so you can return to it after logging out 
         const currentPath = `${window.location.pathname}${window.location.search}`;
-        console.log(currentPath)
 
         // checks to see if current path is a public path
         const safe = isPublicRoute(currentPath) ? currentPath : "/";
@@ -39,6 +37,20 @@ export default function Header() {
         // window.location.href = `/auth/logout`
         window.location.href = `/auth/${authType}?returnTo=${encodeURI(`${window.location.origin}/session-return`)}`;
     }
+
+    useEffect(() => {
+        if(!user) return;
+
+        const runProfile = async () => {
+            const accessToken = await getAccessToken();
+            const result = await getProfile(accessToken);
+            
+            if (result.ok) {
+                setUserProfile(result.data.data)
+            }
+        }
+        runProfile();
+    },[user])
 
     return (
         <header className="w-full flex pt-2 h-20">
@@ -82,8 +94,8 @@ export default function Header() {
                             <Button variant="ghost" size="icon" className={`rounded-full cursor-pointer ${!user && 'md:hidden'} h-12 w-12`}>
                                 {user ? (
                                     <Avatar>
-                                        <AvatarImage src="https://github.com/shadcn.png" alt="user-avatar" />
-                                        <AvatarFallback>BL</AvatarFallback>
+                                        <AvatarImage src={userProfile?.avatar.public_url} alt="user-avatar" />
+                                        <AvatarFallback>{user.picture}</AvatarFallback>
                                     </Avatar>
                                 ) : menuOpen ? (
                                     <RiMenu4Fill className='md:hidden size-8' />
@@ -113,19 +125,19 @@ export default function Header() {
                                     <DropdownMenuItem variant="destructive">
                                         <button
                                             onClick={() => handleAuthSession("logout")}
-                                            className="button logout"
+                                            className="button logout w-full"
                                         >
                                             Log Out
                                         </button>
                                     </DropdownMenuItem>
                                 ) : (
-                                    <DropdownMenuItem variant="default">
+                                    <DropdownMenuItem variant="default" className='items-start'>
                                         {isLoading ? (
                                             <Spinner className="size-6" />
                                         ) : (
                                             <button
                                                 onClick={() => handleAuthSession("login")}
-                                                className="button logout"
+                                                className="button w-full login"
                                             >
                                                 Log In
                                             </button>

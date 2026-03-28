@@ -302,6 +302,7 @@ export type SimilarGame = {
   id: number;
   cover: SimilarGameCover;
   name: string;
+  first_release_date?: number; //TODO: need to add this in i only added it here to be a temp fix for a error
 };
 
 export type SimilarGameCover = {

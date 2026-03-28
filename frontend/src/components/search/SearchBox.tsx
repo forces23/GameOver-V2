@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut } from '@/components/ui/command'
+import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command'
 import Image from 'next/image'
 import { formatUnixTime } from '@/lib/utils'
 import { SearchResults } from '@/lib/types'
@@ -12,6 +12,10 @@ import { TbSearch } from "react-icons/tb";
 import { Kbd } from "@/components/ui/kbd"
 import { missingImg, url_igdb_t_original } from '@/lib/constants'
 import { gpPayload } from '@/lib/defaults'
+import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
+import { Monitor, Gamepad2 } from 'lucide-react'
+import { GiGameConsole } from "react-icons/gi";
 
 export default function SearchBox() {
     const router = useRouter();
@@ -41,7 +45,6 @@ export default function SearchBox() {
 
                 const result = await getSearchResults(payload);
                 if (result.ok) {
-                    console.log(result.data.consoles)
                     setSearchResults({ games: result.data.games, consoles: result.data.consoles });
                 }
             }
@@ -73,6 +76,8 @@ export default function SearchBox() {
         setOpen(false);
     }
 
+    const totalResults = searchResults.games.length + searchResults.consoles.length;
+
     return (
         <div>
             <div className='md:hidden'>
@@ -86,73 +91,125 @@ export default function SearchBox() {
                 </Button>
             </div>
 
-            <CommandDialog open={open} onOpenChange={setOpen} className='sm:max-w-4xl h-[70vh]'>
+            <CommandDialog open={open} onOpenChange={setOpen} className='h-[75vh] overflow-hidden border-border/70 bg-background/95 sm:max-w-5xl'>
                 <Command className='h-full'>
                     <CommandInput
                         value={gameTitle}
                         onValueChange={(value) => setGameTitle(value)}
                         placeholder="Start typing to search..." />
                     <CommandList className="max-h-none">
-                        <CommandEmpty>No results found.</CommandEmpty>
-                        <CommandGroup heading="Games" className='[&_[cmdk-group-heading]]:text-xl'>
-                            <div className='grid grid-cols-1 md:grid-cols-2'>
+                        <div className="border-b border-border/60 px-4 py-3 text-sm text-muted-foreground">
+                            {gameTitle.trim()
+                                ? `${totalResults} result${totalResults === 1 ? "" : "s"} for "${gameTitle}"`
+                                : "Search games and consoles from one place."}
+                        </div>
+                        <CommandEmpty className="py-10 text-center text-sm text-muted-foreground">
+                            No results found for that search.
+                        </CommandEmpty>
+                        <CommandGroup
+                            heading={`Games${searchResults.games.length ? ` (${searchResults.games.length})` : ""}`}
+                            className='px-2 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.24em] [&_[cmdk-group-heading]]:text-muted-foreground'
+                        >
+                            <div className='grid grid-cols-1 gap-2 md:grid-cols-2'>
                                 {searchResults.games.map((result: any, index: number) => {
                                     return (
                                         <CommandItem
                                             key={`${result.name}-${index}`}
                                             value={result.name}
                                             onSelect={() => handleSelectedGame(result.id)}
-                                            className="flex items-center gap-3"
+                                            className="rounded-2xl border border-transparent p-0 aria-selected:border-primary/30 aria-selected:bg-muted/60"
                                         >
-                                            {result.cover ?
-                                                <Image
-                                                    src={`${url_igdb_t_original}${result.cover.image_id}.jpg`}
-                                                    alt={`${result.name}+Cover`}
-                                                    height={50}
-                                                    width={100}
-                                                />
-                                                : <div className='bg-gray-300 h-[130] w-[100]'></div>
-                                            }
-                                            <div className="flex flex-col">
-                                                <span className="font-medium">{result.name}</span>
-                                                <span className="text-xs opacity-70">
-                                                    {result.platforms && result.platforms.map((platform: any, index: number) => (
-                                                        <span>{`${platform.name}${index < result.platforms.length - 1 ? ", " : ""}`}</span>
-                                                    ))}
-                                                </span>
-                                                <span className="text-xs opacity-70">
-                                                    {result.first_release_date && (
-                                                        `Released: ${formatUnixTime(result.first_release_date)}`
+                                            <Card className="flex min-h-32 w-full flex-row gap-3 overflow-hidden rounded-2xl border-border/60 bg-card/70 p-0 shadow-sm transition-colors">
+                                                <div className="relative w-24 shrink-0 overflow-hidden bg-muted md:w-28">
+                                                    {result.cover && result.cover.image_id !== undefined ? (
+                                                        <Image
+                                                            src={`${url_igdb_t_original}${result.cover.image_id}.jpg`}
+                                                            alt={`${result.name} cover`}
+                                                            fill
+                                                            sizes="160px"
+                                                            className="object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className='flex h-full items-center justify-center bg-muted text-muted-foreground rounded-md'>
+                                                            <Gamepad2 className="size-8" />
+                                                        </div>
                                                     )}
-                                                </span>
-                                            </div>
+                                                </div>
+                                                <div className="flex min-w-0 flex-1 flex-col justify-between p-3">
+                                                    <div className="space-y-2">
+                                                        <div className="flex items-start justify-between gap-2">
+                                                            <span className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
+                                                                {result.name}
+                                                            </span>
+                                                            <Badge variant="secondary" className="shrink-0 rounded-full">
+                                                                Game
+                                                            </Badge>
+                                                        </div>
+                                                        <p className="line-clamp-2 text-xs leading-5 text-muted-foreground">
+                                                            {result.platforms?.length
+                                                                ? result.platforms.map((platform: any) => platform.name).join(", ")
+                                                                : "Platform information unavailable"}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                                                        <span>
+                                                            {result.first_release_date
+                                                                ? formatUnixTime(result.first_release_date)
+                                                                : "Release unknown"}
+                                                        </span>
+                                                        <span>Open game</span>
+                                                    </div>
+                                                </div>
+                                            </Card>
                                         </CommandItem>
                                     )
                                 })}
                             </div>
                         </CommandGroup>
                         <CommandSeparator />
-                        <CommandGroup heading="Consoles" className='[&_[cmdk-group-heading]]:text-xl'>
-                            <div className='grid grid-cols-1 md:grid-cols-3'>
+                        <CommandGroup
+                            heading={`Consoles${searchResults.consoles.length ? ` (${searchResults.consoles.length})` : ""}`}
+                            className='px-2 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.24em] [&_[cmdk-group-heading]]:text-muted-foreground'
+                        >
+                            <div className='grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3'>
                                 {searchResults.consoles.map((result: any, index: number) => {
                                     return (
                                         <CommandItem
                                             key={`${result.name}-${index}`}
                                             value={result.name}
                                             onSelect={() => handleSelectedConsole(result.id)}
-                                            className="flex items-center gap-3"
+                                            className="rounded-2xl border border-transparent p-0 aria-selected:border-primary/30 aria-selected:bg-muted/60"
                                         >
-                                            <div className='relative bg-card-foreground rounded-2xl w-25 aspect-square px-2 py-4'>
-                                                <Image
-                                                    src={result.platform_logo?.image_id && result.platform_logo?.image_id !== undefined ? `${url_igdb_t_original}${result.platform_logo?.image_id}.jpg` : missingImg}
-                                                    alt={`${result.name}+Cover`}
-                                                    fill
-                                                    className='object-contain'
-                                                />
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="font-medium">{result.name}</span>
-                                            </div>
+                                            <Card className="flex min-h-28 w-full flex-row items-center gap-3 rounded-2xl border-border/60 bg-card/70 p-3 shadow-sm transition-colors">
+                                                <div className='relative aspect-square w-20 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-muted/60 via-card to-card p-3'>
+                                                    {result.platform_logo?.image_id && result.platform_logo?.image_id !== undefined ? (
+                                                        <Image
+                                                            src={`${url_igdb_t_original}${result.platform_logo?.image_id}.jpg`}
+                                                            alt={`${result.name} logo`}
+                                                            fill
+                                                            className='object-contain p-3'
+                                                        />
+                                                    ) : (
+                                                        <div className='flex h-full items-center justify-center bg-muted text-muted-foreground rounded-md'>
+                                                            <GiGameConsole className="size-8" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="flex min-w-0 flex-1 flex-col justify-between gap-2">
+                                                    <div className="flex items-start justify-between gap-2">
+                                                        <span className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
+                                                            {result.name}
+                                                        </span>
+                                                        <Badge variant="secondary" className="shrink-0 rounded-full">
+                                                            <Monitor className="size-3" />
+                                                            Console
+                                                        </Badge>
+                                                    </div>
+                                                    <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                                                        Open platform
+                                                    </p>
+                                                </div>
+                                            </Card>
                                         </CommandItem>
                                     )
                                 })}

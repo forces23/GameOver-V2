@@ -65,7 +65,7 @@ def s3_presigned_url(payload: UploadReqs, user_id:str = Depends(get_current_user
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
                 "code": "S3_PRESIGNED_URL_FAILED",
-                "message": "Failed to get a presigned url",
+                "message": "Failed to get a presigned url:: {e.response.text} ",
                 "status": 500,
             }
         )

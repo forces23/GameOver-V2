@@ -364,7 +364,7 @@ export default function GameInfo() {
                                             <DropdownMenuItem onClick={() => setTabView("screenshots")}>
                                                 <FaImage />Screenshots
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => setTabView("artwork")}>
+                                            <DropdownMenuItem onClick={() => setTabView("artworks")}>
                                                 <FaPaintBrush />Artwork
                                             </DropdownMenuItem>
                                             <DropdownMenuItem onClick={() => setTabView("videos")}>
@@ -397,28 +397,28 @@ export default function GameInfo() {
                                 <UserCollection userGameData={userGameData} refreshPage={userGameDataRefresh} />
                             )}
 
-                            {gameDetails?.dlcs && tabView === "dlcs" && (
+                            {gameDetails && tabView === "dlcs" && (
                                 <DLCs gameDetails={gameDetails} smallScreenOnlyTitle={true} />
                             )}
 
-                            {gameDetails?.bundles && tabView === "bundles" && (
+                            {gameDetails && tabView === "bundles" && (
                                 <Bundles gameDetails={gameDetails} smallScreenOnlyTitle={true} />
                             )}
 
-                            {gameDetails?.expanded_games && tabView === "expanded-games" && (
+                            {gameDetails && tabView === "expanded-games" && (
                                 <ExpandedGames gameDetails={gameDetails} smallScreenOnlyTitle={true} />
                             )}
 
 
-                            {gameDetails?.screenshots && tabView === "screenshots" && (
+                            {gameDetails && tabView === "screenshots" && (
                                 <Screenshots gameDetails={gameDetails} smallScreenOnlyTitle={true} />
                             )}
 
-                            {gameDetails?.artworks && tabView === "artworks" && (
+                            {gameDetails && tabView === "artworks" && (
                                 <Artwork gameDetails={gameDetails} smallScreenOnlyTitle={true} />
                             )}
 
-                            {gameDetails?.videos && tabView === "videos" && (
+                            {gameDetails && tabView === "videos" && (
                                 <Videos gameDetails={gameDetails} smallScreenOnlyTitle={true} />
                             )}
                         </section>
