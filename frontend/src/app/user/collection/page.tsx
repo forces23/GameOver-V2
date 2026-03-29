@@ -132,7 +132,7 @@ export default function Page() {
                     </CardHeader>
                 </Card>
             ) : (
-                <div className="grid gap-4">
+                <div className="grid gap-2 md:gap-4">
                     {filteredCollection.map((game: GameSimple) => {
                         const ownedPlatforms = [...new Set(game.copies.map((copy) => copy.platform.name))];
                         const copyCount = game.copies.reduce((sum, copy) => sum + copy.copies, 0);
@@ -145,52 +145,57 @@ export default function Page() {
                             >
                                 <Card className="gap-0 overflow-hidden py-0 transition-colors hover:bg-accent/30">
                                     <div className="flex">
-                                        <div className="relative aspect-3/4 bg-black/50 w-36 md:w-40">
+                                        <div className="relative w-16 shrink-0 bg-black/50 md:w-40">
                                             <Image
                                                 src={game.cover_url}
                                                 alt={game.name}
                                                 fill
-                                                sizes="(max-width: 768px) 100vw, 160px"
-                                                className="object-fit"
+                                                sizes="(max-width: 768px) 64px, 160px"
+                                                className="object-cover"
                                             />
                                         </div>
 
-                                        <div className="flex flex-1 flex-col gap-4 p-5">
-                                            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                                        <div className="flex min-w-0 flex-1 flex-col gap-2 p-3 md:gap-4 md:p-5">
+                                            <div className="flex items-start justify-between gap-2 md:flex-row md:gap-3">
                                                 <div className="min-w-0 w-full">
                                                     <div className="flex items-start gap-2">
-                                                        <h2 className="font-semibold leading-tight w-full">{game.name}</h2>
+                                                        <p className="line-clamp-2 w-full text-sm font-semibold leading-tight md:text-lg lg:text-2xl">
+                                                            {game.name}
+                                                        </p>
                                                         {game.favorite ? (
-                                                            <FaStar className="mt-1 shrink-0" />
+                                                            <FaStar className="mt-0.5 hidden shrink-0 md:block" />
                                                         ) : (
-                                                            <FaRegStar className="mt-1 shrink-0 text-muted-foreground" />
+                                                            <FaRegStar className="mt-0.5 hidden shrink-0 text-muted-foreground md:block" />
                                                         )}
                                                     </div>
-                                                    <p className="mt-1 text-sm text-muted-foreground">
+                                                    <p className="mt-1 text-[11px] text-muted-foreground md:text-sm">
                                                         Released {formatUnixTime(game.first_release_date)}
                                                     </p>
                                                 </div>
 
-                                                <div className="flex flex-wrap gap-2 min-w-45 justify-end">
-                                                    <Badge variant="secondary">
+                                                <div className="flex shrink-0 items-center gap-1.5 md:min-w-45 md:flex-wrap md:justify-end md:gap-2">
+                                                    <Badge variant="secondary" className="px-2 py-0.5 text-[10px] md:px-2.5 md:py-1 md:text-xs">
                                                         {copyCount} cop{copyCount === 1 ? "y" : "ies"}
                                                     </Badge>
-                                                    <Badge variant="outline">
+                                                    <Badge variant="outline" className="px-2 py-0.5 text-[10px] md:px-2.5 md:py-1 md:text-xs">
                                                         {ownedPlatforms.length} platform{ownedPlatforms.length === 1 ? "" : "s"}
                                                     </Badge>
-                                                    <div onClick={(e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                        setEditingGame(game);
-                                                        setEditOpen(true)
-                                                    }}>
-                                                        <FaPencil className='hover:size-5' />
+                                                    <div
+                                                        className="flex h-7 w-7 items-center justify-center rounded-full border border-border/70 bg-background/80"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            setEditingGame(game);
+                                                            setEditOpen(true)
+                                                        }}
+                                                    >
+                                                        <FaPencil className='size-3.5 md:size-4' />
                                                     </div>
                                                 </div>
                                             </div>
 
                                             {game.genres.length > 0 && (
-                                                <div className="flex flex-wrap gap-2">
+                                                <div className="hidden flex-wrap gap-2 md:flex">
                                                     {game.genres.slice(0, 5).map((genre: Genre) => (
                                                         <Badge
                                                             key={`genre-${genre.id}`}
@@ -205,12 +210,26 @@ export default function Page() {
                                                 </div>
                                             )}
 
-                                            <div className="grid gap-3 md:grid-cols-[160px_1fr]">
+                                            <div className="rounded-lg bg-secondary/40 px-2.5 py-2 md:hidden">
+                                                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+                                                    {game.copies.map((copy, index) => (
+                                                        <Badge
+                                                            key={`${game.igdb_id}-${copy.platform.igdb_id}-${index}`}
+                                                            variant="secondary"
+                                                            className="shrink-0 px-2 py-0.5 text-[10px]"
+                                                        >
+                                                            {copy.platform.name} x{copy.copies}
+                                                        </Badge>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div className="hidden gap-3 md:grid md:grid-cols-[160px_1fr]">
                                                 <div className="rounded-lg bg-secondary/60 p-3">
                                                     <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
                                                         Owned On
                                                     </p>
-                                                    <p className="mt-2 text-sm font-medium">
+                                                    <p className="mt-2 text-xs md:text-sm font-medium">
                                                         {ownedPlatforms.join(", ")}
                                                     </p>
                                                 </div>
