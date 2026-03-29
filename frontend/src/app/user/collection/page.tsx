@@ -144,14 +144,14 @@ export default function Page() {
                                 className="block"
                             >
                                 <Card className="gap-0 overflow-hidden py-0 transition-colors hover:bg-accent/30">
-                                    <div className="flex flex-col md:flex-row">
-                                        <div className="relative h-52 w-full bg-black/50 md:h-auto md:w-36 lg:w-40">
+                                    <div className="flex">
+                                        <div className="relative aspect-3/4 bg-black/50 w-36 md:w-40">
                                             <Image
                                                 src={game.cover_url}
                                                 alt={game.name}
                                                 fill
                                                 sizes="(max-width: 768px) 100vw, 160px"
-                                                className="object-contain p-2"
+                                                className="object-fit"
                                             />
                                         </div>
 
@@ -159,7 +159,7 @@ export default function Page() {
                                             <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                                                 <div className="min-w-0 w-full">
                                                     <div className="flex items-start gap-2">
-                                                        <h2 className="text-xl font-semibold leading-tight w-full">{game.name}</h2>
+                                                        <h2 className="font-semibold leading-tight w-full">{game.name}</h2>
                                                         {game.favorite ? (
                                                             <FaStar className="mt-1 shrink-0" />
                                                         ) : (

@@ -25,10 +25,10 @@ export default function GamesCarousel({ title = "", games, moreUrl = "", moreAct
         <section className='w-full px-4'>
             {(title || moreActive) && (
                 <div className="mx-auto mb-4 flex w-full max-w-500 items-end justify-between gap-3 border-b border-border/60 pb-3">
-                    <div className="space-y-1">
+                    <div className="flex flex-col md:flex-row items-center gap-3 justify-start">
                         {title && (
                             <h4
-                                className="text-2xl font-semibold tracking-tight cursor-pointer"
+                                className="text-2xl font-semibold tracking-tight cursor-pointer w-full md:w-auto"
                                 onClick={() => { moreUrl && router.push(moreUrl) }}
                             >
                                 {title}
@@ -60,7 +60,7 @@ export default function GamesCarousel({ title = "", games, moreUrl = "", moreAct
                                     className="group block rounded-2xl"
                                     href={`/info/game-info?gameId=${game.id}`}
                                 >
-                                    <Card className="py-0 pb-2 overflow-hidden rounded-2xl border-border/60 bg-card/70 shadow-sm transition-all duration-300 group-hover:-translate-y-1  group-hover:shadow-xl">
+                                    <Card className="py-0 overflow-hidden rounded-2xl border-border/60 bg-card/70 shadow-sm transition-all duration-300 group-hover:-translate-y-1  group-hover:shadow-xl">
                                         <div className="relative aspect-3/4 overflow-hidden">
                                             <Image
                                                 src={game.cover?.image_id != undefined ? `${url_igdb_t_original}${game.cover?.image_id}.jpg` : missingImg}
@@ -69,21 +69,27 @@ export default function GamesCarousel({ title = "", games, moreUrl = "", moreAct
                                                 sizes="(max-width: 1024px) 50vw, 20vw"
                                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                                             />
-                                            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+                                            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/85 via-black/35 to-transparent">
+                                                <div className='w-full h-full flex flex-col justify-end px-2 pb-2 items-center'>
+                                                    <p className="line-clamp-2 text-sm font-medium text-foreground transition-colors group-hover:text-primary">
+                                                        {game.name}
+                                                    </p>
+                                                </div>
+                                            </div>
                                             {game.first_release_date && (
-                                                <Badge className="absolute left-2 top-2 rounded-full border-white/20 bg-black/55 text-[10px] text-white shadow-sm backdrop-blur-sm">
+                                                <Badge className="absolute right-2 top-2 rounded-full border-white/20 bg-black/55 text-[10px] text-white shadow-sm backdrop-blur-sm">
                                                     {new Date(game.first_release_date * 1000).getFullYear()}
                                                 </Badge>
                                             )}
                                         </div>
-                                        <div className='flex  flex-col justify-between gap-2 px-3'>
+                                        {/* <div className='flex  flex-col justify-between gap-2 px-3'>
                                             <p className="line-clamp-2 text-sm font-medium leading-snug text-foreground transition-colors group-hover:text-primary">
                                                 {game.name}
                                             </p>
                                             <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
                                                 View details
                                             </p>
-                                        </div>
+                                        </div> */}
                                     </Card>
                                 </Link>
                             </CarouselItem>

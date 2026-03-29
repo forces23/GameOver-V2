@@ -8,6 +8,7 @@ import { missingImg, url_igdb_t_original } from '@/lib/constants';
 import { Button } from '../ui/button';
 import { ArrowRight } from 'lucide-react';
 import { Badge } from '../ui/badge';
+import { GiGameConsole } from 'react-icons/gi';
 
 
 type ConsoleCarouselProps = {
@@ -20,8 +21,8 @@ export default function GamesCarousel({ title = "", consoles }: ConsoleCarouselP
     return (
         <section className='w-full px-4'>
             <div className="mx-auto mb-4 flex w-full max-w-500 items-end justify-between gap-3 border-b border-border/60 pb-3">
-                <div className="space-y-1">
-                    <h4 className="text-2xl font-semibold tracking-tight">{title}</h4>
+                <div className="flex flex-col md:flex-row items-center gap-3 justify-start">
+                    <h4 className="text-2xl font-semibold tracking-tight w-full md:w-auto">{title}</h4>
                     <p className="text-sm text-muted-foreground">
                         Browse major platforms and jump into their libraries.
                     </p>
@@ -40,33 +41,38 @@ export default function GamesCarousel({ title = "", consoles }: ConsoleCarouselP
                             <CarouselItem key={index} className="basis-1/4 pl-1 sm:basis-1/6 md:basis-1/8 lg:basis-1/10 cursor-pointer">
                                 <Link
                                     className="group block rounded-2xl"
-                                    // href={`/info/console-info?consoleId=${console.id}`}
                                     href={`/games?consoles=${console.id}&page=1&limit=50&sort=total_rating_count+desc`}
                                 >
                                     <Card className="py-0 overflow-hidden rounded-2xl border-border/60 bg-card/80 shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl">
                                         <div className="relative flex aspect-4/5 items-center justify-center overflow-hidden bg-gradient-to-br from-muted/50 via-card to-card px-3">
                                             <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/10 to-transparent" />
-                                            <Image
-                                                src={console.platform_logo?.image_id != undefined ? `${url_igdb_t_original}${console.platform_logo?.image_id}.jpg` : missingImg}
-                                                alt={`console-${console.slug}`}
-                                                fill
-                                                sizes="(max-width: 1024px) 50vw, 20vw"
-                                                className="object-contain px-3 transition-transform duration-500 group-hover:scale-105"
-                                            />
-                                            {console.platform_type?.name && (
+                                            {console.platform_logo?.image_id && console.platform_logo?.image_id !== undefined ? (
+                                                <Image
+                                                    src={console.platform_logo?.image_id != undefined ? `${url_igdb_t_original}${console.platform_logo?.image_id}.jpg` : missingImg}
+                                                    alt={`console-${console.slug}`}
+                                                    fill
+                                                    sizes="(max-width: 1024px) 50vw, 20vw"
+                                                    className="object-contain px-3 transition-transform duration-500 group-hover:scale-105"
+                                                />
+                                            ) : (
+                                                <div className='flex h-full items-center justify-center bg-muted text-muted-foreground rounded-md'>
+                                                    <GiGameConsole className="size-8" />
+                                                </div>
+                                            )}
+                                            {/* {console.platform_type?.name && (
                                                 <Badge className="absolute left-2 top-2 rounded-full border-white/20 bg-black/55 text-[10px] text-white shadow-sm backdrop-blur-sm">
                                                     {console.platform_type.name}
                                                 </Badge>
-                                            )}
+                                            )} */}
                                         </div>
-                                        <div className='flex  flex-col gap-2 px-3 pb-2'>
-                                            <p className="line-clamp-2 text-sm font-medium leading-snug text-foreground transition-colors group-hover:text-primary">
+                                        {/* <div className='flex  flex-col gap-2 px-3 pb-2'> */}
+                                        {/* <p className="line-clamp-2 text-sm font-medium leading-snug text-foreground transition-colors group-hover:text-primary">
                                                 {console.name}
-                                            </p>
-                                            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                                            </p> */}
+                                        {/* <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
                                                 Explore library
-                                            </p>
-                                        </div>
+                                            </p> */}
+                                        {/* </div> */}
                                     </Card>
                                 </Link>
                             </CarouselItem>
