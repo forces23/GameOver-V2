@@ -17,10 +17,10 @@ type ThemeProps = {
 export default function ThemeCarousel({ title, games, theme }: ThemeProps) {
     return (
         <section className='w-full px-4'>
-            <div className="mx-auto mb-4 flex w-full max-w-500 items-end justify-between gap-3 border-b border-border/60 pb-3">
+            <div className="mx-auto mb-2 flex w-full max-w-500 items-end justify-between gap-3 border-b border-border/60">
                 <div className="flex flex-col md:flex-row items-center gap-3 justify-start">
                     <h4 className="text-2xl font-semibold tracking-tight w-full md:w-auto">{title}</h4>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="hidden md:flex text-sm text-muted-foreground">
                         Explore games shaped by the {theme} theme and jump straight into details.
                     </p>
                 </div>

@@ -24,7 +24,7 @@ export default function GamesCarousel({ title = "", games, moreUrl = "", moreAct
     return (
         <section className='w-full px-4'>
             {(title || moreActive) && (
-                <div className="mx-auto mb-4 flex w-full max-w-500 items-end justify-between gap-3 border-b border-border/60 pb-3">
+                <div className="mx-auto mb-2 flex w-full max-w-500 items-end justify-between gap-3 border-b border-border/60">
                     <div className="flex flex-col md:flex-row items-center gap-3 justify-start">
                         {title && (
                             <h4
@@ -34,7 +34,7 @@ export default function GamesCarousel({ title = "", games, moreUrl = "", moreAct
                                 {title}
                             </h4>
                         )}
-                        <p className="text-sm text-muted-foreground">
+                        <p className="hidden md:flex text-sm text-muted-foreground">
                             Browse standout picks and jump straight into the details.
                         </p>
                     </div>
