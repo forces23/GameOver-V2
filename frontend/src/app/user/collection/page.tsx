@@ -15,7 +15,6 @@ import { FaPencil } from "react-icons/fa6";
 import CollectedGamesDetails from '@/components/info-pages/CollectedGamesDetails';
 import AnimatedLoading from '@/components/AnimatedLoading';
 
-
 function StatCard({
     label,
     value,
@@ -87,21 +86,16 @@ export default function Page() {
                         Browse the games you physically or digitally own, track where they live, and jump back into detailed copy information.
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-4 px-6 pb-6 md:grid-cols-3">
+                <CardContent className="grid gap-3 px-6 pb-6 grid-cols-2">
                     <StatCard
                         label="Games"
                         value={collection.length}
                         description="Total titles in your collection"
                     />
                     <StatCard
-                        label="Visible"
-                        value={filteredCollection.length}
-                        description="Results after your current search"
-                    />
-                    <StatCard
                         label="Favorites"
                         value={favoritesCount}
-                        description={`${totalOwnedCopies} copy${totalOwnedCopies === 1 ? "" : "ies"} logged overall`}
+                        description={`${totalOwnedCopies} cop${totalOwnedCopies === 1 ? "y" : "ies"} logged overall`}
                     />
                 </CardContent>
             </Card>
@@ -121,7 +115,7 @@ export default function Page() {
                     />
                 </CardContent>
             </Card>
-
+            
             {filteredCollection.length === 0 ? (
                 <Card className="border-dashed py-8">
                     <CardHeader className="text-center">
@@ -145,7 +139,7 @@ export default function Page() {
                             >
                                 <Card className="gap-0 overflow-hidden py-0 transition-colors hover:bg-accent/30">
                                     <div className="flex">
-                                        <div className="relative w-16 shrink-0 bg-black/50 md:w-40">
+                                        <div className="relative aspect-3/4 w-20 shrink-0 bg-black/50 md:w-40">
                                             <Image
                                                 src={game.cover_url}
                                                 alt={game.name}
